@@ -506,7 +506,7 @@ function speakRound(){
     <button class="btn-main" id="mic" style="font-size:20px;padding:22px">🎙 Tippen und antworten</button>
     <div id="fb"></div>
     <form id="dict" class="card" style="display:grid;gap:8px" autocomplete="off">
-      <label for="dictIn" class="small muted">Kommt nichts? Tipp hier ins Feld, dann auf das <b>🎙 unten rechts auf der Tastatur</b> und sprich.</label>
+      <label for="dictIn" id="dictLbl" class="small muted">Kommt nichts? Tipp hier ins Feld, dann auf das <b>🎙 unten rechts auf der Tastatur</b> und sprich.</label>
       <input class="answer" id="dictIn" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="go" placeholder="hier sprechen">
       <button class="btn-ghost">Prüfen</button>
     </form>
@@ -514,7 +514,8 @@ function speakRound(){
     $("x").onclick=()=>{speechSynthesis.cancel();home()};
     const fb=$("fb"), mic=$("mic");
     const next=()=>{speechSynthesis.cancel();i++;step()};
-    const finish=()=>{$("skip").hidden=true;$("dict").hidden=true;mic.disabled=false;mic.textContent="Weiter →"};
+    const finish=()=>{$("skip").hidden=true;$("dict").hidden=true;mic.hidden=false;mic.disabled=false;mic.textContent="Weiter →"};
+    mic.onclick=()=>{if(solved)next()};
     const reveal=intro=>{solved=true;
       fb.innerHTML=`<div class="fb bad"><div class="small">${intro}</div><div class="right">${esc(w.en)}</div></div>`;
       say(w.en,"en-GB"); finish()};
@@ -534,14 +535,21 @@ function speakRound(){
       } else reveal(`Ich habe „${esc(alts[0])}“ verstanden. Richtig wäre:`);
     };
     $("dict").onsubmit=e=>{e.preventDefault();const v=$("dictIn").value;$("dictIn").value="";judge([v])};
-    if(!SR){mic.hidden=true;return}
+    // home-screen apps on iPhone often hang in web speech recognition: use keyboard dictation there
+    const standalone=navigator.standalone===true||matchMedia("(display-mode: standalone)").matches;
+    const useField=()=>{mic.hidden=true;$("dictLbl").innerHTML="Tipp ins Feld, dann auf das <b>🎙 unten rechts auf der Tastatur</b> und sag das Wort auf Englisch.";$("dictIn").focus()};
+    if(!SR||standalone){useField();return}
     mic.onclick=()=>{
       if(solved) return next();
       speechSynthesis.cancel();
       let heard=[], got=false;
       const rec=new SR(); rec.lang="en-GB"; rec.interimResults=true; rec.continuous=false; rec.maxAlternatives=5;
       mic.disabled=true; mic.textContent="Ich höre zu … jetzt sprechen"; fb.innerHTML="";
+      let ended=false;
       const timer=setTimeout(()=>{try{rec.stop()}catch(e){}},6000);
+      // watchdog: if the phone never reports back, give up and switch to keyboard dictation
+      const dog=setTimeout(()=>{if(ended||solved)return;try{rec.abort()}catch(e){}
+        fb.innerHTML='<div class="fb bad small">Das Mikrofon antwortet auf diesem Handy nicht. Nimm das Feld: reintippen, dann 🎙 auf der Tastatur.</div>';useField()},9000);
       rec.onresult=e=>{
         heard=[];for(const r of e.results)for(const a of r)heard.push(a.transcript);
         if(heard.some(a=>check(w,a.replace(/[.,!?]/g,"")).r==="ok")){got=true;try{rec.abort()}catch(_){};judge(heard)}
@@ -549,7 +557,7 @@ function speakRound(){
       };
       rec.onerror=e=>{got=true;clearTimeout(timer);
         fb.innerHTML=`<div class="fb bad small">${e.error==="not-allowed"||e.error==="service-not-allowed"?"Das Mikrofon oder die Diktierfunktion ist nicht erlaubt. Nutze das Feld unten mit dem 🎙 der Tastatur.":e.error==="no-speech"?"Ich habe nichts gehört. Sprich etwas lauter, oder nutze das Feld unten.":"Das hat nicht geklappt. Nutze das Feld unten mit dem 🎙 der Tastatur."}</div>`};
-      rec.onend=()=>{clearTimeout(timer);
+      rec.onend=()=>{ended=true;clearTimeout(timer);clearTimeout(dog);
         if(!got){ if(heard.length) judge(heard);
           else fb.innerHTML='<div class="fb bad small">Ich habe nichts mitbekommen. Nutze das Feld unten: reintippen, dann 🎙 auf der Tastatur.</div>'}
         if(!solved){mic.disabled=false;mic.textContent="🎙 Nochmal antworten"}};
