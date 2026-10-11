@@ -1,0 +1,497 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Vokabel-Akte">
+<style>[hidden]{display:none!important}body{margin:0}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
+</head>
+<body>
+<title>Konrads Vokabel-Akte</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Special+Elite&display=swap">
+<style>
+/* Layout: one narrow column like a police case file on a phone; highlighter labels from the textbook, a red stamp for solved cases */
+:root{
+  --bg:#EDF0F7; --card:#FFFFFF; --ink:#1B2140; --muted:#5B6385; --line:#D5DAE8;
+  --blue:#2F45A8; --blue-soft:#E3E8FA; --hi:#FFD23F; --hi-ink:#1B2140;
+  --ok:#1F8A5B; --ok-soft:#DDF3E8; --bad:#C8402F; --bad-soft:#FBE3DF;
+  --f-display:"Special Elite","Courier New",ui-monospace,monospace;
+  --f-body:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12162B; --card:#1C2242; --ink:#E9ECF7; --muted:#9AA3C7; --line:#2D3561;
+  --blue:#8EA2FF; --blue-soft:#253066; --hi:#FFD23F; --hi-ink:#1B2140;
+  --ok:#4CC38A; --ok-soft:#163A2B; --bad:#FF7A66; --bad-soft:#4A221C; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12162B; --card:#1C2242; --ink:#E9ECF7; --muted:#9AA3C7; --line:#2D3561;
+  --blue:#8EA2FF; --blue-soft:#253066; --hi:#FFD23F; --hi-ink:#1B2140;
+  --ok:#4CC38A; --ok-soft:#163A2B; --bad:#FF7A66; --bad-soft:#4A221C; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.45;padding:16px;padding-block:16px 40px}
+.wrap{max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+h1,h2,h3{margin:0;text-wrap:balance}
+.eyebrow{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.display{font-family:var(--f-display);font-weight:400}
+.mark{background:var(--hi);color:var(--hi-ink);padding:.05em .4em;border-radius:6px;display:inline-block;transform:rotate(-1.5deg)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px}
+.muted{color:var(--muted)}
+button{font:inherit;cursor:pointer;border:0;border-radius:12px;padding:14px 18px;font-weight:700;color:inherit;background:var(--blue-soft)}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--hi);outline-offset:2px}
+.btn-main{background:var(--blue);color:var(--card);font-size:18px;width:100%}
+.btn-ghost{background:transparent;border:1px solid var(--line)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.row > *{min-width:0}
+.tnum{font-variant-numeric:tabular-nums}
+
+/* header */
+.top{display:flex;justify-content:space-between;align-items:flex-end;gap:12px}
+.top h1{font-family:var(--f-display);font-size:30px;line-height:1.1}
+.unit{font-size:13px;color:var(--muted)}
+
+/* progress */
+.meter{height:14px;border-radius:99px;background:var(--line);overflow:hidden;display:flex}
+.meter i{display:block;height:100%}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+.big{font-family:var(--f-display);font-size:44px;line-height:1}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat{background:var(--bg);border-radius:12px;padding:10px 12px}
+.stat b{display:block;font-size:22px}
+.stat span{font-size:12px;color:var(--muted)}
+
+/* level 2 */
+.lock{display:flex;gap:14px;align-items:center}
+.lock .pad{width:46px;height:46px;flex:none;border-radius:12px;display:grid;place-items:center;background:var(--bg);font-family:var(--f-display);font-size:22px}
+
+/* word list */
+details summary{cursor:pointer;font-weight:700;list-style:none}
+details summary::-webkit-details-marker{display:none}
+.words{display:grid;gap:6px;margin-top:12px}
+.w{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:15px}
+.w:last-child{border:0}
+.w .de{color:var(--muted);text-align:right}
+.boxes{display:inline-flex;gap:3px;margin-right:8px;vertical-align:1px}
+.boxes i{width:8px;height:8px;border-radius:2px;background:var(--line)}
+.boxes i.on{background:var(--ok)}
+
+/* quiz */
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.qbar{flex:1;height:8px;border-radius:99px;background:var(--line);overflow:hidden}
+.qbar i{display:block;height:100%;background:var(--blue);transition:width .3s}
+.prompt{position:relative;padding:26px 18px 22px;text-align:center}
+.prompt .de-word{font-size:28px;font-weight:700;margin:8px 0 2px;text-wrap:balance}
+.prompt .hint{margin-top:12px;font-size:15px;color:var(--muted);font-style:italic}
+.answer{width:100%;font:inherit;font-size:22px;padding:14px 16px;border-radius:12px;border:2px solid var(--line);background:var(--card);color:var(--ink);text-align:center}
+.answer.ok{border-color:var(--ok);background:var(--ok-soft)}
+.answer.bad{border-color:var(--bad);background:var(--bad-soft)}
+.fb{border-radius:12px;padding:14px 16px;font-size:16px}
+.fb.ok{background:var(--ok-soft)}
+.fb.bad{background:var(--bad-soft)}
+.fb .right{font-size:22px;font-weight:700;letter-spacing:.02em}
+.miss{color:var(--bad);text-decoration:underline;text-decoration-thickness:3px}
+.stamp{position:absolute;right:12px;top:10px;font-family:var(--f-display);color:var(--bad);border:3px solid var(--bad);border-radius:8px;padding:2px 10px;font-size:20px;transform:rotate(12deg) scale(1.6);opacity:0;pointer-events:none}
+.stamp.show{animation:stamp .35s ease-out forwards}
+@keyframes stamp{to{transform:rotate(12deg) scale(1);opacity:.9}}
+@media (prefers-reduced-motion:reduce){.stamp.show{animation:none;transform:rotate(12deg);opacity:.9}.qbar i{transition:none}}
+
+/* result */
+.result{text-align:center;display:flex;flex-direction:column;gap:14px;align-items:center}
+.result .score{font-family:var(--f-display);font-size:56px;line-height:1}
+.chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.chip{font-size:14px;padding:4px 10px;border-radius:99px;background:var(--bg);border:1px solid var(--line)}
+.chip.up{border-color:var(--ok);color:var(--ok)}
+
+/* history */
+.hist{display:flex;align-items:flex-end;gap:4px;height:70px;margin-top:12px}
+.hist .b{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:3px;height:100%;min-width:0}
+.hist .b i{display:block;width:100%;max-width:22px;border-radius:4px 4px 0 0;background:var(--blue)}
+.hist .b span{font-size:10px;color:var(--muted)}
+.log{font-size:14px;margin-top:10px;display:grid;gap:4px}
+.log div{display:flex;justify-content:space-between;gap:10px;color:var(--muted)}
+
+textarea.para{width:100%;min-height:110px;font:inherit;font-size:18px;padding:12px 14px;border-radius:12px;border:2px solid var(--line);background:var(--card);color:var(--ink);resize:vertical}
+.checks{display:grid;gap:6px;font-size:15px}
+.checks div::before{content:"○ ";color:var(--muted)}
+.checks div.y::before{content:"✓ ";color:var(--ok);font-weight:700}
+.checks div.n::before{content:"✗ ";color:var(--bad);font-weight:700}
+.starters{display:flex;flex-wrap:wrap;gap:6px}
+.starters button{padding:6px 10px;font-size:14px;font-weight:400;border-radius:99px}
+.model{border-left:4px solid var(--hi);padding:4px 0 4px 12px;font-style:italic}
+.confirm{background:var(--bad-soft);border-radius:12px;padding:12px}
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:5}
+.small{font-size:14px}
+</style>
+
+<canvas id="confetti"></canvas>
+<div class="wrap" id="app"></div>
+
+<script>
+const WORDS = [
+ // Word File: Crime
+ {en:"criminal",de:"Kriminelle/r",ex:"The police caught the criminal after a long chase.",def:"a person who does something that is against the law"},
+ {en:"thief",de:"Dieb/Diebin",ex:"The thief stole my bike from the school yard.",def:"a person who takes things that do not belong to him or her"},
+ {en:"victim",de:"Opfer",ex:"The victim of the scam lost a lot of money.",def:"a person who is hurt or harmed by a crime"},
+ {en:"to commit",de:"begehen (ein Verbrechen)",ex:"She studies how AI is used to commit crimes.",def:"to do something bad or illegal, for example a crime"},
+ {en:"to arrest",de:"verhaften, festnehmen",ex:"The police arrested the man at the airport.",def:"when the police take a person away because they think the person did a crime"},
+ {en:"to blackmail",de:"erpressen",ex:"He tried to blackmail her with secret photos.",def:"to say you will tell a person's secret if they don't give you money"},
+ {en:"scam",de:"Betrug, Schwindel",ex:"The email about the free phone was a scam.",def:"a dishonest trick to get people's money"},
+ {en:"personal data",de:"persönliche Daten",ex:"Never share your personal data with strangers online.",def:"information about you, like your name, your address or your birthday"},
+ {en:"fake",de:"gefälscht, unecht",ex:"This bag looks expensive, but it is fake.",def:"not real, but made to look real"},
+ // MORE Words and Phrases
+ {en:"AI",alt:["artificial intelligence","ai (artificial intelligence)"],de:"KI (künstliche Intelligenz)",ex:"She studies how AI is used to commit crimes.",def:"a computer program that can think and learn a bit like a human"},
+ {en:"data",de:"Daten",ex:"We regularly warn people about phishing mails and data theft.",def:"facts and information, often stored on a computer"},
+ {en:"in recent years",de:"in den letzten Jahren",ex:"In recent years, cyber scams have increased.",def:"during the last few years until now"},
+ {en:"to increase",de:"ansteigen, zunehmen",ex:"As technology gets better, cybercrime is increasing.",def:"to become bigger or more"},
+ {en:"particular",de:"bestimmt; speziell; besonders",ex:"We are looking for a person who was in a particular area of town on a particular day.",def:"one special thing and not any other"},
+ {en:"regularly",de:"regelmäßig",ex:"We regularly warn people about phishing attacks.",def:"again and again, often at the same times"},
+ // Wortliste
+ {en:"to break into",de:"einbrechen",ex:"Thieves break into houses and steal valuable things.",def:"to get into a building in an illegal way, for example through a window, to steal something"},
+ {en:"to confirm",de:"bestätigen",ex:"The police can confirm what I've told you.",def:"to say that something is really true"},
+ {en:"jewellery",near:["jewelry"],de:"Schmuck",ex:"All my money, all my jewellery is gone.",def:"things like rings, necklaces and earrings that people wear"},
+ {en:"suspicious",de:"verdächtig",ex:"The police didn't wear a uniform because they didn't want the criminals to become suspicious.",def:"when you think that someone did something wrong or is not honest"},
+ {en:"to confess",de:"gestehen, beichten",ex:"We arrested the thief but she didn't confess.",def:"to say that you did something wrong"},
+ {en:"purpose",de:"Absicht, Zweck, Ziel",ex:"Her main purpose in life is to help others.",def:"the reason why you do something"},
+ {en:"account",de:"Konto",ex:"Somebody hacked into my Facebook account.",def:"your own personal place on a website or at a bank, you often need a password for it"},
+ {en:"common",de:"häufig; gewöhnlich",ex:"One of the most common passwords people use is Password.",def:"something you find or see very often"},
+ {en:"to access",de:"einsteigen; zugreifen",ex:"A hacker needs your password to access your personal accounts.",def:"to get into something, like a computer or a website"},
+ {en:"to consist of",de:"sich aus etw. zusammensetzen",ex:"Most websites ask for a password that consists of eight characters.",def:"to be made of different parts"},
+ {en:"invisible",de:"unsichtbar",ex:"Cybercrimes are often invisible. Not many people can see them.",def:"something you cannot see"},
+ {en:"to keep in contact",de:"in Kontakt bleiben",ex:"A lot of people regularly use social media to keep in contact with friends.",def:"to still talk or write to people, even if you don't see them often"},
+ {en:"weapon",de:"Waffe",ex:"A hacker's weapon is the computer.",def:"a thing like a gun or a knife that people use to hurt others"},
+ {en:"witness",de:"Zeuge/Zeugin",ex:"There are often no witnesses to cybercrimes.",def:"a person who sees a crime or an accident happen"},
+ {en:"advantage",de:"Vorteil",ex:"AI has many advantages and it can help to solve crimes.",def:"something good that helps you"},
+ {en:"to look into",de:"nachforschen, ermitteln",ex:"The police said that they would look into the cybercrime case.",def:"to try to find out the facts about something"},
+ {en:"police department",de:"Polizeibehörde",ex:"The police department we work with uses AI to find out where crimes happened.",def:"the office or organisation of the police in a town or city"},
+ {en:"to predict",de:"voraussagen",ex:"AI can predict what criminals may do in the future.",def:"to say what will happen in the future"},
+ {en:"to reduce",de:"reduzieren, verringern",ex:"They are working together to reduce cybercrime incidents.",def:"to make something smaller or less"},
+ {en:"violence",de:"Gewalt",ex:"The police were able to reduce gun violence incidents by 47%.",def:"when people hurt other people with their body or with weapons"},
+ {en:"ID",de:"Ausweis",ex:"He used a fake ID to get into the club.",def:"a card with your name and photo that shows who you are"},
+ {en:"pattern",de:"Muster",ex:"The story follows a certain pattern.",def:"something that happens again and again in the same way"},
+ {en:"tiring",de:"ermüdend, anstrengend",ex:"It had been a tiring day, and he could finally sit down.",def:"something that makes you feel tired"},
+ {en:"imagination",de:"Vorstellungskraft, Einbildung",ex:"Use your imagination to write a story.",def:"the ability to make pictures and ideas in your head"},
+ {en:"complaint",de:"Beschwerde",ex:"She went back to the shop to make a complaint.",def:"when you say that you are not happy with something, for example in a shop"},
+ {en:"misunderstanding",de:"Missverständnis",ex:"I'm sorry for the misunderstanding. Here are your new headphones.",def:"when two people understand something in different ways"},
+ {en:"receipt",de:"Quittung, Kassenbon",ex:"Sorry, I can't take these back without a receipt.",def:"a piece of paper from a shop that shows what you paid"},
+ {en:"to regret",de:"bereuen",ex:"That man is going to regret not taking me seriously.",def:"to feel sorry or sad about something you did"}
+];
+const MASTER = 2, ROUND = 10, KEY = "konrad-vokabel-akte-v1";
+
+/* ---------- state ---------- */
+function freshState(){return {w:{},hist:[],paraDone:0,guessOk:0}}
+let S = freshState();
+try{const raw=localStorage.getItem(KEY); if(raw) S=Object.assign(freshState(),JSON.parse(raw));}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function ws(en){return S.w[en]||(S.w[en]={box:0,ok:0,bad:0})}
+const today=()=>new Date().toISOString().slice(0,10);
+const masteredCount=()=>WORDS.filter(w=>ws(w.en).box>=MASTER).length;
+const unlocked=()=>masteredCount()===WORDS.length;
+
+/* ---------- text helpers ---------- */
+const norm=s=>s.toLowerCase().replace(/[’`´]/g,"'").replace(/\s+/g," ").replace(/[.!?]+$/,"").trim();
+const noTo=s=>s.replace(/^to /,"");
+function lev(a,b){const d=[...Array(b.length+1).keys()];for(let i=1;i<=a.length;i++){let p=d[0];d[0]=i;for(let j=1;j<=b.length;j++){const t=d[j];d[j]=Math.min(d[j]+1,d[j-1]+1,p+(a[i-1]===b[j-1]?0:1));p=t}}return d[b.length]}
+function check(w,input){
+  const a=norm(input), targets=[w.en,...(w.alt||[])].map(norm);
+  if(!a) return {r:"empty"};
+  if(targets.includes(a)) return {r:"ok"};
+  if(targets.some(t=>t.startsWith("to ")&&noTo(t)===a)) return {r:"ok",note:"Merk dir das „to“ davor: "+w.en};
+  if((w.near||[]).map(norm).includes(a)) return {r:"near",note:"Das ist amerikanisch. In deinem Buch steht die britische Schreibweise."};
+  const dist=Math.min(...targets.map(t=>Math.min(lev(a,t),lev(a,noTo(t)))));
+  if(dist<=2 && norm(w.en).length>3) return {r:"near"};
+  return {r:"bad"};
+}
+// mark the letters of the right answer that the attempt missed (LCS)
+function diffHTML(right,attempt){
+  const a=right, b=norm(attempt), A=a.toLowerCase();
+  const L=[...Array(A.length+1)].map(()=>Array(b.length+1).fill(0));
+  for(let i=A.length-1;i>=0;i--)for(let j=b.length-1;j>=0;j--)L[i][j]=A[i]===b[j]?L[i+1][j+1]+1:Math.max(L[i+1][j],L[i][j+1]);
+  let i=0,j=0,out="";
+  while(i<A.length){ if(j<b.length&&A[i]===b[j]){out+=esc(a[i]);i++;j++} else if(j<b.length&&L[i][j+1]>=L[i+1][j]){j++} else {out+='<span class="miss">'+esc(a[i])+'</span>';i++} }
+  return out;
+}
+function gap(w){
+  const core=noTo(w.en).replace(/\s*\(.*\)/,""); const parts=core.split(" ");
+  const first=parts[0].replace(/e$/,"").replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
+  const re=new RegExp("\\b"+first+"\\w*"+(parts.length>1?"\\s+"+parts.slice(1).join("\\s+"):"")+"\\b","i");
+  return re.test(w.ex)? w.ex.replace(re,"_____") : null;
+}
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const $=id=>document.getElementById(id);
+const app=$("app");
+
+/* ---------- streak ---------- */
+function streak(){
+  const days=new Set(S.hist.map(h=>h.d)); let n=0; const d=new Date();
+  if(!days.has(today())) d.setDate(d.getDate()-1);
+  while(days.has(d.toISOString().slice(0,10))){n++;d.setDate(d.getDate()-1)}
+  return n;
+}
+
+/* ---------- home ---------- */
+function home(){
+  const m=masteredCount(), counts=[0,0,0];
+  WORDS.forEach(w=>counts[Math.min(ws(w.en).box,MASTER)]++);
+  const tot=WORDS.length, asked=S.hist.filter(h=>h.t==="v").reduce((s,h)=>s+h.n,0), okk=S.hist.filter(h=>h.t==="v").reduce((s,h)=>s+h.ok,0);
+  const rate=asked?Math.round(okk/asked*100)+" %":"–";
+  const left=tot-m;
+  app.innerHTML=`
+  <header class="top">
+    <div><div class="eyebrow">Unit 2 · Word File</div><h1>Konrads <span class="mark">Vokabel-Akte</span></h1></div>
+    <div class="unit display">Crime</div>
+  </header>
+
+  <section class="card" style="display:grid;gap:14px">
+    <div class="row" style="justify-content:space-between;align-items:flex-end">
+      <div><div class="eyebrow">Fälle gelöst</div><div class="big tnum">${m}<span class="muted" style="font-size:24px"> / ${tot}</span></div></div>
+      <div class="muted small" style="text-align:right">Ein Wort sitzt, wenn du es<br>${MASTER}× hintereinander richtig schreibst.</div>
+    </div>
+    <div class="meter" aria-label="Fortschritt">
+      <i style="width:${counts[2]/tot*100}%;background:var(--ok)"></i>
+      <i style="width:${counts[1]/tot*100}%;background:var(--hi)"></i>
+    </div>
+    <div class="legend">
+      <span><i class="dot" style="background:var(--ok)"></i>sitzt ${counts[2]}</span>
+      <span><i class="dot" style="background:var(--hi)"></i>1× richtig ${counts[1]}</span>
+      <span><i class="dot" style="background:var(--line)"></i>neu ${counts[0]}</span>
+    </div>
+    <div class="stats tnum">
+      <div class="stat"><b>${streak()}</b><span>Tage in Folge</span></div>
+      <div class="stat"><b>${S.hist.length}</b><span>Runden gespielt</span></div>
+      <div class="stat"><b>${rate}</b><span>beim 1. Versuch</span></div>
+    </div>
+    <button class="btn-main" id="go">${m===tot?"Wiederholungs-Verhör (10 Wörter)":"Verhör starten · 10 Wörter"}</button>
+  </section>
+
+  <section class="card lock">
+    <div class="pad">${unlocked()?"✓":"2"}</div>
+    <div style="flex:1;min-width:0">
+      <div class="eyebrow">Level 2</div>
+      <h3>Umschreiben auf Englisch</h3>
+      <div class="muted small">${unlocked()?"Freigeschaltet! Erklär Wörter mit eigenen Worten, so wie im Test.":`Wird frei, wenn alle Wörter sitzen. Noch ${left} ${left===1?"Wort":"Wörter"}.`}</div>
+    </div>
+    ${unlocked()?'<button id="lvl2">Los</button>':""}
+  </section>
+
+  <section class="card">
+    <div class="eyebrow">Lernverlauf</div>
+    ${histHTML()}
+  </section>
+
+  <details class="card">
+    <summary>Alle ${tot} Wörter ansehen</summary>
+    ${GROUPS.map(g=>`<div class="eyebrow" style="margin-top:18px">${g.name}</div><div class="words">${WORDS.slice(g.from,g.to).map(wordRow).join("")}</div>`).join("")}
+    <div class="eyebrow" style="margin-top:26px;padding-top:14px;border-top:2px solid var(--line)">Alle Wörter nach ABC</div>
+    <div class="words">${[...WORDS].sort((a,b)=>noTo(a.en).localeCompare(noTo(b.en),"en",{sensitivity:"base"})).map(wordRow).join("")}</div>
+  </details>
+
+  <section class="card" style="display:grid;gap:10px">
+    <div class="eyebrow">Für Mama</div>
+    <div class="small muted">Kopiert eine kurze Zusammenfassung, die du per WhatsApp schicken kannst.</div>
+    <div class="row"><button id="copy">Bericht kopieren</button><button class="btn-ghost" id="reset">Neu anfangen</button></div>
+    <pre id="report" class="small" style="white-space:pre-wrap;margin:0" hidden></pre>
+    <div id="confirmBox" hidden></div>
+  </section>`;
+  $("go").onclick=startRound;
+  if($("lvl2")) $("lvl2").onclick=()=>paraHome();
+  $("copy").onclick=()=>{const t=report();const p=$("report");p.textContent=t;p.hidden=false;
+    if(navigator.clipboard) navigator.clipboard.writeText(t).then(()=>$("copy").textContent="Kopiert ✓").catch(()=>selectText(p)); else selectText(p)};
+  $("reset").onclick=()=>{const c=$("confirmBox");c.hidden=false;c.innerHTML=`<div class="confirm"><div style="margin-bottom:10px">Wirklich alles löschen? Der ganze Fortschritt ist dann weg.</div><div class="row"><button id="yes" style="background:var(--bad);color:var(--card)">Ja, löschen</button><button id="no" class="btn-ghost">Abbrechen</button></div></div>`;
+    $("yes").onclick=()=>{S=freshState();save();home()}; $("no").onclick=()=>{c.hidden=true}};
+}
+// order as on the photos: photo 1 = list, photo 2 = Word File + MORE Words and Phrases
+const GROUPS=[{name:"Bild 1 · Wortliste",from:15,to:43},{name:"Bild 2 · Word File Crime",from:0,to:9},{name:"Bild 2 · More Words and Phrases",from:9,to:15}];
+function wordRow(w){const b=ws(w.en).box;return `<div class="w"><span><span class="boxes">${[1,2].map(k=>`<i class="${b>=k?"on":""}"></i>`).join("")}</span>${esc(w.en)}</span><span class="de">${esc(w.de)}</span></div>`}
+function selectText(el){const r=document.createRange();r.selectNodeContents(el);const s=getSelection();s.removeAllRanges();s.addRange(r)}
+function histHTML(){
+  if(!S.hist.length) return `<p class="muted small" style="margin:8px 0 0">Noch keine Runde gespielt. Nach jeder Runde siehst du hier, wie viele Wörter du geschafft hast.</p>`;
+  const days=[];for(let i=13;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);days.push(d.toISOString().slice(0,10))}
+  const per=days.map(d=>S.hist.filter(h=>h.d===d).reduce((s,h)=>s+h.n,0)); const max=Math.max(...per,1);
+  const bars=days.map((d,i)=>`<div class="b" title="${d}: ${per[i]} Wörter"><i style="height:${per[i]/max*52}px;${per[i]?"":"background:var(--line);height:2px"}"></i><span>${+d.slice(8)}</span></div>`).join("");
+  const last=S.hist.slice(-5).reverse().map(h=>`<div><span>${fmt(h.d)} · ${h.t==="v"?"Vokabeln":h.t==="g"?"Wort raten":"Umschreiben"}</span><span class="tnum">${h.t==="p"?h.n+" geschrieben":h.ok+" / "+h.n+" richtig"}</span></div>`).join("");
+  return `<div class="small muted" style="margin-top:6px">Geübte Wörter pro Tag, letzte 14 Tage</div><div class="hist">${bars}</div><div class="log">${last}</div>`;
+}
+const fmt=d=>{const [y,m,dd]=d.split("-");return `${+dd}.${+m}.`};
+function report(){
+  const m=masteredCount(), v=S.hist.filter(h=>h.t==="v"), asked=v.reduce((s,h)=>s+h.n,0), ok=v.reduce((s,h)=>s+h.ok,0);
+  const hard=WORDS.filter(w=>ws(w.en).bad>0).sort((a,b)=>ws(b.en).bad-ws(a.en).bad).slice(0,5).map(w=>w.en);
+  const days=new Set(S.hist.map(h=>h.d)).size;
+  return `Konrad · Englisch Unit 2 (Crime)\nStand ${fmt(today())}${today().slice(0,4)}: ${m} von ${WORDS.length} Wörtern sitzen.\nGeübt an ${days} ${days===1?"Tag":"Tagen"}, ${S.hist.length} Runden, ${asked?Math.round(ok/asked*100):0} % beim 1. Versuch richtig.`
+   +(hard.length?`\nNoch knifflig: ${hard.join(", ")}`:"")
+   +(unlocked()?`\nLevel 2: ${S.paraDone} Umschreibungen geschrieben, ${S.guessOk} Wörter aus Erklärungen erraten.`:"");
+}
+
+/* ---------- vocabulary round ---------- */
+let R=null;
+function pickRound(){
+  const open=WORDS.filter(w=>ws(w.en).box<MASTER), done=WORDS.filter(w=>ws(w.en).box>=MASTER);
+  // started words first (lowest box), then new ones, then 1–2 review words
+  const started=shuffle(open.filter(w=>ws(w.en).box>0)).sort((a,b)=>ws(a.en).box-ws(b.en).box);
+  const fresh=shuffle(open.filter(w=>ws(w.en).box===0));
+  let pick=[...started.slice(0,6),...fresh].slice(0,ROUND-Math.min(2,done.length));
+  if(pick.length<ROUND-2) pick=[...started,...fresh].slice(0,ROUND-2);
+  pick=[...pick,...shuffle(done).slice(0,ROUND-pick.length)];
+  return shuffle(pick.slice(0,ROUND));
+}
+function startRound(){
+  const q=pickRound(); R={q, i:0, total:q.length, first:new Map(), up:[], hinted:new Set(), retype:false, wrongs:0};
+  ask();
+}
+function ask(){
+  if(R.i>=R.q.length) return finish();
+  const w=R.q[R.i], done=Math.min(R.first.size,R.total);
+  const g=gap(w);
+  app.innerHTML=`
+  <div class="qhead"><button class="btn-ghost" id="quit" aria-label="Runde beenden">✕</button><div class="qbar"><i style="width:${done/R.total*100}%"></i></div><span class="tnum muted small">${done}/${R.total}</span></div>
+  <section class="card prompt">
+    <span class="stamp" id="stamp">GELÖST</span>
+    <div class="eyebrow">Wie heißt das auf Englisch?</div>
+    <div class="de-word">${esc(w.de)}</div>
+    <div class="hint" id="hint" hidden></div>
+  </section>
+  <form id="f" style="display:grid;gap:12px" autocomplete="off">
+    <input class="answer" id="ans" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="go" placeholder="${R.retype?"Schreib es richtig ab":"auf Englisch tippen"}">
+    <div id="fb"></div>
+    <div class="row" id="btns"><button class="btn-main" style="flex:1" id="send">Prüfen</button>${R.retype?"":'<button type="button" id="tip" class="btn-ghost">Tipp</button>'}</div>
+  </form>`;
+  const inp=$("ans"); inp.focus();
+  $("quit").onclick=()=>{ if(R.first.size) finish(); else home() };
+  if($("tip")) $("tip").onclick=()=>{R.hinted.add(w.en);const h=$("hint");h.hidden=false;
+    h.innerHTML=(g?"„"+esc(g)+"“<br>":"")+"Fängt an mit <b>"+esc(noTo(w.en)[0])+"</b>, "+noTo(w.en).length+" Zeichen";
+    const t=$("tip");t.textContent="Lösung zeigen";t.onclick=()=>evaluate(w,inp.value,true);inp.focus()};
+  $("f").onsubmit=e=>{e.preventDefault(); evaluate(w,inp.value)};
+}
+function evaluate(w,val,giveUp){
+  const res=giveUp?{r:"giveup"}:check(w,val), inp=$("ans"), fb=$("fb");
+  if(res.r==="empty"){inp.focus();return}
+  if(R.retype){ // must type the right answer once after a mistake
+    if(res.r==="ok"){R.retype=false;R.i++;ask()} else {inp.classList.add("bad");inp.value="";fb.innerHTML=`<div class="fb bad">Noch nicht ganz. Richtig: <b>${esc(w.en)}</b></div>`;inp.focus()}
+    return;
+  }
+  const firstTry=!R.first.has(w.en); const s=ws(w.en);
+  if(res.r==="ok"){
+    if(firstTry){
+      R.first.set(w.en,true); s.ok++;
+      if(!R.hinted.has(w.en)){const before=s.box;s.box=Math.min(MASTER,s.box+1); if(s.box===MASTER&&before<MASTER) R.up.push(w.en)}
+    }
+    save();
+    inp.classList.add("ok"); inp.readOnly=true;
+    $("stamp").classList.add("show");
+    fb.innerHTML=`<div class="fb ok"><b>${pick(["Richtig!","Volltreffer!","Fall gelöst!","Sauber!","Genau so!"])}</b>${res.note?`<div class="small" style="margin-top:4px">${esc(res.note)}</div>`:""}${R.hinted.has(w.en)&&firstTry?'<div class="small" style="margin-top:4px">Mit Tipp zählt es diesmal nicht für „sitzt“.</div>':""}</div>`;
+    $("btns").innerHTML='<button class="btn-main" style="flex:1" id="next">Weiter</button>';
+    const n=$("next"); n.focus(); n.onclick=e=>{e.preventDefault();R.i++;ask()};
+  } else {
+    if(firstTry){R.first.set(w.en,false); s.bad++; s.box=s.box>=MASTER?1:0; save()}
+    R.wrongs++;
+    R.q.push(w); // comes back at the end of the round
+    inp.classList.add("bad");
+    fb.innerHTML=`<div class="fb bad"><div class="small">${res.r==="near"?"Knapp daneben!":res.r==="giveup"?"Kein Problem, jetzt weißt du es.":"Leider falsch."} So schreibt man es:</div><div class="right">${res.r==="giveup"?esc(w.en):diffHTML(w.en,val)}</div>${res.note?`<div class="small" style="margin-top:4px">${esc(res.note)}</div>`:""}<div class="small muted" style="margin-top:6px">${esc(w.ex)}</div></div>`;
+    $("btns").innerHTML='<button class="btn-main" style="flex:1" id="next">Einmal richtig abschreiben</button>';
+    const n=$("next"); n.focus(); n.onclick=e=>{e.preventDefault();R.retype=true;R.q.splice(R.i+1,0);ask()};
+  }
+}
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+function finish(){
+  const n=R.first.size, ok=[...R.first.values()].filter(Boolean).length;
+  if(n){S.hist.push({d:today(),t:"v",n,ok,m:masteredCount()});save()}
+  const m=masteredCount(), pct=n?ok/n:0;
+  const msg=unlocked()&&R.up.length?"Alle Wörter sitzen. Level 2 ist frei!":pct===1?"Perfekte Runde!":pct>=.7?"Starke Runde!":pct>=.4?"Gut dran geblieben!":"Jede Runde zählt. Gleich nochmal?";
+  app.innerHTML=`
+  <section class="card result">
+    <div class="eyebrow">Runde abgeschlossen</div>
+    <div class="score tnum">${ok}/${n}</div>
+    <div class="muted">beim ersten Versuch richtig</div>
+    <h2 class="display" style="font-size:24px">${msg}</h2>
+    ${R.up.length?`<div><div class="small muted" style="margin-bottom:6px">Neu gelöste Fälle</div><div class="chips">${R.up.map(e=>`<span class="chip up">✓ ${esc(e)}</span>`).join("")}</div></div>`:""}
+    <div class="small">Jetzt sitzen <b class="tnum">${m} von ${WORDS.length}</b> Wörtern.</div>
+    <div class="row" style="width:100%"><button class="btn-main" id="again" style="flex:1">Noch eine Runde</button><button id="back" class="btn-ghost">Übersicht</button></div>
+  </section>`;
+  $("again").onclick=startRound; $("back").onclick=home;
+  if(pct>=.7||R.up.length) confetti();
+}
+
+/* ---------- level 2: describe words ---------- */
+function paraHome(){
+  app.innerHTML=`
+  <div class="qhead"><button class="btn-ghost" id="back">← Übersicht</button></div>
+  <header><div class="eyebrow">Level 2</div><h1 class="display" style="font-size:28px">Umschreiben</h1>
+  <p class="muted" style="margin:6px 0 0">Im Test sollst du ein Wort auf Englisch erklären, ohne das Wort selbst zu benutzen.</p></header>
+  <section class="card" style="display:grid;gap:10px">
+    <h3>1 · Wort erraten</h3><p class="muted small" style="margin:0">Du liest eine Erklärung und tippst das Wort. So lernst du, wie gute Umschreibungen klingen.</p>
+    <button class="btn-main" id="g">Erraten · 5 Wörter</button>
+  </section>
+  <section class="card" style="display:grid;gap:10px">
+    <h3>2 · Selbst umschreiben</h3><p class="muted small" style="margin:0">Du bekommst ein Wort und schreibst eine Erklärung. Dann vergleichst du mit einem Beispiel.</p>
+    <button class="btn-main" id="p">Umschreiben · 2 Wörter</button>
+    <div class="small muted tnum">Bisher geschrieben: ${S.paraDone}</div>
+  </section>`;
+  $("back").onclick=home; $("g").onclick=guessRound; $("p").onclick=()=>paraRound(shuffle([...WORDS]).slice(0,2),0,0);
+}
+function guessRound(){
+  const q=shuffle([...WORDS]).slice(0,5); let i=0, ok=0;
+  const step=()=>{
+    if(i>=q.length){S.guessOk+=ok;S.hist.push({d:today(),t:"g",n:q.length,ok});save();
+      app.innerHTML=`<section class="card result"><div class="eyebrow">Fertig</div><div class="score tnum">${ok}/${q.length}</div><div class="row" style="width:100%"><button class="btn-main" style="flex:1" id="a">Nochmal</button><button class="btn-ghost" id="b">Zurück</button></div></section>`;
+      $("a").onclick=guessRound;$("b").onclick=paraHome; if(ok>=4) confetti(); return}
+    const w=q[i];
+    app.innerHTML=`<div class="qhead"><button class="btn-ghost" id="x">✕</button><div class="qbar"><i style="width:${i/q.length*100}%"></i></div><span class="muted small tnum">${i}/${q.length}</span></div>
+    <section class="card prompt"><span class="stamp" id="stamp">GELÖST</span><div class="eyebrow">Welches Wort ist das?</div><div style="font-size:21px;margin-top:10px;font-style:italic">“${esc(cap(w.def))}.”</div></section>
+    <form id="f" style="display:grid;gap:12px" autocomplete="off"><input class="answer" id="ans" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Wort auf Englisch"><div id="fb"></div><div id="btns"><button class="btn-main">Prüfen</button></div></form>`;
+    $("x").onclick=paraHome; const inp=$("ans"); inp.focus();
+    $("f").onsubmit=e=>{e.preventDefault(); const r=check(w,inp.value); if(r.r==="empty")return;
+      if(r.r==="ok"){ok++;inp.classList.add("ok");$("stamp").classList.add("show");$("fb").innerHTML=`<div class="fb ok"><b>Richtig!</b> ${esc(w.en)} = ${esc(w.de)}</div>`}
+      else{inp.classList.add("bad");$("fb").innerHTML=`<div class="fb bad">Gesucht war: <b>${esc(w.en)}</b> (${esc(w.de)})</div>`}
+      inp.readOnly=true; $("btns").innerHTML='<button class="btn-main" id="n">Weiter</button>'; const n=$("n");n.focus();n.onclick=ev=>{ev.preventDefault();i++;step()}};
+  };
+  step();
+}
+const cap=s=>s[0].toUpperCase()+s.slice(1);
+const STARTERS=["It's a person who …","It's a thing that …","It's when …","It means to …","You use it to …","It's a place where …"];
+function paraRound(list,i,written){
+  if(i>=list.length){S.hist.push({d:today(),t:"p",n:written,ok:written});save();
+    app.innerHTML=`<section class="card result"><div class="eyebrow">Fertig</div><h2 class="display" style="font-size:26px">${written} Umschreibungen geschrieben</h2><p class="muted" style="margin:0">Genau so kommt es im Test dran.</p><div class="row" style="width:100%"><button class="btn-main" style="flex:1" id="a">Noch 2 Wörter</button><button class="btn-ghost" id="b">Zurück</button></div></section>`;
+    $("a").onclick=()=>paraRound(shuffle([...WORDS]).slice(0,2),0,0);$("b").onclick=paraHome; if(written) confetti(); return}
+  const w=list[i];
+  app.innerHTML=`<div class="qhead"><button class="btn-ghost" id="x">✕</button><span class="muted small">Wort ${i+1} von ${list.length}</span></div>
+  <section class="card prompt"><div class="eyebrow">Erklär dieses Wort auf Englisch</div><div class="de-word"><span class="mark">${esc(w.en)}</span></div><div class="muted small">${esc(w.de)}</div></section>
+  <div class="starters">${STARTERS.map(s=>`<button type="button" class="btn-ghost">${esc(s)}</button>`).join("")}</div>
+  <textarea class="para" id="txt" autocapitalize="sentences" spellcheck="false" placeholder="It's …"></textarea>
+  <div class="checks card" id="checks"></div>
+  <div id="out"></div>
+  <div id="btns"><button class="btn-main" id="done">Fertig, vergleichen</button></div>`;
+  $("x").onclick=paraHome;
+  const t=$("txt");
+  document.querySelectorAll(".starters button").forEach(b=>b.onclick=()=>{t.value=b.textContent.replace(" …"," ");t.focus();upd()});
+  const core=noTo(w.en).toLowerCase().replace(/\s*\(.*\)/,"");
+  const stem=core.split(" ")[0].replace(/e$/,"");
+  const upd=()=>{const v=t.value.trim(), words=v.split(/\s+/).filter(Boolean).length;
+    const c1=!v?"":v.toLowerCase().includes(stem)?"n":"y", c2=!v?"":words>=6?"y":"n", c3=!v?"":/[.!?]$/.test(v)&&/^[A-Z]/.test(v)?"y":"n";
+    $("checks").innerHTML=`<div class="${c1}">Das Wort selbst kommt nicht vor</div><div class="${c2}">Mindestens 6 Wörter (${words})</div><div class="${c3}">Ganzer Satz: groß anfangen, Punkt am Ende</div>`;
+    return c1==="y"&&c2==="y"};
+  t.oninput=upd; upd();
+  $("done").onclick=()=>{ if(!t.value.trim()){t.focus();return}
+    const good=upd(); t.readOnly=true;
+    $("out").innerHTML=`<div class="card" style="display:grid;gap:8px"><div class="eyebrow">So könnte man es sagen</div><div class="model">${esc(cap(w.def))}.</div><div class="small muted">Deine Erklärung muss nicht gleich sein. Wichtig ist: Versteht jemand das Wort, ohne es zu hören?</div>${good?"":'<div class="small" style="color:var(--bad)">Schau dir die Liste oben nochmal an.</div>'}</div>`;
+    $("btns").innerHTML='<button class="btn-main" id="n">Weiter</button>';
+    S.paraDone++; save();
+    $("n").onclick=()=>paraRound(list,i+1,written+1);
+  };
+}
+
+/* ---------- confetti ---------- */
+function confetti(){
+  if(matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const c=$("confetti"),x=c.getContext("2d"); c.width=innerWidth*devicePixelRatio; c.height=innerHeight*devicePixelRatio; x.scale(devicePixelRatio,devicePixelRatio);
+  const cs=getComputedStyle(document.documentElement), cols=["--hi","--blue","--ok","--bad"].map(v=>cs.getPropertyValue(v).trim());
+  const P=[...Array(120)].map(()=>({x:innerWidth/2,y:innerHeight*.35,vx:(Math.random()-.5)*12,vy:Math.random()*-12-4,r:Math.random()*6+4,c:pick(cols),a:Math.random()*6}));
+  let f=0;(function tick(){x.clearRect(0,0,innerWidth,innerHeight);P.forEach(p=>{p.vy+=.35;p.x+=p.vx;p.y+=p.vy;p.a+=.2;x.save();x.translate(p.x,p.y);x.rotate(p.a);x.fillStyle=p.c;x.fillRect(-p.r/2,-p.r/4,p.r,p.r/2);x.restore()});
+    if(++f<110) requestAnimationFrame(tick); else x.clearRect(0,0,innerWidth,innerHeight)})();
+}
+
+home();
+</script>
+
+</body>
+</html>
