@@ -278,7 +278,7 @@ function home(){
     <div style="flex:1;min-width:0">
       <div class="eyebrow">Extra</div>
       <h3>Sprech-Training</h3>
-      <div class="muted small">Das Handy fragt dich auf Deutsch, du antwortest laut auf Englisch.</div>
+      <div class="muted small">Du siehst das deutsche Wort und sagst es laut auf Englisch.</div>
     </div>
     <button id="spk">Los</button>
   </section>
@@ -491,7 +491,7 @@ function paraRound(list,i,written){
 /* ---------- speaking ---------- */
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
 function say(text,lang,onend){try{const u=new SpeechSynthesisUtterance(text);u.lang=lang;u.rate=.9;if(onend)u.onend=onend;speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){onend&&onend()}}
-// the question is asked by voice; the answer is only revealed after two misses
+// the German word is shown; Konrad says the English word; the answer is only revealed after two misses or on request
 function speakRound(){
   const q=shuffle([...WORDS]).slice(0,5); let i=0, ok=0;
   const step=()=>{
@@ -499,20 +499,18 @@ function speakRound(){
       app.innerHTML=`<section class="card result"><div class="eyebrow">Sprech-Training fertig</div><div class="score tnum">${ok}/${q.length}</div><div class="muted">richtig gesagt</div><div class="row" style="width:100%"><button class="btn-main" style="flex:1" id="a">Nochmal</button><button class="btn-ghost" id="b">Übersicht</button></div></section>`;
       $("a").onclick=speakRound;$("b").onclick=home; if(ok>=3) confetti(); return}
     const w=q[i]; let solved=false, tries=0;
-    const ask=()=>say("Was heißt "+w.de.split(/[;,(]/)[0].trim()+" auf Englisch?","de-DE");
     app.innerHTML=`<div class="qhead"><button class="btn-ghost" id="x">✕</button><div class="qbar"><i style="width:${i/q.length*100}%"></i></div><span class="muted small tnum">${i}/${q.length}</span></div>
-    <section class="card prompt"><span class="stamp" id="stamp">GELÖST</span><div class="eyebrow">Hör zu und antworte auf Englisch</div>
-      <div class="de-word" id="de" hidden>${esc(w.de)}</div>
-      <div class="row" style="justify-content:center;margin-top:12px"><button class="btn-ghost" id="again">🔊 Frage nochmal</button><button class="btn-ghost" id="show">Wort zeigen</button></div></section>
+    <section class="card prompt"><span class="stamp" id="stamp">GELÖST</span><div class="eyebrow">Sag es laut auf Englisch</div>
+      <div class="de-word">${esc(w.de)}</div></section>
     <button class="btn-main" id="mic" style="font-size:20px;padding:22px">🎙 Tippen und antworten</button>
     <div id="fb"></div>
-    <button class="btn-ghost" id="skip">Überspringen</button>`;
-    ask();
+    <button class="btn-ghost" id="skip">Weiß ich nicht</button>`;
     $("x").onclick=()=>{speechSynthesis.cancel();home()};
-    $("again").onclick=ask;
-    $("show").onclick=()=>{$("de").hidden=false;$("show").remove()};
     const next=()=>{speechSynthesis.cancel();i++;step()};
-    $("skip").onclick=next;
+    const reveal=(intro)=>{solved=true;
+      $("fb").innerHTML=`<div class="fb bad"><div class="small">${intro}</div><div class="right">${esc(w.en)}</div></div>`;
+      say(w.en,"en-GB"); $("skip").hidden=true; $("mic").textContent="Weiter →"};
+    $("skip").onclick=()=>reveal("Kein Problem. So heißt es:");
     const fb=$("fb"), mic=$("mic");
     if(!SR){mic.disabled=true;mic.textContent="Spracheingabe geht hier nicht";
       fb.innerHTML='<div class="fb bad small">Dieser Browser kann nicht zuhören. Öffne die Seite in Safari oder Chrome.</div>';return}
@@ -526,18 +524,14 @@ function speakRound(){
         const hit=alts.find(a=>check(w,a).r==="ok")||alts.find(a=>check(w,a).r==="near");
         tries++;
         if(hit){ solved=true; ok++;
-          $("stamp").classList.add("show"); $("de").hidden=false;
+          $("stamp").classList.add("show");
           fb.innerHTML=`<div class="fb ok"><b>${pick(["Gut gesagt!","Richtig!","Volltreffer!"])}</b> <span class="right">${esc(w.en)}</span></div>`;
           say("Right! "+w.en,"en-GB");
           $("skip").hidden=true;
         } else if(tries<2){
           fb.innerHTML=`<div class="fb bad"><div class="small">Ich habe „${esc(alts[0]||"…")}“ verstanden. Das ist es noch nicht.</div><div class="small muted" style="margin-top:4px">Probier es nochmal.</div></div>`;
-          say("Noch nicht. Versuch es nochmal.","de-DE");
         } else {
-          solved=true; $("de").hidden=false;
-          fb.innerHTML=`<div class="fb bad"><div class="small">Ich habe „${esc(alts[0]||"…")}“ verstanden. Richtig wäre:</div><div class="right">${esc(w.en)}</div></div>`;
-          say("Richtig wäre: ","de-DE",()=>say(w.en,"en-GB"));
-          $("skip").hidden=true;
+          reveal(`Ich habe „${esc(alts[0]||"…")}“ verstanden. Richtig wäre:`);
         }
       };
       rec.onerror=e=>{fb.innerHTML=`<div class="fb bad small">${e.error==="not-allowed"||e.error==="service-not-allowed"?"Das Mikrofon ist nicht erlaubt. Erlaube es in den Einstellungen für Safari und lade die Seite neu.":e.error==="no-speech"?"Ich habe nichts gehört. Sprich etwas lauter und näher ans Handy.":"Das hat nicht geklappt. Versuch es nochmal."}</div>`};
