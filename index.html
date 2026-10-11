@@ -187,7 +187,8 @@ function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 function ws(en){return S.w[en]||(S.w[en]={box:0,ok:0,bad:0})}
 const today=()=>new Date().toISOString().slice(0,10);
 const masteredCount=()=>WORDS.filter(w=>ws(w.en).box>=MASTER).length;
-const unlocked=()=>masteredCount()===WORDS.length;
+const UNLOCK=Math.ceil(WORDS.length*.6); // Level 2 opens at 60 % (26 of 43 words)
+const unlocked=()=>masteredCount()>=UNLOCK;
 
 /* ---------- text helpers ---------- */
 const norm=s=>s.toLowerCase().replace(/[’`´]/g,"'").replace(/\s+/g," ").replace(/[.!?]+$/,"").trim();
@@ -201,6 +202,28 @@ function check(w,input){
   if((w.near||[]).map(norm).includes(a)) return {r:"near",note:"Das ist amerikanisch. In deinem Buch steht die britische Schreibweise."};
   const dist=Math.min(...targets.map(t=>Math.min(lev(a,t),lev(a,noTo(t)))));
   if(dist<=2 && norm(w.en).length>3) return {r:"near"};
+  return {r:"bad"};
+}
+// English -> German: any one of the listed meanings counts, articles and small typos are forgiven
+const deN=s=>s.toLowerCase().replace(/ä/g,"ae").replace(/ö/g,"oe").replace(/ü/g,"ue").replace(/ß/g,"ss").replace(/[.!?,;]/g," ")
+  .replace(/\b(der|die|das|den|dem|ein|eine|einen|sich|etw|etwas)\b/g," ").replace(/\s+/g," ").trim();
+function deOptions(w){
+  const out=new Set();
+  w.de.split(/[,;]/).forEach(part=>{
+    part=part.trim(); const inner=(part.match(/\(([^)]*)\)/)||[])[1]; const bare=part.replace(/\s*\([^)]*\)/,"").trim();
+    [part,bare,inner].filter(Boolean).forEach(x=>{
+      out.add(x);
+      const m=x.match(/^(.*?)(\S+)\/(\S+)$/);
+      if(m){ const [_,pre,a,b]=m; if(b.length<=2){out.add(pre+a);out.add(pre+a+b)} else {out.add(pre+a);out.add(pre+b)} }
+    });
+  });
+  return [...out].map(deN).filter(Boolean);
+}
+function checkDe(w,input){
+  const a=deN(input); if(!input.trim()) return {r:"empty"};
+  const opts=deOptions(w);
+  if(opts.includes(a)||opts.some(o=>!o.includes(" ")&&o.length>3&&a.split(" ").includes(o))) return {r:"ok"};
+  if(a.length>4&&opts.some(o=>lev(a,o)<=1)) return {r:"ok",note:"Kleiner Tippfehler. Gemeint ist: "+w.de};
   return {r:"bad"};
 }
 // mark the letters of the right answer that the attempt missed (LCS)
@@ -237,7 +260,7 @@ function home(){
   WORDS.forEach(w=>counts[Math.min(ws(w.en).box,MASTER)]++);
   const tot=WORDS.length, asked=S.hist.filter(h=>h.t==="v").reduce((s,h)=>s+h.n,0), okk=S.hist.filter(h=>h.t==="v").reduce((s,h)=>s+h.ok,0);
   const rate=asked?Math.round(okk/asked*100)+" %":"–";
-  const left=tot-m;
+  const left=Math.max(0,UNLOCK-m);
   app.innerHTML=`
   <header class="top">
     <div><div class="eyebrow">Unit 2 · Word File</div><h1>Konrads <span class="mark">Vokabel-Akte</span></h1></div>
@@ -269,7 +292,7 @@ function home(){
     <div style="flex:1;min-width:0">
       <div class="eyebrow">Level 2</div>
       <h3>Umschreiben auf Englisch</h3>
-      <div class="muted small">${unlocked()?"Freigeschaltet! Erklär Wörter mit eigenen Worten, so wie im Test.":`Wird frei, wenn alle Wörter sitzen. Noch ${left} ${left===1?"Wort":"Wörter"}.`}</div>
+      <div class="muted small">${unlocked()?"Freigeschaltet! Erklär Wörter mit eigenen Worten, so wie im Test.":`Wird frei, wenn ${UNLOCK} Wörter sitzen (60 %). Noch ${left} ${left===1?"Wort":"Wörter"}.`}</div>
     </div>
     ${unlocked()?'<button id="lvl2">Los</button>':""}
   </section>
@@ -346,38 +369,41 @@ function pickRound(){
   return shuffle(pick.slice(0,ROUND));
 }
 function startRound(){
-  const q=pickRound(); R={q, i:0, total:q.length, first:new Map(), up:[], hinted:new Set(), retype:false, wrongs:0};
+  const q=pickRound(); R={q, i:0, total:q.length, first:new Map(), up:[], hinted:new Set(), retype:false, wrongs:0,
+    rev:new Map(q.map(w=>[w.en,Math.random()<.5]))}; // about half the words are asked English -> German
   ask();
 }
 function ask(){
   if(R.i>=R.q.length) return finish();
   const w=R.q[R.i], done=Math.min(R.first.size,R.total);
-  const g=gap(w);
+  const g=gap(w), rev=R.rev.get(w.en);
   app.innerHTML=`
   <div class="qhead"><button class="btn-ghost" id="quit" aria-label="Runde beenden">✕</button><div class="qbar"><i style="width:${done/R.total*100}%"></i></div><span class="tnum muted small">${done}/${R.total}</span></div>
   <section class="card prompt">
     <span class="stamp" id="stamp">GELÖST</span>
-    <div class="eyebrow">Wie heißt das auf Englisch?</div>
-    <div class="de-word">${esc(w.de)}</div>
+    <div class="eyebrow">Wie heißt das auf ${rev?"Deutsch":"Englisch"}?</div>
+    <div class="de-word">${rev?`<span class="mark">${esc(w.en)}</span>`:esc(w.de)}</div>
     <div class="hint" id="hint" hidden></div>
   </section>
   <form id="f" style="display:grid;gap:12px" autocomplete="off">
-    <input class="answer" id="ans" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="go" placeholder="${R.retype?"Schreib es richtig ab":"auf Englisch tippen"}">
+    <input class="answer" id="ans" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="go" placeholder="${R.retype?"Schreib es richtig ab":rev?"auf Deutsch tippen":"auf Englisch tippen"}">
     <div id="fb"></div>
     <div class="row" id="btns"><button class="btn-main" style="flex:1" id="send">Prüfen</button>${R.retype?"":'<button type="button" id="tip" class="btn-ghost">Tipp</button>'}</div>
   </form>`;
   const inp=$("ans"); inp.focus();
   $("quit").onclick=()=>{ if(R.first.size) finish(); else home() };
   if($("tip")) $("tip").onclick=()=>{R.hinted.add(w.en);const h=$("hint");h.hidden=false;
-    h.innerHTML=(g?"„"+esc(g)+"“<br>":"")+"Fängt an mit <b>"+esc(noTo(w.en)[0])+"</b>, "+noTo(w.en).length+" Zeichen";
+    h.innerHTML=rev? "„"+esc(w.ex)+"“<br>Fängt an mit <b>"+esc(w.de[0])+"</b>"
+      : (g?"„"+esc(g)+"“<br>":"")+"Fängt an mit <b>"+esc(noTo(w.en)[0])+"</b>, "+noTo(w.en).length+" Zeichen";
     const t=$("tip");t.textContent="Lösung zeigen";t.onclick=()=>evaluate(w,inp.value,true);inp.focus()};
   $("f").onsubmit=e=>{e.preventDefault(); evaluate(w,inp.value)};
 }
 function evaluate(w,val,giveUp){
-  const res=giveUp?{r:"giveup"}:check(w,val), inp=$("ans"), fb=$("fb");
+  const rev=R.rev.get(w.en), sol=rev?w.de:w.en;
+  const res=giveUp?{r:"giveup"}:rev?checkDe(w,val):check(w,val), inp=$("ans"), fb=$("fb");
   if(res.r==="empty"){inp.focus();return}
   if(R.retype){ // must type the right answer once after a mistake
-    if(res.r==="ok"){R.retype=false;R.i++;ask()} else {inp.classList.add("bad");inp.value="";fb.innerHTML=`<div class="fb bad">Noch nicht ganz. Richtig: <b>${esc(w.en)}</b></div>`;inp.focus()}
+    if(res.r==="ok"){R.retype=false;R.i++;ask()} else {inp.classList.add("bad");inp.value="";fb.innerHTML=`<div class="fb bad">Noch nicht ganz. Richtig: <b>${esc(sol)}</b></div>`;inp.focus()}
     return;
   }
   const firstTry=!R.first.has(w.en); const s=ws(w.en);
@@ -388,7 +414,7 @@ function evaluate(w,val,giveUp){
     save();
     inp.classList.add("ok"); inp.readOnly=true;
     $("stamp").classList.add("show");
-    fb.innerHTML=`<div class="fb ok"><b>${pick(["Richtig!","Volltreffer!","Fall gelöst!","Sauber!","Genau so!"])}</b>${res.note?`<div class="small" style="margin-top:4px">${esc(res.note)}</div>`:""}<div class="small tnum" style="margin-top:4px">${masteredCount()} von ${WORDS.length} Wörtern sitzen</div></div>`;
+    fb.innerHTML=`<div class="fb ok"><b>${pick(["Richtig!","Volltreffer!","Fall gelöst!","Sauber!","Genau so!"])}</b>${rev?` ${esc(w.en)} = ${esc(w.de)}`:""}${res.note?`<div class="small" style="margin-top:4px">${esc(res.note)}</div>`:""}<div class="small tnum" style="margin-top:4px">${masteredCount()} von ${WORDS.length} Wörtern sitzen</div></div>`;
     $("btns").innerHTML='<button class="btn-main" style="flex:1" id="next">Weiter</button>';
     const n=$("next"); n.focus(); n.onclick=e=>{e.preventDefault();R.i++;ask()};
   } else {
@@ -396,7 +422,7 @@ function evaluate(w,val,giveUp){
     R.wrongs++;
     R.q.push(w); // comes back at the end of the round
     inp.classList.add("bad");
-    fb.innerHTML=`<div class="fb bad"><div class="small">${res.r==="near"?"Knapp daneben!":res.r==="giveup"?"Kein Problem, jetzt weißt du es.":"Leider falsch."} So schreibt man es:</div><div class="right">${res.r==="giveup"?esc(w.en):diffHTML(w.en,val)}</div>${res.note?`<div class="small" style="margin-top:4px">${esc(res.note)}</div>`:""}<div class="small muted" style="margin-top:6px">${esc(w.ex)}</div></div>`;
+    fb.innerHTML=`<div class="fb bad"><div class="small">${res.r==="near"?"Knapp daneben!":res.r==="giveup"?"Kein Problem, jetzt weißt du es.":"Leider falsch."} ${rev?"Auf Deutsch heißt es:":"So schreibt man es:"}</div><div class="right">${res.r==="giveup"||rev?esc(sol):diffHTML(w.en,val)}</div>${res.note?`<div class="small" style="margin-top:4px">${esc(res.note)}</div>`:""}<div class="small muted" style="margin-top:6px">${esc(w.ex)}</div></div>`;
     $("btns").innerHTML='<button class="btn-main" style="flex:1" id="next">Einmal richtig abschreiben</button>';
     const n=$("next"); n.focus(); n.onclick=e=>{e.preventDefault();R.retype=true;R.q.splice(R.i+1,0);ask()};
   }
@@ -406,7 +432,7 @@ function finish(){
   const n=R.first.size, ok=[...R.first.values()].filter(Boolean).length;
   if(n){S.hist.push({d:today(),t:"v",n,ok,m:masteredCount()});save()}
   const m=masteredCount(), pct=n?ok/n:0;
-  const msg=unlocked()&&R.up.length?"Alle Wörter sitzen. Level 2 ist frei!":pct===1?"Perfekte Runde!":pct>=.7?"Starke Runde!":pct>=.4?"Gut dran geblieben!":"Jede Runde zählt. Gleich nochmal?";
+  const msg=unlocked()&&m-R.up.length<UNLOCK?"Geschafft! Level 2 ist jetzt frei!":pct===1?"Perfekte Runde!":pct>=.7?"Starke Runde!":pct>=.4?"Gut dran geblieben!":"Jede Runde zählt. Gleich nochmal?";
   app.innerHTML=`
   <section class="card result">
     <div class="eyebrow">Runde abgeschlossen</div>
