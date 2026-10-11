@@ -273,6 +273,16 @@ function home(){
     ${unlocked()?'<button id="lvl2">Los</button>':""}
   </section>
 
+  <section class="card lock">
+    <div class="pad" aria-hidden="true">🎙</div>
+    <div style="flex:1;min-width:0">
+      <div class="eyebrow">Extra</div>
+      <h3>Sprech-Training</h3>
+      <div class="muted small">Sag das englische Wort laut ins Handy. Du kannst es dir auch vorsprechen lassen.</div>
+    </div>
+    <button id="spk">Los</button>
+  </section>
+
   <section class="card">
     <div class="eyebrow">Lernverlauf</div>
     ${histHTML()}
@@ -294,6 +304,7 @@ function home(){
   </section>`;
   $("go").onclick=startRound;
   if($("lvl2")) $("lvl2").onclick=()=>paraHome();
+  $("spk").onclick=speakRound;
   $("copy").onclick=()=>{const t=report();const p=$("report");p.textContent=t;p.hidden=false;
     if(navigator.clipboard) navigator.clipboard.writeText(t).then(()=>$("copy").textContent="Kopiert ✓").catch(()=>selectText(p)); else selectText(p)};
   $("reset").onclick=()=>{const c=$("confirmBox");c.hidden=false;c.innerHTML=`<div class="confirm"><div style="margin-bottom:10px">Wirklich alles löschen? Der ganze Fortschritt ist dann weg.</div><div class="row"><button id="yes" style="background:var(--bad);color:var(--card)">Ja, löschen</button><button id="no" class="btn-ghost">Abbrechen</button></div></div>`;
@@ -308,7 +319,7 @@ function histHTML(){
   const days=[];for(let i=13;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);days.push(d.toISOString().slice(0,10))}
   const per=days.map(d=>S.hist.filter(h=>h.d===d).reduce((s,h)=>s+h.n,0)); const max=Math.max(...per,1);
   const bars=days.map((d,i)=>`<div class="b" title="${d}: ${per[i]} Wörter"><i style="height:${per[i]/max*52}px;${per[i]?"":"background:var(--line);height:2px"}"></i><span>${+d.slice(8)}</span></div>`).join("");
-  const last=S.hist.slice(-5).reverse().map(h=>`<div><span>${fmt(h.d)} · ${h.t==="v"?"Vokabeln":h.t==="g"?"Wort raten":"Umschreiben"}</span><span class="tnum">${h.t==="p"?h.n+" geschrieben":h.ok+" / "+h.n+" richtig"}</span></div>`).join("");
+  const last=S.hist.slice(-5).reverse().map(h=>`<div><span>${fmt(h.d)} · ${h.t==="v"?"Vokabeln":h.t==="g"?"Wort raten":h.t==="s"?"Sprechen":"Umschreiben"}</span><span class="tnum">${h.t==="p"?h.n+" geschrieben":h.ok+" / "+h.n+" richtig"}</span></div>`).join("");
   return `<div class="small muted" style="margin-top:6px">Geübte Wörter pro Tag, letzte 14 Tage</div><div class="hist">${bars}</div><div class="log">${last}</div>`;
 }
 const fmt=d=>{const [y,m,dd]=d.split("-");return `${+dd}.${+m}.`};
@@ -475,6 +486,49 @@ function paraRound(list,i,written){
     S.paraDone++; save();
     $("n").onclick=()=>paraRound(list,i+1,written+1);
   };
+}
+
+/* ---------- speaking ---------- */
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+function sayIt(text){try{const u=new SpeechSynthesisUtterance(text);u.lang="en-GB";u.rate=.85;speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){}}
+function speakRound(){
+  const q=shuffle([...WORDS]).slice(0,5); let i=0, ok=0;
+  const step=()=>{
+    if(i>=q.length){S.hist.push({d:today(),t:"s",n:q.length,ok});save();
+      app.innerHTML=`<section class="card result"><div class="eyebrow">Sprech-Training fertig</div><div class="score tnum">${ok}/${q.length}</div><div class="muted">richtig ausgesprochen</div><div class="row" style="width:100%"><button class="btn-main" style="flex:1" id="a">Nochmal</button><button class="btn-ghost" id="b">Übersicht</button></div></section>`;
+      $("a").onclick=speakRound;$("b").onclick=home; if(ok>=3) confetti(); return}
+    const w=q[i]; let done=false;
+    app.innerHTML=`<div class="qhead"><button class="btn-ghost" id="x">✕</button><div class="qbar"><i style="width:${i/q.length*100}%"></i></div><span class="muted small tnum">${i}/${q.length}</span></div>
+    <section class="card prompt"><span class="stamp" id="stamp">GELÖST</span><div class="eyebrow">Sag es auf Englisch</div><div class="de-word">${esc(w.de)}</div><div class="hint" id="hint" hidden></div></section>
+    <button class="btn-main" id="mic" style="font-size:20px;padding:22px">🎙 Tippen und sprechen</button>
+    <div id="fb"></div>
+    <div class="row"><button class="btn-ghost" id="listen" style="flex:1">🔊 Anhören</button><button class="btn-ghost" id="skip" style="flex:1">Weiter</button></div>`;
+    $("x").onclick=home;
+    $("listen").onclick=()=>{sayIt(w.en);const h=$("hint");h.hidden=false;h.textContent=w.en};
+    $("skip").onclick=()=>{i++;step()};
+    const fb=$("fb"), mic=$("mic");
+    if(!SR){mic.disabled=true;mic.textContent="Spracheingabe geht hier nicht";
+      fb.innerHTML='<div class="fb bad small">Dieser Browser kann nicht zuhören. Öffne die Seite in Safari oder Chrome. Mit „Anhören“ kannst du trotzdem üben.</div>';return}
+    mic.onclick=()=>{
+      const rec=new SR(); rec.lang="en-GB"; rec.interimResults=false; rec.maxAlternatives=5;
+      mic.disabled=true; mic.textContent="Ich höre zu …"; fb.innerHTML="";
+      rec.onresult=e=>{
+        const alts=[...e.results[0]].map(a=>a.transcript.replace(/[.,!?]/g,"").replace(/\bi d\b/i,"ID"));
+        const hit=alts.find(a=>check(w,a).r==="ok")||alts.find(a=>check(w,a).r==="near");
+        if(hit){ if(!done){ok++;done=true}
+          $("stamp").classList.add("show");
+          fb.innerHTML=`<div class="fb ok"><b>${pick(["Gut gesagt!","Klingt richtig!","Volltreffer!"])}</b><div class="small">Ich habe „${esc(hit)}“ verstanden.</div></div>`;
+          $("skip").textContent="Weiter →"; $("skip").className="btn-main";
+        } else {
+          fb.innerHTML=`<div class="fb bad"><div class="small">Ich habe „${esc(alts[0]||"…")}“ verstanden. Gesucht: <b>${esc(w.en)}</b></div><div class="small muted" style="margin-top:4px">Tipp auf „Anhören“ und versuch es nochmal.</div></div>`;
+        }
+      };
+      rec.onerror=e=>{fb.innerHTML=`<div class="fb bad small">${e.error==="not-allowed"||e.error==="service-not-allowed"?"Das Mikrofon ist nicht erlaubt. Erlaube es in den Einstellungen für Safari und lade die Seite neu.":e.error==="no-speech"?"Ich habe nichts gehört. Sprich etwas lauter und näher ans Handy.":"Das hat nicht geklappt. Versuch es nochmal."}</div>`};
+      rec.onend=()=>{mic.disabled=false;mic.textContent="🎙 Nochmal sprechen"};
+      try{rec.start()}catch(err){rec.onend()}
+    };
+  };
+  step();
 }
 
 /* ---------- confetti ---------- */
