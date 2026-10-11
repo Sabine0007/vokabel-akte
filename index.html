@@ -176,7 +176,7 @@ const WORDS = [
  {en:"receipt",de:"Quittung, Kassenbon",ex:"Sorry, I can't take these back without a receipt.",def:"a piece of paper from a shop that shows what you paid"},
  {en:"to regret",de:"bereuen",ex:"That man is going to regret not taking me seriously.",def:"to feel sorry or sad about something you did"}
 ];
-const MASTER = 2, ROUND = 10, KEY = "konrad-vokabel-akte-v1";
+const MASTER = 1, ROUND = 5, KEY = "konrad-vokabel-akte-v1";
 
 /* ---------- state ---------- */
 function freshState(){return {w:{},hist:[],paraDone:0,guessOk:0}}
@@ -232,7 +232,7 @@ function streak(){
 
 /* ---------- home ---------- */
 function home(){
-  const m=masteredCount(), counts=[0,0,0];
+  const m=masteredCount(), counts=[0,0];
   WORDS.forEach(w=>counts[Math.min(ws(w.en).box,MASTER)]++);
   const tot=WORDS.length, asked=S.hist.filter(h=>h.t==="v").reduce((s,h)=>s+h.n,0), okk=S.hist.filter(h=>h.t==="v").reduce((s,h)=>s+h.ok,0);
   const rate=asked?Math.round(okk/asked*100)+" %":"–";
@@ -246,15 +246,13 @@ function home(){
   <section class="card" style="display:grid;gap:14px">
     <div class="row" style="justify-content:space-between;align-items:flex-end">
       <div><div class="eyebrow">Fälle gelöst</div><div class="big tnum">${m}<span class="muted" style="font-size:24px"> / ${tot}</span></div></div>
-      <div class="muted small" style="text-align:right">Ein Wort sitzt, wenn du es<br>${MASTER}× hintereinander richtig schreibst.</div>
+      <div class="muted small" style="text-align:right">Ein Wort sitzt, sobald du<br>es einmal richtig schreibst.</div>
     </div>
     <div class="meter" aria-label="Fortschritt">
-      <i style="width:${counts[2]/tot*100}%;background:var(--ok)"></i>
-      <i style="width:${counts[1]/tot*100}%;background:var(--hi)"></i>
+      <i style="width:${counts[1]/tot*100}%;background:var(--ok)"></i>
     </div>
     <div class="legend">
-      <span><i class="dot" style="background:var(--ok)"></i>sitzt ${counts[2]}</span>
-      <span><i class="dot" style="background:var(--hi)"></i>1× richtig ${counts[1]}</span>
+      <span><i class="dot" style="background:var(--ok)"></i>sitzt ${counts[1]}</span>
       <span><i class="dot" style="background:var(--line)"></i>neu ${counts[0]}</span>
     </div>
     <div class="stats tnum">
@@ -262,7 +260,7 @@ function home(){
       <div class="stat"><b>${S.hist.length}</b><span>Runden gespielt</span></div>
       <div class="stat"><b>${rate}</b><span>beim 1. Versuch</span></div>
     </div>
-    <button class="btn-main" id="go">${m===tot?"Wiederholungs-Verhör (10 Wörter)":"Verhör starten · 10 Wörter"}</button>
+    <button class="btn-main" id="go">${m===tot?"Wiederholungs-Verhör (5 Wörter)":"Verhör starten · 5 Wörter"}</button>
   </section>
 
   <section class="card lock">
@@ -303,7 +301,7 @@ function home(){
 }
 // order as on the photos: photo 1 = list, photo 2 = Word File + MORE Words and Phrases
 const GROUPS=[{name:"Bild 1 · Wortliste",from:15,to:43},{name:"Bild 2 · Word File Crime",from:0,to:9},{name:"Bild 2 · More Words and Phrases",from:9,to:15}];
-function wordRow(w){const b=ws(w.en).box;return `<div class="w"><span><span class="boxes">${[1,2].map(k=>`<i class="${b>=k?"on":""}"></i>`).join("")}</span>${esc(w.en)}</span><span class="de">${esc(w.de)}</span></div>`}
+function wordRow(w){const b=ws(w.en).box;return `<div class="w"><span><span class="boxes">${[1].map(k=>`<i class="${b>=k?"on":""}"></i>`).join("")}</span>${esc(w.en)}</span><span class="de">${esc(w.de)}</span></div>`}
 function selectText(el){const r=document.createRange();r.selectNodeContents(el);const s=getSelection();s.removeAllRanges();s.addRange(r)}
 function histHTML(){
   if(!S.hist.length) return `<p class="muted small" style="margin:8px 0 0">Noch keine Runde gespielt. Nach jeder Runde siehst du hier, wie viele Wörter du geschafft hast.</p>`;
@@ -372,18 +370,17 @@ function evaluate(w,val,giveUp){
   }
   const firstTry=!R.first.has(w.en); const s=ws(w.en);
   if(res.r==="ok"){
-    if(firstTry){
-      R.first.set(w.en,true); s.ok++;
-      if(!R.hinted.has(w.en)){const before=s.box;s.box=Math.min(MASTER,s.box+1); if(s.box===MASTER&&before<MASTER) R.up.push(w.en)}
-    }
+    if(firstTry){R.first.set(w.en,true); s.ok++}
+    // easy mode: any correct answer (also with tip, also on the repeat at the end) solves the word
+    if(s.box<MASTER){s.box=MASTER; R.up.push(w.en)}
     save();
     inp.classList.add("ok"); inp.readOnly=true;
     $("stamp").classList.add("show");
-    fb.innerHTML=`<div class="fb ok"><b>${pick(["Richtig!","Volltreffer!","Fall gelöst!","Sauber!","Genau so!"])}</b>${res.note?`<div class="small" style="margin-top:4px">${esc(res.note)}</div>`:""}${R.hinted.has(w.en)&&firstTry?'<div class="small" style="margin-top:4px">Mit Tipp zählt es diesmal nicht für „sitzt“.</div>':""}</div>`;
+    fb.innerHTML=`<div class="fb ok"><b>${pick(["Richtig!","Volltreffer!","Fall gelöst!","Sauber!","Genau so!"])}</b>${res.note?`<div class="small" style="margin-top:4px">${esc(res.note)}</div>`:""}<div class="small tnum" style="margin-top:4px">${masteredCount()} von ${WORDS.length} Wörtern sitzen</div></div>`;
     $("btns").innerHTML='<button class="btn-main" style="flex:1" id="next">Weiter</button>';
     const n=$("next"); n.focus(); n.onclick=e=>{e.preventDefault();R.i++;ask()};
   } else {
-    if(firstTry){R.first.set(w.en,false); s.bad++; s.box=s.box>=MASTER?1:0; save()}
+    if(firstTry){R.first.set(w.en,false); s.bad++; s.box=0; save()}
     R.wrongs++;
     R.q.push(w); // comes back at the end of the round
     inp.classList.add("bad");
