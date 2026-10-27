@@ -118,7 +118,11 @@ textarea.para{width:100%;min-height:110px;font:inherit;font-size:18px;padding:12
 .checks div.y::before{content:"✓ ";color:var(--ok);font-weight:700}
 .checks div.n::before{content:"✗ ";color:var(--bad);font-weight:700}
 .starters{display:flex;flex-wrap:wrap;gap:6px}
-.starters button{padding:6px 10px;font-size:14px;font-weight:400;border-radius:99px}
+.starters{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.starters button{padding:8px 10px;font-size:14px;font-weight:700;border-radius:12px;text-align:left;display:grid;gap:1px}
+.starters button small{font-weight:400;color:var(--muted);font-size:12px}
+.tense{display:grid;gap:6px;padding:14px 0;border-top:1px solid var(--line)}
+.tform{font-weight:700;font-size:17px;background:var(--bg);border-radius:10px;padding:8px 12px}
 .model{border-left:4px solid var(--hi);padding:4px 0 4px 12px;font-style:italic}
 .confirm{background:var(--bad-soft);border-radius:12px;padding:12px}
 #confetti{position:fixed;inset:0;pointer-events:none;z-index:5}
@@ -354,8 +358,8 @@ function home(){
   <div class="lesson" role="group" aria-label="Lektion wählen"><span class="eyebrow">Vokabeln aus</span>${Object.entries(UNITS).map(([k,u])=>`<button id="u-${k}" class="${k===S.unit?"on":""}" aria-pressed="${k===S.unit}">${u.label}${k===S.unit?"":" <span class='small'>(alt)</span>"}</button>`).join("")}</div>
 
   <section class="card" style="display:grid;gap:12px;border:2px solid var(--blue)">
-    <div><div class="eyebrow">Heute · ca. 10 Minuten</div><h3 style="margin-top:4px">Tagestraining</h3></div>
-    <div class="small muted">5 Vokabeln · 1 Wort auf Englisch erklären · 4 Sätze in den drei Zeiten. Einmal am Tag, dann bist du fit für den Test.</div>
+    <div><div class="eyebrow">Heute · ca. 20 Minuten</div><h3 style="margin-top:4px">Tagestraining</h3></div>
+    <div class="small muted">10 Vokabeln · 3 Wörter auf Englisch erklären · 10 Sätze in den drei Zeiten. Einmal am Tag, dann bist du fit für den Test.</div>
     <button class="btn-main" id="daily">Tagestraining starten</button>
   </section>
 
@@ -488,7 +492,7 @@ function report(){
 
 /* ---------- vocabulary round ---------- */
 let R=null;
-function pickRound(){
+function pickRound(ROUND){
   const open=WORDS.filter(w=>ws(w.en).box<MASTER), done=WORDS.filter(w=>ws(w.en).box>=MASTER);
   // started words first (lowest box), then new ones, then 1–2 review words
   const started=shuffle(open.filter(w=>ws(w.en).box>0)).sort((a,b)=>ws(a.en).box-ws(b.en).box);
@@ -498,8 +502,8 @@ function pickRound(){
   pick=[...pick,...shuffle(done).slice(0,ROUND-pick.length)];
   return shuffle(pick.slice(0,ROUND));
 }
-function startRound(){
-  const q=pickRound(); R={q, i:0, total:q.length, first:new Map(), up:[], hinted:new Set(), retype:false, wrongs:0,
+function startRound(n){
+  const q=pickRound(typeof n==="number"?n:5); R={q, i:0, total:q.length, first:new Map(), up:[], hinted:new Set(), retype:false, wrongs:0,
     rev:new Map(q.map(w=>[w.en,Math.random()<.5]))}; // about half the words are asked English -> German
   ask();
 }
@@ -615,7 +619,7 @@ function guessRound(){
   step();
 }
 const cap=s=>s[0].toUpperCase()+s.slice(1);
-const STARTERS=["It's a person who …","It's a thing that …","It's when …","It means to …","You use it to …","It's a place where …"];
+const STARTERS=[["It's a person who …","Das ist eine Person, die …"],["It's a thing that …","Das ist ein Ding, das …"],["It's a place where …","Das ist ein Ort, wo …"],["It's when …","Es ist, wenn …"],["It means to …","Es bedeutet, … zu …"],["You use it to …","Man benutzt es, um … zu …"],["It describes something that …","Es beschreibt etwas, das …"],["It's the opposite of …","Es ist das Gegenteil von …"]];
 function paraRound(list,i,written){
   if(i>=list.length){S.hist.push({d:today(),t:"p",n:written,ok:written,u:S.unit});save();
     if(FLOW) return flowNext({name:"Erklären",ok:written,n:list.length});
@@ -624,14 +628,14 @@ function paraRound(list,i,written){
   const w=list[i];
   app.innerHTML=`<div class="qhead"><button class="btn-ghost" id="x">✕</button><span class="muted small">Wort ${i+1} von ${list.length}</span></div>
   <section class="card prompt"><div class="eyebrow">Erklär dieses Wort auf Englisch</div><div class="de-word"><span class="mark">${esc(w.en)}</span></div><div class="muted small">${esc(w.de)}</div></section>
-  <div class="starters">${STARTERS.map(s=>`<button type="button" class="btn-ghost">${esc(s)}</button>`).join("")}</div>
+  <div class="starters">${STARTERS.map(([en,de])=>`<button type="button" class="btn-ghost" data-en="${esc(en)}"><span>${esc(en)}</span><small>${esc(de)}</small></button>`).join("")}</div>
   <textarea class="para" id="txt" autocapitalize="sentences" spellcheck="false" placeholder="It's …"></textarea>
   <div class="checks card" id="checks"></div>
   <div id="out"></div>
   <div id="btns"><button class="btn-main" id="done">Fertig, vergleichen</button></div>`;
   $("x").onclick=paraHome;
   const t=$("txt");
-  document.querySelectorAll(".starters button").forEach(b=>b.onclick=()=>{t.value=b.textContent.replace(" …"," ");t.focus();upd()});
+  document.querySelectorAll(".starters button").forEach(b=>b.onclick=()=>{t.value=b.dataset.en.replace(" …"," ");t.focus();upd()});
   const core=noTo(w.en).toLowerCase().replace(/\s*\(.*\)/,"");
   const stem=core.split(/[ -]/).sort((a,b)=>b.length-a.length)[0].replace(/e$/,""); // longest word, so "be in charge" checks "charge"
   const upd=()=>{const v=t.value.trim(), words=v.split(/\s+/).filter(Boolean).length;
@@ -757,6 +761,27 @@ function ppCheck(it,input){
 }
 const POOL={ps:PS_BUILD,pc:PC_BUILD,b:PP_BUILD,g:PP_GAP};
 const solved=list=>list.filter(x=>S.pp[x.a]).length;
+// overview of all school tenses, explained in simple English (German in small print)
+const ALL_TENSES=[
+ {n:"Present Simple",de:"einfache Gegenwart",f:"I cook · he/she/it cook<b>s</b>",ex:"I <b>eat</b> breakfast every day. She <b>cooks</b> on Sundays.",en:"Things that happen again and again, or that are always true.",hint:"Gewohnheiten, Fakten · every day, always, often, never",neg:"I <b>don't</b> eat · she <b>doesn't</b> eat"},
+ {n:"Present Progressive",de:"Verlaufsform der Gegenwart",f:"am / is / are + verb<b>-ing</b>",ex:"Look! Mum <b>is cooking</b> dinner right now.",en:"Things that are happening at the moment.",hint:"gerade jetzt · now, right now, at the moment, look!",neg:"she <b>isn't</b> cooking"},
+ {n:"Past Simple",de:"einfache Vergangenheit",f:"verb<b>-ed</b> or 2nd form (went, saw, ate)",ex:"Yesterday we <b>went</b> to the cinema.",en:"Things that happened and finished in the past.",hint:"abgeschlossen in der Vergangenheit · yesterday, last week, ago, in 2020",neg:"we <b>didn't</b> go · <b>Did</b> you go?"},
+ {n:"Past Progressive",de:"Verlaufsform der Vergangenheit",f:"was / were + verb<b>-ing</b>",ex:"Tom <b>was running</b> in the park when it started to rain.",en:"Things that were going on at a moment in the past.",hint:"war gerade im Gange · while, when, at 5 o'clock yesterday",neg:"he <b>wasn't</b> running · <b>Were</b> they talking?"},
+ {n:"Present Perfect",de:"Perfekt / vollendete Gegenwart",f:"have / has + 3rd form",ex:"I <b>have</b> already <b>eaten</b> my lunch.",en:"Things that happened in the past, but are important now. We don't say when.",hint:"Ergebnis zählt jetzt · already, just, ever, never, yet, since, for",neg:"I <b>haven't</b> eaten · <b>Have</b> you ever tried sushi?"},
+ {n:"Past Perfect",de:"Vorvergangenheit",f:"had + 3rd form",ex:"When we arrived, the guests <b>had eaten</b> all the pizza.",en:"Things that happened before another thing in the past.",hint:"noch früher als die Vergangenheit · after, before, by the time",neg:"he <b>hadn't</b> washed · <b>Had</b> you tried it?",isNew:1},
+ {n:"will-Future",de:"Zukunft mit will",f:"will + verb",ex:"I think it <b>will</b> rain tomorrow.",en:"Things you think or guess about the future, and quick decisions.",hint:"Vermutung, spontane Entscheidung · I think, maybe, probably",neg:"it <b>won't</b> rain"},
+ {n:"going to-Future",de:"Zukunft mit going to",f:"am / is / are + going to + verb",ex:"We <b>are going to</b> bake a cake on Saturday.",en:"Plans for the future.",hint:"Pläne, Absichten · tomorrow, next week",neg:"we <b>aren't going to</b> bake"}
+];
+const tensesHTML=()=>`<section class="card" style="display:grid;gap:4px">
+    <div class="eyebrow">All tenses · simply explained</div><h3>Alle Zeiten auf einen Blick</h3>
+    <div class="small muted">Name · how to build it · when we use it. Deutsch steht klein darunter.</div>
+    ${ALL_TENSES.map(t=>`<div class="tense"><div class="row" style="justify-content:space-between"><b>${t.n}</b>${t.isNew?'<span class="chip up">neu</span>':""}</div>
+      <div class="small muted">${t.de}</div>
+      <div class="tform">${t.f}</div>
+      <div class="small">${t.en}<div class="muted">${t.hint}</div></div>
+      <div class="model" style="font-style:normal;font-size:15px">${t.ex}</div>
+      <div class="small muted">Not / question: ${t.neg}</div></div>`).join("")}
+  </section>`;
 function gramHome(){
   FLOW=null;
   const tcard=(id,eyebrow,title,body,btns)=>`<details class="card"><summary><div class="eyebrow">${eyebrow}</div><div class="row" style="justify-content:space-between;margin-top:4px"><h3>${title}</h3><span class="small muted">Erklärung ▾</span></div></summary><div style="display:grid;gap:12px;margin-top:14px">${body}</div></details>
@@ -800,7 +825,8 @@ function gramHome(){
   <details class="card"><summary>Unregelmäßige Verben</summary>
     <div class="small muted" style="margin-top:8px">Regelmäßige Verben: einfach <b>-ed</b> anhängen (cook → cooked, stir → stirred, try → tried).</div>
     <table class="irr"><thead><tr><th>Grundform</th><th>Past Simple</th><th>3. Form</th></tr></thead><tbody>${IRREG.map(r=>`<tr><td>${r[0]}<div class="muted small">${r[3]}</div></td><td>${r[1]}</td><td><b>${r[2]}</b></td></tr>`).join("")}</tbody></table>
-  </details>`;
+  </details>
+  ${tensesHTML()}`;
   $("back").onclick=home; $("m").onclick=()=>gramRound("m",6);
   ["ps","pc","b","g"].forEach(k=>$(k).onclick=()=>gramRound(k,5));
 }
@@ -864,7 +890,7 @@ function testStart(){
     ${T.tr.map((t,k)=>`<label class="trow"><span>${esc(t.rev?t.w.en:t.w.de)}</span><input class="tin" id="t${k}" placeholder="${t.rev?"auf Deutsch":"auf Englisch"}" ${fld}></label>`).join("")}
   </section>
   <section class="card tsec"><h3>2 · Explain it in English</h3>
-    <div class="small muted">Ohne das Wort selbst. Hilfe: It's a person who … / It's a thing that … / It means to …</div>
+    <div class="small muted">Ohne das Wort selbst. Hilfe:<br>${STARTERS.slice(0,6).map(([en,de])=>`<b>${esc(en)}</b> = ${esc(de)}`).join("<br>")}</div>
     ${T.ex.map((w,k)=>`<label class="tex"><b>${esc(w.en)}</b><textarea class="para" style="min-height:80px" id="e${k}" autocapitalize="sentences" spellcheck="false"></textarea></label>`).join("")}
   </section>
   <section class="card tsec"><h3>3 · Sätze in der richtigen Zeit</h3>
@@ -922,7 +948,7 @@ function testGrade(){
 
 /* ---------- daily training ---------- */
 function dailyStart(){
-  FLOW={i:0,log:[],steps:[()=>startRound(),()=>paraRound(shuffle([...WORDS]).slice(0,1),0,0),()=>gramRound("m",4)]};
+  FLOW={i:0,log:[],steps:[()=>startRound(10),()=>paraRound(shuffle([...WORDS]).slice(0,3),0,0),()=>gramRound("m",10)]};
   FLOW.steps[0]();
 }
 function flowNext(r){
@@ -930,7 +956,7 @@ function flowNext(r){
   if(FLOW.i<FLOW.steps.length){ scrollTo(0,0); return FLOW.steps[FLOW.i]() }
   const log=FLOW.log; FLOW=null;
   app.innerHTML=`<section class="card result"><div class="eyebrow">Tagestraining geschafft</div><h2 class="display" style="font-size:28px">Stark, Konrad!</h2>
-    <div class="dlog">${log.map(l=>`<div><span>${l.name}</span><b class="tnum">${l.name==="Erklären"?"✓":l.ok+" / "+l.n}</b></div>`).join("")}</div>
+    <div class="dlog">${log.map(l=>`<div><span>${l.name}</span><b class="tnum">${l.name==="Erklären"?l.ok+" geschrieben":l.ok+" / "+l.n}</b></div>`).join("")}</div>
     <div class="small muted">Morgen wieder, dann bist du fit für den Test.</div>
     <div class="row" style="width:100%"><button class="btn-main" style="flex:1" id="z">Übersicht</button></div></section>`;
   $("z").onclick=home; confetti();
