@@ -156,6 +156,10 @@ table.irr td{padding:7px 4px;border-top:1px solid var(--line);vertical-align:top
 .ampel i{height:36px;border-radius:6px;display:grid;place-items:center;font-style:normal;font-weight:700;color:#1B2140;opacity:.3}
 .ampel i.on{opacity:1;outline:3px solid var(--ink);outline-offset:1px}
 .sk{display:grid;gap:6px}
+.lesson{display:flex;gap:6px;align-items:center;flex-wrap:wrap;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:6px 6px 6px 14px}
+.lesson .eyebrow{flex:1;min-width:max-content}
+.lesson button{padding:9px 14px;background:transparent;font-weight:700}
+.lesson button.on{background:var(--blue);color:var(--card)}
 .dlog{display:grid;gap:6px;width:100%}
 .dlog div{display:flex;justify-content:space-between;background:var(--bg);border-radius:10px;padding:10px 14px}
 .small{font-size:14px}
@@ -347,9 +351,11 @@ function home(){
     <div class="unit display">${U.label}</div>
   </header>
 
+  <div class="lesson" role="group" aria-label="Lektion wählen"><span class="eyebrow">Vokabeln aus</span>${Object.entries(UNITS).map(([k,u])=>`<button id="u-${k}" class="${k===S.unit?"on":""}" aria-pressed="${k===S.unit}">${u.label}${k===S.unit?"":" <span class='small'>(alt)</span>"}</button>`).join("")}</div>
+
   <section class="card" style="display:grid;gap:12px;border:2px solid var(--blue)">
     <div><div class="eyebrow">Heute · ca. 10 Minuten</div><h3 style="margin-top:4px">Tagestraining</h3></div>
-    <div class="small muted">5 Vokabeln · 1 Wort auf Englisch erklären · 4 Sätze im Past Perfect. Einmal am Tag, dann bist du fit für den Test.</div>
+    <div class="small muted">5 Vokabeln · 1 Wort auf Englisch erklären · 4 Sätze in den drei Zeiten. Einmal am Tag, dann bist du fit für den Test.</div>
     <button class="btn-main" id="daily">Tagestraining starten</button>
   </section>
 
@@ -357,7 +363,9 @@ function home(){
     <div class="eyebrow">Das kannst du schon</div>
     ${[["Vokabeln","sitzen",m,tot,"var(--ok)"],
        ["Erklären","gut erklärt",WORDS.filter(w=>S.ex[w.en]).length,tot,"var(--blue)"],
-       ["Past Perfect","Sätze geschafft",[...PP_BUILD,...PP_GAP].filter(x=>S.pp[x.a]).length,PP_BUILD.length+PP_GAP.length,"var(--hi)"]]
+       ["Past Simple","Sätze geschafft",solved(PS_BUILD),PS_BUILD.length,"var(--hi)"],
+       ["Past Progressive","Sätze geschafft",solved(PC_BUILD),PC_BUILD.length,"var(--hi)"],
+       ["Past Perfect","Sätze geschafft",solved([...PP_BUILD,...PP_GAP]),PP_BUILD.length+PP_GAP.length,"var(--hi)"]]
       .map(([l,u,n,t,c])=>`<div class="sk"><div class="row" style="justify-content:space-between"><b>${l}</b><span class="tnum small muted"><b style="color:var(--ink);font-size:17px">${n}</b> / ${t} ${u}</span></div><div class="meter" style="height:10px"><i style="width:${n/t*100}%;background:${c}"></i></div></div>`).join("")}
   </section>
 
@@ -395,8 +403,8 @@ function home(){
     <div class="pad" aria-hidden="true">⏪</div>
     <div style="flex:1;min-width:0">
       <div class="eyebrow">Test-Teil 3 · Grammatik</div>
-      <h3>Past Perfect</h3>
-      <div class="muted small">had + 3. Form. Erklärung, Verben-Liste und Übungen.</div>
+      <h3>Die Zeiten</h3>
+      <div class="muted small">Past Simple, Past Progressive und neu: Past Perfect.</div>
     </div>
     <button id="gram">Los</button>
   </section>
@@ -439,19 +447,13 @@ function home(){
     <div class="row"><button id="copy">Bericht kopieren</button><button class="btn-ghost" id="reset">Neu anfangen</button></div>
     <pre id="report" class="small" style="white-space:pre-wrap;margin:0" hidden></pre>
     <div id="confirmBox" hidden></div>
-  </section>
-
-  <section class="card" style="display:grid;gap:10px">
-    <div class="eyebrow">Unit wechseln</div>
-    <div class="row">${Object.entries(UNITS).map(([k,u])=>`<button id="u-${k}" class="${k===S.unit?"":"btn-ghost"}" ${k===S.unit?"disabled":""}>${u.label}${k===S.unit?" ✓":""}</button>`).join("")}</div>
-    <div class="small muted">Dein Fortschritt bleibt in jeder Unit gespeichert.</div>
   </section>`;
   $("go").onclick=startRound;
   $("daily").onclick=dailyStart;
   $("lvl2").onclick=()=>paraHome();
   $("gram").onclick=gramHome;
   $("test").onclick=testStart;
-  Object.keys(UNITS).forEach(k=>{if(k!==S.unit)$("u-"+k).onclick=()=>setUnit(k)});
+  Object.keys(UNITS).forEach(k=>{$("u-"+k).onclick=()=>{if(k!==S.unit)setUnit(k)}});
   $("spk").onclick=speakRound;
   $("copy").onclick=()=>{const t=report();const p=$("report");p.textContent=t;p.hidden=false;
     if(navigator.clipboard) navigator.clipboard.writeText(t).then(()=>$("copy").textContent="Kopiert ✓").catch(()=>selectText(p)); else selectText(p)};
@@ -479,7 +481,7 @@ function report(){
   return `Konrad · Englisch ${UNITS[S.unit].label}\nStand ${fmt(today())}${today().slice(0,4)}: ${m} von ${WORDS.length} Wörtern sitzen.\nGeübt an ${days} ${days===1?"Tag":"Tagen"}, ${S.hist.length} Runden, ${asked?Math.round(ok/asked*100):0} % beim 1. Versuch richtig.`
    +(hard.length?`\nNoch knifflig: ${hard.join(", ")}`:"")
    +`\nErklären: ${WORDS.filter(w=>S.ex[w.en]).length} von ${WORDS.length} Wörtern gut erklärt (${S.paraDone} Erklärungen geschrieben).`
-   +`\nPast Perfect: ${[...PP_BUILD,...PP_GAP].filter(x=>S.pp[x.a]).length} von ${PP_BUILD.length+PP_GAP.length} Sätzen geschafft.`
+   +`\nZeiten (Sätze geschafft): Past Simple ${solved(PS_BUILD)}/${PS_BUILD.length}, Past Progressive ${solved(PC_BUILD)}/${PC_BUILD.length}, Past Perfect ${solved([...PP_BUILD,...PP_GAP])}/${PP_BUILD.length+PP_GAP.length}.`
    +(grN?`\nPast Perfect: ${grOk} von ${grN} Sätzen beim 1. Versuch richtig.`:"")
    +(tests.length?`\nProbe-Tests: ${tests.map(t=>`${fmt(t.d)} ${t.ok}/${t.n}`).join(", ")}`:"");
 }
@@ -684,19 +686,65 @@ const PP_GAP=[
  {s:"After they had washed the vegetables, they ___ (to cut) them.",a:"cut",v:"cut",ps:"cut",why:"Waschen war zuerst. Schneiden kommt danach: Past Simple."},
  {s:"She felt sick because she ___ (to eat) too many sweets.",a:"had eaten",v:"eat",pp:"eaten",why:"Zuerst die Süßigkeiten, danach war ihr schlecht."}
 ];
-const IRREG=[["be","was / were","been","sein"],["buy","bought","bought","kaufen"],["come","came","come","kommen"],["cut","cut","cut","schneiden"],["do","did","done","tun"],["drink","drank","drunk","trinken"],["eat","ate","eaten","essen"],["feed","fed","fed","füttern"],["find","found","found","finden"],["forget","forgot","forgotten","vergessen"],["get","got","got","bekommen"],["give","gave","given","geben"],["go","went","gone","gehen"],["have","had","had","haben"],["know","knew","known","wissen"],["leave","left","left","verlassen"],["make","made","made","machen"],["put","put","put","legen"],["see","saw","seen","sehen"],["sell","sold","sold","verkaufen"],["take","took","taken","nehmen"],["think","thought","thought","denken"],["write","wrote","written","schreiben"]];
+// the tenses from the last test (cues taken from the test sheet first)
+const PS_BUILD=[
+ {c:"yesterday / we / to the cinema / (to) go",a:"Yesterday we went to the cinema.",alt:["We went to the cinema yesterday."],v:"go",ps:"went",ten:"ps"},
+ {c:"Sarah / her best friend / on Saturday / (to) see",a:"Sarah saw her best friend on Saturday.",alt:["On Saturday Sarah saw her best friend."],v:"see",ps:"saw",ten:"ps"},
+ {c:"Tom and Ben / football / after school / (to) play",a:"Tom and Ben played football after school.",alt:["After school Tom and Ben played football."],v:"play",ps:"played",ten:"ps"},
+ {c:"Mum / a cake / last weekend / (to) bake",a:"Mum baked a cake last weekend.",alt:["Last weekend Mum baked a cake."],v:"bake",ps:"baked",ten:"ps"},
+ {c:"we / pizza / yesterday / (to) eat",a:"We ate pizza yesterday.",alt:["Yesterday we ate pizza."],v:"eat",ps:"ate",ten:"ps"},
+ {c:"the chef / oil into the pan / (to) pour",a:"The chef poured oil into the pan.",v:"pour",ps:"poured",ten:"ps"},
+ {c:"Konrad / his homework / (to) forget",a:"Konrad forgot his homework.",v:"forget",ps:"forgot",ten:"ps"},
+ {c:"they / a donation / last year / (to) make",a:"They made a donation last year.",alt:["Last year they made a donation."],v:"make",ps:"made",ten:"ps"},
+ {c:"Ben / two glasses of milk / (to) drink",a:"Ben drank two glasses of milk.",v:"drink",ps:"drank",ten:"ps"},
+ {c:"I / the soup / gently / (to) stir",a:"I stirred the soup gently.",alt:["I gently stirred the soup."],v:"stir",ps:"stirred",ten:"ps"},
+ {c:"she / not / spinach / (to) like",a:"She didn't like spinach.",v:"like",ps:"didn't like",ten:"ps",x:"Verneinung: <b>didn't + Grundform</b> (nicht liked!)"},
+ {c:"Frage: you / the advert / (to) see",a:"Did you see the advert?",v:"see",ps:"see",ten:"ps",x:"Frage: <b>Did + Person + Grundform</b> …? (nicht saw!)"}
+];
+const PC_BUILD=[
+ {c:"Tom / in the park / (to) run",a:"Tom was running in the park.",v:"run",ing:"running",aux:"was",ten:"pc"},
+ {c:"they / in the kitchen / (to) talk",a:"They were talking in the kitchen.",v:"talk",ing:"talking",aux:"were",ten:"pc"},
+ {c:"George / the guitar / (to) play",a:"George was playing the guitar.",v:"play",ing:"playing",aux:"was",ten:"pc"},
+ {c:"Mum / dinner / (to) cook",a:"Mum was cooking dinner.",v:"cook",ing:"cooking",aux:"was",ten:"pc"},
+ {c:"we / for the bus / (to) wait",a:"We were waiting for the bus.",v:"wait",ing:"waiting",aux:"were",ten:"pc"},
+ {c:"I / the soup / (to) stir",a:"I was stirring the soup.",v:"stir",ing:"stirring",aux:"was",ten:"pc"},
+ {c:"the kids / a cookery programme / (to) watch",a:"The kids were watching a cookery programme.",v:"watch",ing:"watching",aux:"were",ten:"pc"},
+ {c:"Lisa / an omelette / (to) make",a:"Lisa was making an omelette.",v:"make",ing:"making",aux:"was",ten:"pc"},
+ {c:"you / in the garden / (to) sit",a:"You were sitting in the garden.",v:"sit",ing:"sitting",aux:"were",ten:"pc"},
+ {c:"the sun / (to) shine",a:"The sun was shining.",v:"shine",ing:"shining",aux:"was",ten:"pc"},
+ {c:"he / not / (to) listen",a:"He wasn't listening.",v:"listen",ing:"listening",aux:"was",ten:"pc"},
+ {c:"Frage: they / lunch / (to) eat",a:"Were they eating lunch?",v:"eat",ing:"eating",aux:"were",ten:"pc"}
+];
+const TNAME={ps:"Past Simple",pc:"Past Progressive",pp:"Past Perfect"};
+const tenOf=it=>it.ten||(it.pp?"pp":"ps");
+const IRREG=[["be","was / were","been","sein"],["buy","bought","bought","kaufen"],["come","came","come","kommen"],["cut","cut","cut","schneiden"],["do","did","done","tun"],["drink","drank","drunk","trinken"],["eat","ate","eaten","essen"],["feed","fed","fed","füttern"],["find","found","found","finden"],["forget","forgot","forgotten","vergessen"],["get","got","got","bekommen"],["give","gave","given","geben"],["go","went","gone","gehen"],["have","had","had","haben"],["know","knew","known","wissen"],["leave","left","left","verlassen"],["make","made","made","machen"],["put","put","put","legen"],["run","ran","run","laufen"],["see","saw","seen","sehen"],["sell","sold","sold","verkaufen"],["sit","sat","sat","sitzen"],["take","took","taken","nehmen"],["think","thought","thought","denken"],["write","wrote","written","schreiben"]];
 
-const ppN=s=>norm(s).replace(/\bhad not\b/g,"hadn't").replace(/,/g,"");
+const ppN=s=>norm(s).replace(/\b(had|did|was|were) not\b/g,"$1n't").replace(/,/g,"");
 function ppTip(it,a){
-  if(it.pp){
+  const ten=tenOf(it);
+  if(ten==="pp"){
     if(/\b(has|have)\b/.test(a)&&!/\bhad/.test(a)) return "has / have ist Present Perfect. Im Past Perfect heißt es immer <b>had</b>, für alle Personen.";
     if(/\b(was|were)\b/.test(a)&&!/\bhad/.test(a)) return "was / were ist hier falsch. Bauplan: <b>had + 3. Form</b>.";
     if(!/\bhad(n't)?\b/.test(a)) return "Da fehlt <b>had</b>. Bauplan: <b>had + 3. Form</b>.";
     if(!new RegExp("\\bhad(n't)?\\s+(\\w+\\s+){0,2}"+it.pp+"\\b").test(a)) return `Nach had kommt die <b>3. Form</b>: ${esc(it.v)} → <b>${esc(it.pp)}</b>`;
     return "";
   }
-  if(/\bhad\b/.test(a)) return "Das passiert <b>danach</b>. Dafür reicht Past Simple, ohne had.";
-  return `Past Simple von ${esc(it.v)}: <b>${esc(it.ps)}</b>`;
+  if(ten==="pc"){
+    if(/\b(is|are|am)\b/.test(a)&&!/\b(was|were)/.test(a)) return "is / are ist Gegenwart. In der Vergangenheit heißt es <b>was</b> oder <b>were</b>.";
+    if(!/\b(was|were)(n't)?\b/.test(a)) return "Da fehlt <b>was</b> oder <b>were</b>. Bauplan: <b>was / were + -ing</b>.";
+    if(it.aux==="were"&&/\bwas(n't)?\b/.test(a)) return "Bei we, you, they (mehrere) heißt es <b>were</b>.";
+    if(it.aux==="was"&&/\bwere(n't)?\b/.test(a)) return "Bei I, he, she, it (eine Person) heißt es <b>was</b>.";
+    if(!new RegExp("\\b"+it.ing+"\\b").test(a)) return `Nach was / were kommt die <b>-ing-Form</b>: ${esc(it.v)} → <b>${esc(it.ing)}</b>`;
+    return "";
+  }
+  if(it.s&&/\bhad\b/.test(a)) return "Das passiert <b>danach</b>. Dafür reicht Past Simple, ohne had.";
+  if(/\b(was|were)\s+\w+ing\b/.test(a)) return `Das ist Past Progressive. Hier gehört Past Simple hin: <b>${esc(it.ps)}</b>`;
+  if(!new RegExp("\\b"+it.ps+"\\b").test(a)){
+    if(it.x) return it.x;
+    if(new RegExp("\\b"+it.v+"e?s\\b").test(a)) return `„${esc(it.v)}s“ ist Gegenwart. Past Simple: <b>${esc(it.ps)}</b>`;
+    return `Past Simple von ${esc(it.v)}: <b>${esc(it.ps)}</b>`;
+  }
+  return "";
 }
 function ppCheck(it,input){
   const a=ppN(input), targets=[it.a,...(it.alt||[])].map(ppN);
@@ -707,14 +755,37 @@ function ppCheck(it,input){
   if(!tip) return {r:"bad",tip:"Vergleich deinen Satz genau mit der Lösung: Reihenfolge und Wörter."};
   return {r:"bad",tip};
 }
+const POOL={ps:PS_BUILD,pc:PC_BUILD,b:PP_BUILD,g:PP_GAP};
+const solved=list=>list.filter(x=>S.pp[x.a]).length;
 function gramHome(){
   FLOW=null;
+  const tcard=(id,eyebrow,title,body,btns)=>`<details class="card"><summary><div class="eyebrow">${eyebrow}</div><div class="row" style="justify-content:space-between;margin-top:4px"><h3>${title}</h3><span class="small muted">Erklärung ▾</span></div></summary><div style="display:grid;gap:12px;margin-top:14px">${body}</div></details>
+    <div class="row" style="margin-top:-8px">${btns}</div>`;
   app.innerHTML=`
   <div class="qhead"><button class="btn-ghost" id="back">← Übersicht</button></div>
-  <header><div class="eyebrow">Test-Teil 3 · Grammatik</div><h1 class="display" style="font-size:28px">Past Perfect</h1>
-  <p class="muted" style="margin:6px 0 0">Die Vorvergangenheit: Was ist <b>noch früher</b> passiert?</p></header>
-  <section class="card" style="display:grid;gap:14px">
-    <div class="eyebrow">Bauplan</div>
+  <header><div class="eyebrow">Test-Teil 3 · Grammatik</div><h1 class="display" style="font-size:28px">Die Zeiten</h1>
+  <p class="muted" style="margin:6px 0 0">Past Simple, Past Progressive und Past Perfect. Im Test baust du Sätze aus Bausteinen in der richtigen Zeit.</p></header>
+  <section class="card" style="display:grid;gap:10px;border:2px solid var(--blue)">
+    <h3>Alle Zeiten gemischt</h3><p class="muted small" style="margin:0">Wie im Test: Oben steht die Zeit, du baust den Satz.</p>
+    <button class="btn-main" id="m">Gemischt üben · 6 Sätze</button>
+  </section>
+  ${tcard("ps","Zeit 1 · Was ist passiert?","Past Simple",`
+    <div class="formula">Verb + <span class="mark">-ed</span> <span class="small muted" style="font-weight:400">oder 2. Form</span></div>
+    <div class="small">play → <b>played</b>, cook → <b>cooked</b>, stir → <b>stirred</b>. Unregelmäßig: go → <b>went</b>, see → <b>saw</b>, eat → <b>ate</b> (Liste unten).</div>
+    <div class="model" style="font-style:normal">Yesterday we <b class="ppw">went</b> to the cinema.</div>
+    <div class="small"><b>Achtung:</b> Kein -s! „Tom and Ben <s>plays</s>“ ist Gegenwart. Richtig: Tom and Ben <b>played</b>.</div>
+    <div class="small"><b>Verneinung:</b> didn't + Grundform: She <b>didn't like</b> spinach.<br><b>Frage:</b> Did + Person + Grundform: <b>Did</b> you <b>see</b> the advert?</div>
+    <div class="small"><b>Signalwörter:</b> yesterday, last week, on Saturday, ago, in 2020</div>`,
+    `<button id="ps" style="flex:1">Past Simple üben · 5</button><span class="small muted tnum">${solved(PS_BUILD)} / ${PS_BUILD.length}</span>`)}
+  ${tcard("pc","Zeit 2 · Was war gerade im Gange?","Past Progressive",`
+    <div class="formula"><span class="mark">was / were</span> + -ing</div>
+    <div class="small"><b>was</b> bei I, he, she, it (eine Person)<br><b>were</b> bei we, you, they (mehrere)</div>
+    <div class="model" style="font-style:normal">Tom <b class="ppw">was running</b> in the park.<br>They <b class="ppw">were talking</b> in the kitchen.</div>
+    <div class="small"><b>Achtung:</b> „Tom <s>is</s> running“ ist Gegenwart. „They <s>was</s>“ geht nicht, es heißt <b>they were</b>.</div>
+    <div class="small"><b>Schreibweise:</b> run → runn<b>ing</b>, sit → sitt<b>ing</b>, make → mak<b>ing</b> (e fällt weg).</div>
+    <div class="small"><b>Signalwörter:</b> while, when, at 5 o'clock yesterday, all evening</div>`,
+    `<button id="pc" style="flex:1">Past Progressive üben · 5</button><span class="small muted tnum">${solved(PC_BUILD)} / ${PC_BUILD.length}</span>`)}
+  ${tcard("pp","Zeit 3 · Neu · Was war noch früher?","Past Perfect",`
     <div class="formula"><span class="mark">had</span> + 3. Form</div>
     <div class="small">Für <b>alle</b> Personen gleich: I had eaten, you had eaten, he had eaten, we had eaten, they had eaten.</div>
     <div class="tl" aria-hidden="true"><div class="tl-line"></div>
@@ -723,43 +794,35 @@ function gramHome(){
       <div class="tl-now">jetzt</div></div>
     <div class="model" style="font-style:normal">When we <b>arrived</b>, the guests <b class="ppw">had eaten</b> all the pizza.</div>
     <div class="small">Zwei Dinge in der Vergangenheit: Das <b>frühere</b> bekommt <b>had + 3. Form</b>, das spätere steht im Past Simple.</div>
-    <div class="small"><b>Verneinung:</b> hadn't (had not) + 3. Form<br>He <b>hadn't washed</b> his hands.</div>
-    <div class="small"><b>Frage:</b> Had + Person + 3. Form …?<br><b>Had</b> you <b>tried</b> sushi before?</div>
-    <div class="small"><b>Signalwörter:</b> after, before, when, because, by the time, already, never … before</div>
-  </section>
-  <details class="card"><summary>Unregelmäßige Verben (3. Form)</summary>
+    <div class="small"><b>Verneinung:</b> hadn't (had not) + 3. Form: He <b>hadn't washed</b> his hands.<br><b>Frage:</b> Had + Person + 3. Form: <b>Had</b> you <b>tried</b> sushi before?</div>
+    <div class="small"><b>Signalwörter:</b> after, before, when, because, by the time, already, never … before</div>`,
+    `<button id="b" style="flex:1">Sätze bauen · 5</button><button id="g" style="flex:1">Was war zuerst? · 5</button><span class="small muted tnum" style="width:100%">${solved([...PP_BUILD,...PP_GAP])} / ${PP_BUILD.length+PP_GAP.length} geschafft</span>`)}
+  <details class="card"><summary>Unregelmäßige Verben</summary>
     <div class="small muted" style="margin-top:8px">Regelmäßige Verben: einfach <b>-ed</b> anhängen (cook → cooked, stir → stirred, try → tried).</div>
     <table class="irr"><thead><tr><th>Grundform</th><th>Past Simple</th><th>3. Form</th></tr></thead><tbody>${IRREG.map(r=>`<tr><td>${r[0]}<div class="muted small">${r[3]}</div></td><td>${r[1]}</td><td><b>${r[2]}</b></td></tr>`).join("")}</tbody></table>
-  </details>
-  <section class="card" style="display:grid;gap:10px">
-    <h3>1 · Sätze bauen</h3><p class="muted small" style="margin:0">Genau wie im Test: Aus „Tom / (to) eat / breakfast“ wird „Tom had eaten breakfast.“</p>
-    <button class="btn-main" id="b">Sätze bauen · 5</button>
-  </section>
-  <section class="card" style="display:grid;gap:10px">
-    <h3>2 · Was war zuerst?</h3><p class="muted small" style="margin:0">Past Perfect oder Past Simple? Setz das Verb in die Lücke.</p>
-    <button class="btn-main" id="g">Lücken füllen · 5</button>
-    <div class="small muted tnum">Bisher richtig: ${S.gramOk||0} Sätze</div>
-  </section>`;
-  $("back").onclick=home; $("b").onclick=()=>gramRound("b",5); $("g").onclick=()=>gramRound("g",5);
+  </details>`;
+  $("back").onclick=home; $("m").onclick=()=>gramRound("m",6);
+  ["ps","pc","b","g"].forEach(k=>$(k).onclick=()=>gramRound(k,5));
 }
 function gramItems(kind,n){
-  const b=shuffle([...PP_BUILD]).map(x=>({...x,k:"b"})), g=shuffle([...PP_GAP]).map(x=>({...x,k:"g"}));
-  if(kind==="b") return b.slice(0,n);
-  if(kind==="g") return g.slice(0,n);
-  return shuffle([...b.slice(0,Math.ceil(n/2)),...g.slice(0,Math.floor(n/2))]);
+  const take=(k,c)=>shuffle([...POOL[k]]).slice(0,c).map(x=>({...x,k:k==="g"?"g":"b"}));
+  if(POOL[kind]) return take(kind,n);
+  // mix: every tense once, the new Past Perfect a bit more often; sorted like the test sheet
+  const ps=Math.max(1,Math.floor(n/4)), pc=ps, g=Math.floor((n-ps-pc)/2), b=n-ps-pc-g;
+  return [...take("ps",ps),...take("pc",pc),...shuffle([...take("b",b),...take("g",g)])];
 }
 function gramRound(kind,n){
   const q=gramItems(kind,n), total=q.length, again=new Set(); let i=0, ok=0;
-  const back=()=>{ if(FLOW){FLOW=null;home()} else gramHome() };
+  const back=()=>{ if(FLOW){FLOW=null;home()} else gramHome() }, title=kind==="m"?"Alle Zeiten":TNAME[tenOf(POOL[kind][0])];
   const step=()=>{
     if(i>=q.length){ S.gramOk=(S.gramOk||0)+ok; S.hist.push({d:today(),t:"gr",n:total,ok,u:S.unit}); save();
-      if(FLOW) return flowNext({name:"Past Perfect",ok,n:total});
-      app.innerHTML=`<section class="card result"><div class="eyebrow">Past Perfect</div><div class="score tnum">${ok}/${total}</div><div class="muted">beim ersten Versuch richtig</div><div class="row" style="width:100%"><button class="btn-main" style="flex:1" id="a">Nochmal</button><button class="btn-ghost" id="z">Zurück</button></div></section>`;
+      if(FLOW) return flowNext({name:"Grammatik",ok,n:total});
+      app.innerHTML=`<section class="card result"><div class="eyebrow">${title}</div><div class="score tnum">${ok}/${total}</div><div class="muted">beim ersten Versuch richtig</div><div class="row" style="width:100%"><button class="btn-main" style="flex:1" id="a">Nochmal</button><button class="btn-ghost" id="z">Zurück</button></div></section>`;
       $("a").onclick=()=>gramRound(kind,n); $("z").onclick=gramHome; if(ok>=total*.7) confetti(); return}
     const it=q[i], first=!again.has(it.a);
     app.innerHTML=`<div class="qhead"><button class="btn-ghost" id="x" aria-label="Beenden">✕</button><div class="qbar"><i style="width:${Math.min(i,total)/total*100}%"></i></div><span class="muted small tnum">${Math.min(i,total)}/${total}</span></div>
     <section class="card prompt"><span class="stamp" id="stamp">RICHTIG</span>
-      <div class="eyebrow">${it.k==="b"?"Bau den Satz im Past Perfect":"Past Perfect oder Past Simple?"}</div>
+      <div class="eyebrow">${it.k==="b"?"Bau den Satz im <b>"+TNAME[tenOf(it)]+"</b>":"Past Perfect oder Past Simple?"}</div>
       <div class="cue">${it.k==="b"?esc(it.c):esc(it.s).replace("___",'<span class="blank">&nbsp;?&nbsp;</span>')}</div>
       <div class="hint" id="hint" hidden></div></section>
     <form id="f" style="display:grid;gap:12px" autocomplete="off">
@@ -770,7 +833,7 @@ function gramRound(kind,n){
     $("x").onclick=back;
     const inp=$("ans"); inp.focus();
     $("tip").onclick=()=>{const h=$("hint");h.hidden=false;
-      h.innerHTML=it.pp?`had + 3. Form von „${esc(it.v)}“`:"Was ist zuerst passiert, was danach?";inp.focus()};
+      h.innerHTML=it.s&&!it.pp?"Was ist zuerst passiert, was danach?":tenOf(it)==="pp"?`had + 3. Form von „${esc(it.v)}“`:tenOf(it)==="pc"?`${it.aux} + -ing-Form von „${esc(it.v)}“`:`2. Form von „${esc(it.v)}“ (-ed oder unregelmäßig)`;inp.focus()};
     $("f").onsubmit=e=>{e.preventDefault();
       const r=ppCheck(it,inp.value); if(r.r==="empty"){inp.focus();return}
       inp.readOnly=true;
@@ -791,7 +854,7 @@ let T=null;
 function testStart(){
   FLOW=null;
   const pool=shuffle([...WORDS]);
-  T={tr:pool.slice(0,8).map((w,k)=>({w,rev:k%2===0})), ex:pool.slice(8,11), gr:[...gramItems("b",4),...gramItems("g",2)], rate:[]};
+  T={tr:pool.slice(0,8).map((w,k)=>({w,rev:k%2===0})), ex:pool.slice(8,11), gr:gramItems("m",6), rate:[]};
   const fld='autocapitalize="off" autocorrect="off" spellcheck="false" autocomplete="off"';
   app.innerHTML=`
   <div class="qhead"><button class="btn-ghost" id="back">← Übersicht</button></div>
@@ -804,9 +867,9 @@ function testStart(){
     <div class="small muted">Ohne das Wort selbst. Hilfe: It's a person who … / It's a thing that … / It means to …</div>
     ${T.ex.map((w,k)=>`<label class="tex"><b>${esc(w.en)}</b><textarea class="para" style="min-height:80px" id="e${k}" autocapitalize="sentences" spellcheck="false"></textarea></label>`).join("")}
   </section>
-  <section class="card tsec"><h3>3 · Past Perfect</h3>
-    <div class="small muted">Bau die Sätze im Past Perfect. Bei den Lücken: Past Perfect oder Past Simple?</div>
-    ${T.gr.map((g,k)=>`<label class="tex"><span>${g.k==="b"?esc(g.c):esc(g.s)}</span><input class="tin" id="g${k}" placeholder="${g.k==="b"?"ganzer Satz":"Lücke"}" ${fld}></label>`).join("")}
+  <section class="card tsec"><h3>3 · Sätze in der richtigen Zeit</h3>
+    <div class="small muted">Bau die Sätze in der Zeit, die davor steht. Bei den Lücken: Past Perfect oder Past Simple?</div>
+    ${T.gr.map((g,k)=>`<label class="tex"><span>${g.k==="b"?`<b>${TNAME[tenOf(g)]}:</b> `+esc(g.c):esc(g.s)}</span><input class="tin" id="g${k}" placeholder="${g.k==="b"?"ganzer Satz":"Lücke"}" ${fld}></label>`).join("")}
   </section>
   <button class="btn-main" id="hand">Abgeben</button>`;
   $("back").onclick=home; $("hand").onclick=testGrade;
@@ -835,7 +898,7 @@ function testGrade(){
   <header><div class="eyebrow">Probe-Test · Auswertung</div><h1 class="display" style="font-size:28px">Kontrolle</h1></header>
   <section class="card tsec"><h3>1 · Translate the words</h3>${p1}</section>
   <section class="card tsec"><h3>2 · Explain it in English</h3>${p2}</section>
-  <section class="card tsec"><h3>3 · Past Perfect</h3>${p3}</section>
+  <section class="card tsec"><h3>3 · Sätze in der richtigen Zeit</h3>${p3}</section>
   <div id="score"></div>
   <button class="btn-main" id="sum">Punkte zählen</button>`;
   document.querySelectorAll(".rate button").forEach(b=>b.onclick=()=>{const box=b.parentNode;T.rate[+box.dataset.k]=+b.dataset.p;
