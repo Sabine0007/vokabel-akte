@@ -122,6 +122,41 @@ textarea.para{width:100%;min-height:110px;font:inherit;font-size:18px;padding:12
 .model{border-left:4px solid var(--hi);padding:4px 0 4px 12px;font-style:italic}
 .confirm{background:var(--bad-soft);border-radius:12px;padding:12px}
 #confetti{position:fixed;inset:0;pointer-events:none;z-index:5}
+
+/* past perfect */
+.formula{font-size:26px;font-weight:700}
+.ppw{background:var(--hi);color:var(--hi-ink);padding:0 .25em;border-radius:4px}
+.tl{position:relative;height:74px;margin:4px 0}
+.tl-line{position:absolute;left:0;right:0;top:12px;height:3px;background:var(--line)}
+.tl-line::after{content:"";position:absolute;right:-2px;top:-5px;border:6px solid transparent;border-left:9px solid var(--line)}
+.tl-pt{position:absolute;top:4px;display:flex;flex-direction:column;gap:2px;font-size:13px}
+.tl-pt i{width:19px;height:19px;border-radius:50%;background:var(--blue);border:3px solid var(--card)}
+.tl-pt.first i{background:var(--hi)}
+.tl-pt span{color:var(--muted)}
+.tl-now{position:absolute;right:0;top:24px;font-size:13px;color:var(--muted)}
+.cue{font-size:21px;font-weight:700;margin-top:10px;text-wrap:balance}
+.blank{display:inline-block;min-width:3em;border-bottom:3px solid var(--hi);color:var(--muted)}
+.answer.long{font-size:18px;text-align:left}
+table.irr{width:100%;border-collapse:collapse;margin-top:10px;font-size:15px}
+table.irr th{text-align:left;font-size:12px;color:var(--muted);font-weight:700;padding:6px 4px}
+table.irr td{padding:7px 4px;border-top:1px solid var(--line);vertical-align:top}
+
+/* probe test */
+.tsec{display:grid;gap:4px}
+.trow{display:grid;grid-template-columns:1fr 1.2fr;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line);font-size:16px}
+.trow:last-child{border:0}
+.trow.res{align-items:start}
+.tin{font:inherit;width:100%;padding:10px 12px;border-radius:10px;border:2px solid var(--line);background:var(--card);color:var(--ink)}
+.tex{display:grid;gap:6px;margin-top:14px}
+.mk{font-weight:700;margin-right:4px}
+.mk.ok{color:var(--ok)} .mk.half{color:#C98A00} .mk.bad{color:var(--bad)}
+.rate button{padding:8px 12px;font-size:15px}
+.rate button.sel{background:var(--blue);color:var(--card)}
+.ampel{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;width:100%}
+.ampel i{height:36px;border-radius:6px;display:grid;place-items:center;font-style:normal;font-weight:700;color:#1B2140;opacity:.3}
+.ampel i.on{opacity:1;outline:3px solid var(--ink);outline-offset:1px}
+.dlog{display:grid;gap:6px;width:100%}
+.dlog div{display:flex;justify-content:space-between;background:var(--bg);border-radius:10px;padding:10px 14px}
 .small{font-size:14px}
 </style>
 
@@ -129,7 +164,41 @@ textarea.para{width:100%;min-height:110px;font:inherit;font-size:18px;padding:12
 <div class="wrap" id="app"></div>
 
 <script>
-const WORDS = [
+const FOOD = [
+ {en:"diet",de:"Ernährung; Diät",ex:"To stay fit, you need a healthy diet.",def:"the food that you usually eat"},
+ {en:"to afford",de:"sich leisten",ex:"We can't afford to go abroad this summer.",def:"to have enough money to pay for something"},
+ {en:"cause",de:"Ursache",ex:"Poverty is the main cause of hunger.",def:"the thing that makes something happen"},
+ {en:"to face",de:"konfrontieren; gegenüberstehen",ex:"Millions of people face hunger in poor countries.",def:"to have a difficult situation or problem in front of you"},
+ {en:"to feed",de:"ernähren; füttern",ex:"They have a large family to feed.",def:"to give food to a person or an animal"},
+ {en:"intake",de:"Einnahme; Aufnahme",ex:"People in America have a higher intake of calories than people in Africa.",def:"the amount of food or drink that you take into your body"},
+ {en:"poverty",de:"Armut",ex:"Millions of people live in extreme poverty worldwide.",def:"when people have very little money and cannot buy the things they need"},
+ {en:"to waste",de:"verschwenden",ex:"We need to waste less food in order to feed the population.",def:"to use more of something than you need, or to throw away something that is still good"},
+ {en:"advert",alt:["advertisement"],de:"Reklame; Anzeige; Werbung",ex:"You want to sell your car? I saw your advert in the local newspaper.",def:"a picture, a short text or a film that wants you to buy something"},
+ {en:"to contain",de:"beinhalten; enthalten",ex:"Some fizzy drinks contain 35 g of sugar.",def:"to have something inside"},
+ {en:"cookery",de:"Kochen; Kochkunst",ex:"Learn to cook by watching a cookery programme.",def:"the art of making food"},
+ {en:"fortunately",de:"glücklicherweise; zum Glück",ex:"Fortunately, we arrived at the train station just in time to catch our train.",def:"luckily, something good happened"},
+ {en:"health",de:"Gesundheit",ex:"Everyone needs a minimum intake of calories per day for good health.",def:"how well your body and your mind are"},
+ {en:"ingredient",de:"Zutat",ex:"A recipe gives you a list of ingredients to use.",def:"one of the foods you use to make a dish"},
+ {en:"nutrition",de:"Ernährung",ex:"Good nutrition means eating good food regularly.",def:"the food your body needs to grow and to stay healthy"},
+ {en:"overweight",de:"übergewichtig",ex:"If you eat too much too often, you will soon be overweight.",def:"heavier than is healthy"},
+ {en:"well-known",alt:["well known"],de:"wohlbekannt, berühmt",ex:"Jamie Oliver is a well-known chef.",def:"known by a lot of people, famous"},
+ {en:"man-made",alt:["man made"],de:"künstlich",ex:"Artificial food isn't natural – it's man-made.",def:"made by people, not by nature"},
+ {en:"to dislike",de:"nicht mögen, nicht leiden können",ex:"I like tomatoes, but I dislike spinach.",def:"to not like something"},
+ {en:"to be in charge",de:"das Sagen haben, verantwortlich sein",ex:"You need to talk to Mara. She is in charge of the food festival.",def:"to be the person who decides and who is responsible"},
+ {en:"disgusting",de:"ekelhaft, widerlich",ex:"Pasta with ketchup? That sounds disgusting!",def:"very bad, so that you feel a little sick"},
+ {en:"home-cooked",alt:["home cooked"],de:"selbstgekocht",ex:"The food at the school's food festival should be fresh and home-cooked.",def:"made at home, not in a factory or a restaurant"},
+ {en:"Let's get started",alt:["let us get started","lets get started"],de:"Lasst uns anfangen; Packen wir's an",ex:"Thank you for coming to the meeting – let's get started right away.",def:"we say this when we want to begin something together"},
+ {en:"to persuade",de:"überzeugen",ex:"We need a good poster to persuade as many kids as possible to take part in the project.",def:"to make someone want to do or believe something"},
+ {en:"to wait and see",de:"abwarten",ex:"We'll have to wait and see.",def:"to wait to find out what will happen"},
+ {en:"to fold",de:"zusammenklappen, falten",ex:"Pick up the pan and fold the omelette.",def:"to bend something so that one part lies on top of the other part"},
+ {en:"gently",de:"sanft, behutsam",ex:"Stir the soup gently.",def:"in a soft and careful way"},
+ {en:"oil",de:"Öl",ex:"Would you like some olive oil in your salad?",def:"a yellow liquid from plants that you use for cooking"},
+ {en:"pan",de:"Pfanne",ex:"Heat some oil in a pan.",def:"a round metal thing that you use to cook food on the stove"},
+ {en:"to pour",de:"schütten, gießen",ex:"Beat the eggs in a cup and pour them into the pan.",def:"to make a liquid flow out of a cup or a bottle"},
+ {en:"to stir",de:"rühren, umrühren",ex:"He used a spoon to stir the soup.",def:"to move a spoon round and round in a liquid"},
+ {en:"donation",de:"Spende",ex:"She made a big donation to the local animal shelter.",def:"money or things that you give to help people or animals"}
+];
+const CRIME = [
  // Word File: Crime
  {en:"criminal",de:"Kriminelle/r",ex:"The police caught the criminal after a long chase.",def:"a person who does something that is against the law"},
  {en:"thief",de:"Dieb/Diebin",ex:"The thief stole my bike from the school yard.",def:"a person who takes things that do not belong to him or her"},
@@ -180,15 +249,24 @@ const WORDS = [
 const MASTER = 1, ROUND = 5, KEY = "konrad-vokabel-akte-v1";
 
 /* ---------- state ---------- */
-function freshState(){return {w:{},hist:[],paraDone:0,guessOk:0}}
+function freshState(){return {w:{},hist:[],paraDone:0,guessOk:0,gramOk:0,unit:"food"}}
 let S = freshState();
 try{const raw=localStorage.getItem(KEY); if(raw) S=Object.assign(freshState(),JSON.parse(raw));}catch(e){}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 function ws(en){return S.w[en]||(S.w[en]={box:0,ok:0,bad:0})}
 const today=()=>new Date().toISOString().slice(0,10);
 const masteredCount=()=>WORDS.filter(w=>ws(w.en).box>=MASTER).length;
-const UNLOCK=Math.ceil(WORDS.length*.6); // Level 2 opens at 60 % (26 of 43 words)
-const unlocked=()=>masteredCount()>=UNLOCK;
+
+/* ---------- units ---------- */
+// order as on the photos: Crime photo 1 = list, photo 2 = Word File + MORE Words and Phrases
+const UNITS={
+  food:{label:"Food",eyebrow:"Neue Unit · Wortliste",words:FOOD,groups:[{name:"Wortliste Food",from:0,to:FOOD.length}]},
+  crime:{label:"Crime",eyebrow:"Unit 2 · Word File",words:CRIME,groups:[{name:"Bild 1 · Wortliste",from:15,to:43},{name:"Bild 2 · Word File Crime",from:0,to:9},{name:"Bild 2 · More Words and Phrases",from:9,to:15}]}
+};
+if(!UNITS[S.unit]) S.unit="food";
+let WORDS=UNITS[S.unit].words, GROUPS=UNITS[S.unit].groups;
+function setUnit(u){S.unit=u;save();WORDS=UNITS[u].words;GROUPS=UNITS[u].groups;home();scrollTo(0,0)}
+let FLOW=null; // daily training: several modules in a row
 
 /* ---------- text helpers ---------- */
 const norm=s=>s.toLowerCase().replace(/[’`´]/g,"'").replace(/\s+/g," ").replace(/[.!?]+$/,"").trim();
@@ -256,16 +334,23 @@ function streak(){
 
 /* ---------- home ---------- */
 function home(){
-  const m=masteredCount(), counts=[0,0];
+  FLOW=null;
+  const m=masteredCount(), counts=[0,0], U=UNITS[S.unit];
   WORDS.forEach(w=>counts[Math.min(ws(w.en).box,MASTER)]++);
   const tot=WORDS.length, asked=S.hist.filter(h=>h.t==="v").reduce((s,h)=>s+h.n,0), okk=S.hist.filter(h=>h.t==="v").reduce((s,h)=>s+h.ok,0);
   const rate=asked?Math.round(okk/asked*100)+" %":"–";
-  const left=Math.max(0,UNLOCK-m);
+  const lastTest=S.hist.filter(h=>h.t==="t"&&h.u===S.unit).pop();
   app.innerHTML=`
   <header class="top">
-    <div><div class="eyebrow">Unit 2 · Word File</div><h1>Konrads <span class="mark">Vokabel-Akte</span></h1></div>
-    <div class="unit display">Crime</div>
+    <div><div class="eyebrow">${U.eyebrow}</div><h1>Konrads <span class="mark">Vokabel-Akte</span></h1></div>
+    <div class="unit display">${U.label}</div>
   </header>
+
+  <section class="card" style="display:grid;gap:12px;border:2px solid var(--blue)">
+    <div><div class="eyebrow">Heute · ca. 10 Minuten</div><h3 style="margin-top:4px">Tagestraining</h3></div>
+    <div class="small muted">5 Vokabeln · 1 Wort auf Englisch erklären · 4 Sätze im Past Perfect. Einmal am Tag, dann bist du fit für den Test.</div>
+    <button class="btn-main" id="daily">Tagestraining starten</button>
+  </section>
 
   <section class="card" style="display:grid;gap:14px">
     <div class="row" style="justify-content:space-between;align-items:flex-end">
@@ -288,13 +373,33 @@ function home(){
   </section>
 
   <section class="card lock">
-    <div class="pad">${unlocked()?"✓":"2"}</div>
+    <div class="pad" aria-hidden="true">💬</div>
     <div style="flex:1;min-width:0">
-      <div class="eyebrow">Level 2</div>
-      <h3>Umschreiben auf Englisch</h3>
-      <div class="muted small">${unlocked()?"Freigeschaltet! Erklär Wörter mit eigenen Worten, so wie im Test.":`Wird frei, wenn ${UNLOCK} Wörter sitzen (60 %). Noch ${left} ${left===1?"Wort":"Wörter"}.`}</div>
+      <div class="eyebrow">Test-Teil 2</div>
+      <h3>Explain it in English</h3>
+      <div class="muted small">Erklär Wörter mit eigenen Worten, so wie im Test.</div>
     </div>
-    ${unlocked()?'<button id="lvl2">Los</button>':""}
+    <button id="lvl2">Los</button>
+  </section>
+
+  <section class="card lock">
+    <div class="pad" aria-hidden="true">⏪</div>
+    <div style="flex:1;min-width:0">
+      <div class="eyebrow">Test-Teil 3 · Grammatik</div>
+      <h3>Past Perfect</h3>
+      <div class="muted small">had + 3. Form. Erklärung, Verben-Liste und Übungen.</div>
+    </div>
+    <button id="gram">Los</button>
+  </section>
+
+  <section class="card lock">
+    <div class="pad" aria-hidden="true">📝</div>
+    <div style="flex:1;min-width:0">
+      <div class="eyebrow">Generalprobe</div>
+      <h3>Probe-Test</h3>
+      <div class="muted small">Aufgebaut wie der echte Test, mit Ampel am Ende.${lastTest?` Zuletzt: <b class="tnum">${lastTest.ok} / ${lastTest.n} Punkte</b> (${fmt(lastTest.d)})`:""}</div>
+    </div>
+    <button id="test">Los</button>
   </section>
 
   <section class="card lock">
@@ -325,17 +430,25 @@ function home(){
     <div class="row"><button id="copy">Bericht kopieren</button><button class="btn-ghost" id="reset">Neu anfangen</button></div>
     <pre id="report" class="small" style="white-space:pre-wrap;margin:0" hidden></pre>
     <div id="confirmBox" hidden></div>
+  </section>
+
+  <section class="card" style="display:grid;gap:10px">
+    <div class="eyebrow">Unit wechseln</div>
+    <div class="row">${Object.entries(UNITS).map(([k,u])=>`<button id="u-${k}" class="${k===S.unit?"":"btn-ghost"}" ${k===S.unit?"disabled":""}>${u.label}${k===S.unit?" ✓":""}</button>`).join("")}</div>
+    <div class="small muted">Dein Fortschritt bleibt in jeder Unit gespeichert.</div>
   </section>`;
   $("go").onclick=startRound;
-  if($("lvl2")) $("lvl2").onclick=()=>paraHome();
+  $("daily").onclick=dailyStart;
+  $("lvl2").onclick=()=>paraHome();
+  $("gram").onclick=gramHome;
+  $("test").onclick=testStart;
+  Object.keys(UNITS).forEach(k=>{if(k!==S.unit)$("u-"+k).onclick=()=>setUnit(k)});
   $("spk").onclick=speakRound;
   $("copy").onclick=()=>{const t=report();const p=$("report");p.textContent=t;p.hidden=false;
     if(navigator.clipboard) navigator.clipboard.writeText(t).then(()=>$("copy").textContent="Kopiert ✓").catch(()=>selectText(p)); else selectText(p)};
   $("reset").onclick=()=>{const c=$("confirmBox");c.hidden=false;c.innerHTML=`<div class="confirm"><div style="margin-bottom:10px">Wirklich alles löschen? Der ganze Fortschritt ist dann weg.</div><div class="row"><button id="yes" style="background:var(--bad);color:var(--card)">Ja, löschen</button><button id="no" class="btn-ghost">Abbrechen</button></div></div>`;
     $("yes").onclick=()=>{S=freshState();save();home()}; $("no").onclick=()=>{c.hidden=true}};
 }
-// order as on the photos: photo 1 = list, photo 2 = Word File + MORE Words and Phrases
-const GROUPS=[{name:"Bild 1 · Wortliste",from:15,to:43},{name:"Bild 2 · Word File Crime",from:0,to:9},{name:"Bild 2 · More Words and Phrases",from:9,to:15}];
 function wordRow(w){const b=ws(w.en).box;return `<div class="w"><span><span class="boxes">${[1].map(k=>`<i class="${b>=k?"on":""}"></i>`).join("")}</span>${esc(w.en)}</span><span class="de">${esc(w.de)}</span></div>`}
 function selectText(el){const r=document.createRange();r.selectNodeContents(el);const s=getSelection();s.removeAllRanges();s.addRange(r)}
 function histHTML(){
@@ -343,17 +456,22 @@ function histHTML(){
   const days=[];for(let i=13;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);days.push(d.toISOString().slice(0,10))}
   const per=days.map(d=>S.hist.filter(h=>h.d===d).reduce((s,h)=>s+h.n,0)); const max=Math.max(...per,1);
   const bars=days.map((d,i)=>`<div class="b" title="${d}: ${per[i]} Wörter"><i style="height:${per[i]/max*52}px;${per[i]?"":"background:var(--line);height:2px"}"></i><span>${+d.slice(8)}</span></div>`).join("");
-  const last=S.hist.slice(-5).reverse().map(h=>`<div><span>${fmt(h.d)} · ${h.t==="v"?"Vokabeln":h.t==="g"?"Wort raten":h.t==="s"?"Sprechen":"Umschreiben"}</span><span class="tnum">${h.t==="p"?h.n+" geschrieben":h.ok+" / "+h.n+" richtig"}</span></div>`).join("");
-  return `<div class="small muted" style="margin-top:6px">Geübte Wörter pro Tag, letzte 14 Tage</div><div class="hist">${bars}</div><div class="log">${last}</div>`;
+  const last=S.hist.slice(-5).reverse().map(h=>`<div><span>${fmt(h.d)} · ${HLABEL[h.t]||h.t}</span><span class="tnum">${h.t==="p"?h.n+" geschrieben":h.t==="t"?h.ok+" / "+h.n+" Punkte":h.ok+" / "+h.n+" richtig"}</span></div>`).join("");
+  return `<div class="small muted" style="margin-top:6px">Geübte Aufgaben pro Tag, letzte 14 Tage</div><div class="hist">${bars}</div><div class="log">${last}</div>`;
 }
+const HLABEL={v:"Vokabeln",g:"Wort raten",s:"Sprechen",p:"Erklären",gr:"Past Perfect",t:"Probe-Test"};
 const fmt=d=>{const [y,m,dd]=d.split("-");return `${+dd}.${+m}.`};
 function report(){
   const m=masteredCount(), v=S.hist.filter(h=>h.t==="v"), asked=v.reduce((s,h)=>s+h.n,0), ok=v.reduce((s,h)=>s+h.ok,0);
   const hard=WORDS.filter(w=>ws(w.en).bad>0).sort((a,b)=>ws(b.en).bad-ws(a.en).bad).slice(0,5).map(w=>w.en);
   const days=new Set(S.hist.map(h=>h.d)).size;
-  return `Konrad · Englisch Unit 2 (Crime)\nStand ${fmt(today())}${today().slice(0,4)}: ${m} von ${WORDS.length} Wörtern sitzen.\nGeübt an ${days} ${days===1?"Tag":"Tagen"}, ${S.hist.length} Runden, ${asked?Math.round(ok/asked*100):0} % beim 1. Versuch richtig.`
+  const gr=S.hist.filter(h=>h.t==="gr"), grN=gr.reduce((s,h)=>s+h.n,0), grOk=gr.reduce((s,h)=>s+h.ok,0);
+  const tests=S.hist.filter(h=>h.t==="t"&&h.u===S.unit);
+  return `Konrad · Englisch ${UNITS[S.unit].label}\nStand ${fmt(today())}${today().slice(0,4)}: ${m} von ${WORDS.length} Wörtern sitzen.\nGeübt an ${days} ${days===1?"Tag":"Tagen"}, ${S.hist.length} Runden, ${asked?Math.round(ok/asked*100):0} % beim 1. Versuch richtig.`
    +(hard.length?`\nNoch knifflig: ${hard.join(", ")}`:"")
-   +(unlocked()?`\nLevel 2: ${S.paraDone} Umschreibungen geschrieben, ${S.guessOk} Wörter aus Erklärungen erraten.`:"");
+   +`\nErklären: ${S.paraDone} Erklärungen geschrieben.`
+   +(grN?`\nPast Perfect: ${grOk} von ${grN} Sätzen beim 1. Versuch richtig.`:"")
+   +(tests.length?`\nProbe-Tests: ${tests.map(t=>`${fmt(t.d)} ${t.ok}/${t.n}`).join(", ")}`:"");
 }
 
 /* ---------- vocabulary round ---------- */
@@ -391,7 +509,7 @@ function ask(){
     <div class="row" id="btns"><button class="btn-main" style="flex:1" id="send">Prüfen</button>${R.retype?"":'<button type="button" id="tip" class="btn-ghost">Tipp</button>'}</div>
   </form>`;
   const inp=$("ans"); inp.focus();
-  $("quit").onclick=()=>{ if(R.first.size) finish(); else home() };
+  $("quit").onclick=()=>{ FLOW=null; if(R.first.size) finish(); else home() };
   if($("tip")) $("tip").onclick=()=>{R.hinted.add(w.en);const h=$("hint");h.hidden=false;
     h.innerHTML=rev? "„"+esc(w.ex)+"“<br>Fängt an mit <b>"+esc(w.de[0])+"</b>"
       : (g?"„"+esc(g)+"“<br>":"")+"Fängt an mit <b>"+esc(noTo(w.en)[0])+"</b>, "+noTo(w.en).length+" Zeichen";
@@ -430,9 +548,10 @@ function evaluate(w,val,giveUp){
 const pick=a=>a[Math.floor(Math.random()*a.length)];
 function finish(){
   const n=R.first.size, ok=[...R.first.values()].filter(Boolean).length;
-  if(n){S.hist.push({d:today(),t:"v",n,ok,m:masteredCount()});save()}
+  if(n){S.hist.push({d:today(),t:"v",n,ok,m:masteredCount(),u:S.unit});save()}
+  if(FLOW) return flowNext({name:"Vokabeln",ok,n});
   const m=masteredCount(), pct=n?ok/n:0;
-  const msg=unlocked()&&m-R.up.length<UNLOCK?"Geschafft! Level 2 ist jetzt frei!":pct===1?"Perfekte Runde!":pct>=.7?"Starke Runde!":pct>=.4?"Gut dran geblieben!":"Jede Runde zählt. Gleich nochmal?";
+  const msg=pct===1?"Perfekte Runde!":pct>=.7?"Starke Runde!":pct>=.4?"Gut dran geblieben!":"Jede Runde zählt. Gleich nochmal?";
   app.innerHTML=`
   <section class="card result">
     <div class="eyebrow">Runde abgeschlossen</div>
@@ -449,9 +568,10 @@ function finish(){
 
 /* ---------- level 2: describe words ---------- */
 function paraHome(){
+  FLOW=null;
   app.innerHTML=`
   <div class="qhead"><button class="btn-ghost" id="back">← Übersicht</button></div>
-  <header><div class="eyebrow">Level 2</div><h1 class="display" style="font-size:28px">Umschreiben</h1>
+  <header><div class="eyebrow">Test-Teil 2</div><h1 class="display" style="font-size:28px">Explain it in English</h1>
   <p class="muted" style="margin:6px 0 0">Im Test sollst du ein Wort auf Englisch erklären, ohne das Wort selbst zu benutzen.</p></header>
   <section class="card" style="display:grid;gap:10px">
     <h3>1 · Wort erraten</h3><p class="muted small" style="margin:0">Du liest eine Erklärung und tippst das Wort. So lernst du, wie gute Umschreibungen klingen.</p>
@@ -485,7 +605,8 @@ function guessRound(){
 const cap=s=>s[0].toUpperCase()+s.slice(1);
 const STARTERS=["It's a person who …","It's a thing that …","It's when …","It means to …","You use it to …","It's a place where …"];
 function paraRound(list,i,written){
-  if(i>=list.length){S.hist.push({d:today(),t:"p",n:written,ok:written});save();
+  if(i>=list.length){S.hist.push({d:today(),t:"p",n:written,ok:written,u:S.unit});save();
+    if(FLOW) return flowNext({name:"Erklären",ok:written,n:list.length});
     app.innerHTML=`<section class="card result"><div class="eyebrow">Fertig</div><h2 class="display" style="font-size:26px">${written} Umschreibungen geschrieben</h2><p class="muted" style="margin:0">Genau so kommt es im Test dran.</p><div class="row" style="width:100%"><button class="btn-main" style="flex:1" id="a">Noch 2 Wörter</button><button class="btn-ghost" id="b">Zurück</button></div></section>`;
     $("a").onclick=()=>paraRound(shuffle([...WORDS]).slice(0,2),0,0);$("b").onclick=paraHome; if(written) confetti(); return}
   const w=list[i];
@@ -500,7 +621,7 @@ function paraRound(list,i,written){
   const t=$("txt");
   document.querySelectorAll(".starters button").forEach(b=>b.onclick=()=>{t.value=b.textContent.replace(" …"," ");t.focus();upd()});
   const core=noTo(w.en).toLowerCase().replace(/\s*\(.*\)/,"");
-  const stem=core.split(" ")[0].replace(/e$/,"");
+  const stem=core.split(/[ -]/).sort((a,b)=>b.length-a.length)[0].replace(/e$/,""); // longest word, so "be in charge" checks "charge"
   const upd=()=>{const v=t.value.trim(), words=v.split(/\s+/).filter(Boolean).length;
     const c1=!v?"":v.toLowerCase().includes(stem)?"n":"y", c2=!v?"":words>=6?"y":"n", c3=!v?"":/[.!?]$/.test(v)&&/^[A-Z]/.test(v)?"y":"n";
     $("checks").innerHTML=`<div class="${c1}">Das Wort selbst kommt nicht vor</div><div class="${c2}">Mindestens 6 Wörter (${words})</div><div class="${c3}">Ganzer Satz: groß anfangen, Punkt am Ende</div>`;
@@ -513,6 +634,232 @@ function paraRound(list,i,written){
     S.paraDone++; save();
     $("n").onclick=()=>paraRound(list,i+1,written+1);
   };
+}
+
+/* ---------- grammar: past perfect ---------- */
+// build = cue like in the test, whole sentence; gap = one verb, past perfect (pp) or past simple (ps)
+const PP_BUILD=[
+ {c:"Mum / (to) cook / dinner",a:"Mum had cooked dinner.",v:"cook",pp:"cooked"},
+ {c:"Tom / (to) eat / all the biscuits",a:"Tom had eaten all the biscuits.",v:"eat",pp:"eaten"},
+ {c:"we / (to) buy / the ingredients",a:"We had bought the ingredients.",v:"buy",pp:"bought"},
+ {c:"Sarah / (to) pour / the milk into the pan",a:"Sarah had poured the milk into the pan.",v:"pour",pp:"poured"},
+ {c:"the chef / (to) stir / the soup",a:"The chef had stirred the soup.",v:"stir",pp:"stirred"},
+ {c:"they / (to) waste / a lot of food",a:"They had wasted a lot of food.",v:"waste",pp:"wasted"},
+ {c:"I / (to) see / the advert",a:"I had seen the advert.",v:"see",pp:"seen"},
+ {c:"Ben / (to) drink / all the juice",a:"Ben had drunk all the juice.",v:"drink",pp:"drunk"},
+ {c:"she / (to) make / a donation",a:"She had made a donation.",v:"make",pp:"made"},
+ {c:"the kids / (to) forget / the oil",a:"The kids had forgotten the oil.",v:"forget",pp:"forgotten"},
+ {c:"Jamie Oliver / (to) write / a new cookbook",a:"Jamie Oliver had written a new cookbook.",v:"write",pp:"written"},
+ {c:"we / (to) take / the pan off the stove",a:"We had taken the pan off the stove.",v:"take",pp:"taken"},
+ {c:"Lisa / (to) give / the dog its food",a:"Lisa had given the dog its food.",v:"give",pp:"given"},
+ {c:"the soup / (to) get / cold",a:"The soup had got cold.",alt:["The soup had gotten cold."],v:"get",pp:"got"},
+ {c:"he / not / (to) wash / his hands",a:"He hadn't washed his hands.",v:"wash",pp:"washed"},
+ {c:"they / not / (to) find / a recipe",a:"They hadn't found a recipe.",v:"find",pp:"found"},
+ {c:"Konrad / not / (to) have / breakfast",a:"Konrad hadn't had breakfast.",v:"have",pp:"had"},
+ {c:"Frage: you / (to) try / sushi / before",a:"Had you tried sushi before?",v:"try",pp:"tried"},
+ {c:"Frage: she / (to) finish / her homework",a:"Had she finished her homework?",v:"finish",pp:"finished"}
+];
+const PP_GAP=[
+ {s:"When we arrived at the party, the guests ___ (to eat) all the pizza.",a:"had eaten",v:"eat",pp:"eaten",why:"Zuerst haben die Gäste gegessen, danach sind wir gekommen."},
+ {s:"After Tom ___ (to fold) the omelette, he put it on a plate.",a:"had folded",v:"fold",pp:"folded",why:"Zuerst falten, dann auf den Teller. Das Frühere bekommt had."},
+ {s:"After Tom had folded the omelette, he ___ (to put) it on a plate.",a:"put",v:"put",ps:"put",why:"Das Falten war zuerst (had folded). Was danach kommt, steht im Past Simple."},
+ {s:"I wasn't hungry because I ___ (to have) a big lunch.",a:"had had",v:"have",pp:"had",why:"Das Mittagessen war vorher. Ja, „had had“ ist richtig!"},
+ {s:"The cake was disgusting because Mia ___ (to forget) the sugar.",a:"had forgotten",v:"forget",pp:"forgotten",why:"Den Zucker hat sie vorher vergessen, darum war der Kuchen später eklig."},
+ {s:"By the time Mum came home, we ___ (to clean) the kitchen.",a:"had cleaned",v:"clean",pp:"cleaned",why:"„By the time“ = bis dahin. Das Putzen war schon fertig."},
+ {s:"When I opened the fridge, somebody ___ (to drink) all the milk.",a:"had drunk",v:"drink",pp:"drunk",why:"Die Milch wurde vorher getrunken, dann habe ich den Kühlschrank geöffnet."},
+ {s:"When the teacher came in, the students ___ (already / to start) cooking.",a:"had already started",v:"start",pp:"started",why:"already steht zwischen had und der 3. Form."},
+ {s:"We ___ (to go) home after we had eaten.",a:"went",v:"go",ps:"went",why:"Zuerst essen (had eaten), danach nach Hause gehen: Past Simple."},
+ {s:"The shop was closed because the owner ___ (to go) home.",a:"had gone",v:"go",pp:"gone",why:"Der Besitzer ist vorher gegangen, darum war zu."},
+ {s:"Konrad ___ (never / to taste) sushi before his trip to Japan.",a:"had never tasted",v:"taste",pp:"tasted",why:"never steht zwischen had und der 3. Form."},
+ {s:"After they had washed the vegetables, they ___ (to cut) them.",a:"cut",v:"cut",ps:"cut",why:"Waschen war zuerst. Schneiden kommt danach: Past Simple."},
+ {s:"She felt sick because she ___ (to eat) too many sweets.",a:"had eaten",v:"eat",pp:"eaten",why:"Zuerst die Süßigkeiten, danach war ihr schlecht."}
+];
+const IRREG=[["be","was / were","been","sein"],["buy","bought","bought","kaufen"],["come","came","come","kommen"],["cut","cut","cut","schneiden"],["do","did","done","tun"],["drink","drank","drunk","trinken"],["eat","ate","eaten","essen"],["feed","fed","fed","füttern"],["find","found","found","finden"],["forget","forgot","forgotten","vergessen"],["get","got","got","bekommen"],["give","gave","given","geben"],["go","went","gone","gehen"],["have","had","had","haben"],["know","knew","known","wissen"],["leave","left","left","verlassen"],["make","made","made","machen"],["put","put","put","legen"],["see","saw","seen","sehen"],["sell","sold","sold","verkaufen"],["take","took","taken","nehmen"],["think","thought","thought","denken"],["write","wrote","written","schreiben"]];
+
+const ppN=s=>norm(s).replace(/\bhad not\b/g,"hadn't").replace(/,/g,"");
+function ppTip(it,a){
+  if(it.pp){
+    if(/\b(has|have)\b/.test(a)&&!/\bhad/.test(a)) return "has / have ist Present Perfect. Im Past Perfect heißt es immer <b>had</b>, für alle Personen.";
+    if(/\b(was|were)\b/.test(a)&&!/\bhad/.test(a)) return "was / were ist hier falsch. Bauplan: <b>had + 3. Form</b>.";
+    if(!/\bhad(n't)?\b/.test(a)) return "Da fehlt <b>had</b>. Bauplan: <b>had + 3. Form</b>.";
+    if(!new RegExp("\\bhad(n't)?\\s+(\\w+\\s+){0,2}"+it.pp+"\\b").test(a)) return `Nach had kommt die <b>3. Form</b>: ${esc(it.v)} → <b>${esc(it.pp)}</b>`;
+    return "";
+  }
+  if(/\bhad\b/.test(a)) return "Das passiert <b>danach</b>. Dafür reicht Past Simple, ohne had.";
+  return `Past Simple von ${esc(it.v)}: <b>${esc(it.ps)}</b>`;
+}
+function ppCheck(it,input){
+  const a=ppN(input), targets=[it.a,...(it.alt||[])].map(ppN);
+  if(!a) return {r:"empty"};
+  if(targets.includes(a)) return {r:"ok"};
+  const tip=ppTip(it,a);
+  if(!tip&&Math.min(...targets.map(t=>lev(a,t)))<=2) return {r:"near",tip:"Fast! Schau genau auf die Schreibweise."};
+  if(!tip) return {r:"bad",tip:"Vergleich deinen Satz genau mit der Lösung: Reihenfolge und Wörter."};
+  return {r:"bad",tip};
+}
+function gramHome(){
+  FLOW=null;
+  app.innerHTML=`
+  <div class="qhead"><button class="btn-ghost" id="back">← Übersicht</button></div>
+  <header><div class="eyebrow">Test-Teil 3 · Grammatik</div><h1 class="display" style="font-size:28px">Past Perfect</h1>
+  <p class="muted" style="margin:6px 0 0">Die Vorvergangenheit: Was ist <b>noch früher</b> passiert?</p></header>
+  <section class="card" style="display:grid;gap:14px">
+    <div class="eyebrow">Bauplan</div>
+    <div class="formula"><span class="mark">had</span> + 3. Form</div>
+    <div class="small">Für <b>alle</b> Personen gleich: I had eaten, you had eaten, he had eaten, we had eaten, they had eaten.</div>
+    <div class="tl" aria-hidden="true"><div class="tl-line"></div>
+      <div class="tl-pt first" style="left:4%"><i></i><b>zuerst</b><span>had eaten</span></div>
+      <div class="tl-pt" style="left:44%"><i></i><b>danach</b><span>arrived</span></div>
+      <div class="tl-now">jetzt</div></div>
+    <div class="model" style="font-style:normal">When we <b>arrived</b>, the guests <b class="ppw">had eaten</b> all the pizza.</div>
+    <div class="small">Zwei Dinge in der Vergangenheit: Das <b>frühere</b> bekommt <b>had + 3. Form</b>, das spätere steht im Past Simple.</div>
+    <div class="small"><b>Verneinung:</b> hadn't (had not) + 3. Form<br>He <b>hadn't washed</b> his hands.</div>
+    <div class="small"><b>Frage:</b> Had + Person + 3. Form …?<br><b>Had</b> you <b>tried</b> sushi before?</div>
+    <div class="small"><b>Signalwörter:</b> after, before, when, because, by the time, already, never … before</div>
+  </section>
+  <details class="card"><summary>Unregelmäßige Verben (3. Form)</summary>
+    <div class="small muted" style="margin-top:8px">Regelmäßige Verben: einfach <b>-ed</b> anhängen (cook → cooked, stir → stirred, try → tried).</div>
+    <table class="irr"><thead><tr><th>Grundform</th><th>Past Simple</th><th>3. Form</th></tr></thead><tbody>${IRREG.map(r=>`<tr><td>${r[0]}<div class="muted small">${r[3]}</div></td><td>${r[1]}</td><td><b>${r[2]}</b></td></tr>`).join("")}</tbody></table>
+  </details>
+  <section class="card" style="display:grid;gap:10px">
+    <h3>1 · Sätze bauen</h3><p class="muted small" style="margin:0">Genau wie im Test: Aus „Tom / (to) eat / breakfast“ wird „Tom had eaten breakfast.“</p>
+    <button class="btn-main" id="b">Sätze bauen · 5</button>
+  </section>
+  <section class="card" style="display:grid;gap:10px">
+    <h3>2 · Was war zuerst?</h3><p class="muted small" style="margin:0">Past Perfect oder Past Simple? Setz das Verb in die Lücke.</p>
+    <button class="btn-main" id="g">Lücken füllen · 5</button>
+    <div class="small muted tnum">Bisher richtig: ${S.gramOk||0} Sätze</div>
+  </section>`;
+  $("back").onclick=home; $("b").onclick=()=>gramRound("b",5); $("g").onclick=()=>gramRound("g",5);
+}
+function gramItems(kind,n){
+  const b=shuffle([...PP_BUILD]).map(x=>({...x,k:"b"})), g=shuffle([...PP_GAP]).map(x=>({...x,k:"g"}));
+  if(kind==="b") return b.slice(0,n);
+  if(kind==="g") return g.slice(0,n);
+  return shuffle([...b.slice(0,Math.ceil(n/2)),...g.slice(0,Math.floor(n/2))]);
+}
+function gramRound(kind,n){
+  const q=gramItems(kind,n), total=q.length, again=new Set(); let i=0, ok=0;
+  const back=()=>{ if(FLOW){FLOW=null;home()} else gramHome() };
+  const step=()=>{
+    if(i>=q.length){ S.gramOk=(S.gramOk||0)+ok; S.hist.push({d:today(),t:"gr",n:total,ok,u:S.unit}); save();
+      if(FLOW) return flowNext({name:"Past Perfect",ok,n:total});
+      app.innerHTML=`<section class="card result"><div class="eyebrow">Past Perfect</div><div class="score tnum">${ok}/${total}</div><div class="muted">beim ersten Versuch richtig</div><div class="row" style="width:100%"><button class="btn-main" style="flex:1" id="a">Nochmal</button><button class="btn-ghost" id="z">Zurück</button></div></section>`;
+      $("a").onclick=()=>gramRound(kind,n); $("z").onclick=gramHome; if(ok>=total*.7) confetti(); return}
+    const it=q[i], first=!again.has(it.a);
+    app.innerHTML=`<div class="qhead"><button class="btn-ghost" id="x" aria-label="Beenden">✕</button><div class="qbar"><i style="width:${Math.min(i,total)/total*100}%"></i></div><span class="muted small tnum">${Math.min(i,total)}/${total}</span></div>
+    <section class="card prompt"><span class="stamp" id="stamp">RICHTIG</span>
+      <div class="eyebrow">${it.k==="b"?"Bau den Satz im Past Perfect":"Past Perfect oder Past Simple?"}</div>
+      <div class="cue">${it.k==="b"?esc(it.c):esc(it.s).replace("___",'<span class="blank">&nbsp;?&nbsp;</span>')}</div>
+      <div class="hint" id="hint" hidden></div></section>
+    <form id="f" style="display:grid;gap:12px" autocomplete="off">
+      <input class="answer long" id="ans" autocapitalize="${it.k==="b"?"sentences":"off"}" autocorrect="off" spellcheck="false" enterkeyhint="go" placeholder="${it.k==="b"?"ganzen Satz tippen":"nur die Lücke tippen"}">
+      <div id="fb"></div>
+      <div class="row" id="btns"><button class="btn-main" style="flex:1">Prüfen</button><button type="button" id="tip" class="btn-ghost">Tipp</button></div>
+    </form>`;
+    $("x").onclick=back;
+    const inp=$("ans"); inp.focus();
+    $("tip").onclick=()=>{const h=$("hint");h.hidden=false;
+      h.innerHTML=it.pp?`had + 3. Form von „${esc(it.v)}“`:"Was ist zuerst passiert, was danach?";inp.focus()};
+    $("f").onsubmit=e=>{e.preventDefault();
+      const r=ppCheck(it,inp.value); if(r.r==="empty"){inp.focus();return}
+      inp.readOnly=true;
+      if(r.r==="ok"){ if(first) ok++; inp.classList.add("ok"); $("stamp").classList.add("show");
+        $("fb").innerHTML=`<div class="fb ok"><b>${pick(["Richtig!","Sauber!","Genau so!","Volltreffer!"])}</b>${it.why?`<div class="small" style="margin-top:4px">${esc(it.why)}</div>`:""}</div>`;
+      } else { inp.classList.add("bad"); if(first){again.add(it.a);q.push(it)}
+        $("fb").innerHTML=`<div class="fb bad"><div class="small">${r.r==="near"?"Knapp daneben!":"Noch nicht."} ${r.tip}</div><div class="right" style="font-size:19px;margin-top:6px">${esc(it.a)}</div>${it.why?`<div class="small muted" style="margin-top:6px">${esc(it.why)}</div>`:""}${first?'<div class="small muted" style="margin-top:4px">Der Satz kommt am Ende nochmal.</div>':""}</div>`;
+      }
+      $("btns").innerHTML='<button class="btn-main" style="flex:1" id="next">Weiter</button>';
+      const nx=$("next"); nx.focus(); nx.onclick=ev=>{ev.preventDefault();i++;step()};
+    };
+  };
+  step();
+}
+
+/* ---------- probe test: same three parts as the school test ---------- */
+let T=null;
+function testStart(){
+  FLOW=null;
+  const pool=shuffle([...WORDS]);
+  T={tr:pool.slice(0,8).map((w,k)=>({w,rev:k%2===0})), ex:pool.slice(8,11), gr:[...gramItems("b",4),...gramItems("g",2)], rate:[]};
+  const fld='autocapitalize="off" autocorrect="off" spellcheck="false" autocomplete="off"';
+  app.innerHTML=`
+  <div class="qhead"><button class="btn-ghost" id="back">← Übersicht</button></div>
+  <header><div class="eyebrow">Probe-Test · ${UNITS[S.unit].label}</div><h1 class="display" style="font-size:28px">Wie in der Schule</h1>
+  <p class="muted" style="margin:6px 0 0">Ohne Tipps. Kontrolliert wird erst am Ende. Nimm dir ca. 15 Minuten.</p></header>
+  <section class="card tsec"><h3>1 · Translate the words</h3>
+    ${T.tr.map((t,k)=>`<label class="trow"><span>${esc(t.rev?t.w.en:t.w.de)}</span><input class="tin" id="t${k}" placeholder="${t.rev?"auf Deutsch":"auf Englisch"}" ${fld}></label>`).join("")}
+  </section>
+  <section class="card tsec"><h3>2 · Explain it in English</h3>
+    <div class="small muted">Ohne das Wort selbst. Hilfe: It's a person who … / It's a thing that … / It means to …</div>
+    ${T.ex.map((w,k)=>`<label class="tex"><b>${esc(w.en)}</b><textarea class="para" style="min-height:80px" id="e${k}" autocapitalize="sentences" spellcheck="false"></textarea></label>`).join("")}
+  </section>
+  <section class="card tsec"><h3>3 · Past Perfect</h3>
+    <div class="small muted">Bau die Sätze im Past Perfect. Bei den Lücken: Past Perfect oder Past Simple?</div>
+    ${T.gr.map((g,k)=>`<label class="tex"><span>${g.k==="b"?esc(g.c):esc(g.s)}</span><input class="tin" id="g${k}" placeholder="${g.k==="b"?"ganzer Satz":"Lücke"}" ${fld}></label>`).join("")}
+  </section>
+  <button class="btn-main" id="hand">Abgeben</button>`;
+  $("back").onclick=home; $("hand").onclick=testGrade;
+}
+const MK={ok:'<span class="mk ok">✓</span>',half:'<span class="mk half">~</span>',bad:'<span class="mk bad">✗</span>'};
+function testGrade(){
+  let pts=0;
+  // part 1: wrong words go back to "new", so they come up again in the vocab rounds
+  const p1=T.tr.map((t,k)=>{const v=$("t"+k).value, r=v.trim()?(t.rev?checkDe(t.w,v):check(t.w,v)):{r:"bad"}, s=ws(t.w.en);
+    const p=r.r==="ok"?1:r.r==="near"?.5:0; pts+=p;
+    if(p<1){s.bad++;s.box=0} else s.box=MASTER;
+    return `<div class="trow res"><span>${esc(t.rev?t.w.en:t.w.de)}</span><span>${p===1?MK.ok:p?MK.half:MK.bad} ${esc(v||"–")}${p<1?`<div class="small muted">richtig: <b>${esc(t.rev?t.w.de:t.w.en)}</b></div>`:""}</span></div>`}).join("");
+  save();
+  const p2=T.ex.map((w,k)=>{const v=$("e"+k).value.trim(), stem=noTo(w.en).toLowerCase().split(/[ -]/).sort((a,b)=>b.length-a.length)[0].replace(/e$/,"");
+    const used=v.toLowerCase().includes(stem), short=v.split(/\s+/).filter(Boolean).length<6;
+    T.rate[k]=v?null:0;
+    return `<div class="tex"><b>${esc(w.en)}</b><div class="model" style="font-style:normal">${esc(v||"– nichts geschrieben –")}</div>
+      ${used?'<div class="small" style="color:var(--bad)">Das Wort selbst kommt vor. Das gibt im Test Abzug.</div>':""}${v&&short?'<div class="small" style="color:var(--bad)">Sehr kurz. Ein ganzer Satz mit mindestens 6 Wörtern ist sicherer.</div>':""}
+      <div class="small muted">Beispiel: ${esc(cap(w.def))}.</div>
+      ${v?`<div class="small">Wie gut passt deine Erklärung? Sei ehrlich:</div><div class="row rate" data-k="${k}"><button type="button" data-p="2" ${used?"disabled":""}>✓ passt</button><button type="button" data-p="1">~ halb</button><button type="button" data-p="0">✗ falsch</button></div>`:""}</div>`}).join("");
+  let p3pts=0;
+  const p3=T.gr.map((g,k)=>{const v=$("g"+k).value, r=v.trim()?ppCheck(g,v):{r:"bad",tip:""}; const p=r.r==="ok"?1:r.r==="near"?.5:0; p3pts+=p;
+    return `<div class="tex"><span class="small muted">${g.k==="b"?esc(g.c):esc(g.s)}</span><span>${p===1?MK.ok:p?MK.half:MK.bad} ${esc(v||"–")}</span>${p<1?`<div class="small">richtig: <b>${esc(g.a)}</b>${r.tip?` · ${r.tip}`:""}</div>`:""}</div>`}).join("");
+  pts+=p3pts; T.auto=pts;
+  app.innerHTML=`
+  <header><div class="eyebrow">Probe-Test · Auswertung</div><h1 class="display" style="font-size:28px">Kontrolle</h1></header>
+  <section class="card tsec"><h3>1 · Translate the words</h3>${p1}</section>
+  <section class="card tsec"><h3>2 · Explain it in English</h3>${p2}</section>
+  <section class="card tsec"><h3>3 · Past Perfect</h3>${p3}</section>
+  <div id="score"></div>
+  <button class="btn-main" id="sum">Punkte zählen</button>`;
+  document.querySelectorAll(".rate button").forEach(b=>b.onclick=()=>{const box=b.parentNode;T.rate[+box.dataset.k]=+b.dataset.p;
+    box.querySelectorAll("button").forEach(x=>x.classList.toggle("sel",x===b))});
+  $("sum").onclick=()=>{
+    if(T.rate.some(r=>r===null)){$("score").innerHTML='<div class="fb bad small">Bewerte zuerst alle Erklärungen in Teil 2.</div>';return}
+    const total=T.tr.length+T.ex.length*2+T.gr.length, got=T.auto+T.rate.reduce((s,r)=>s+r,0), pct=got/total;
+    const lvl=pct>=.85?0:pct>=.7?1:pct>=.5?2:3;
+    S.hist.push({d:today(),t:"t",n:total,ok:got,u:S.unit}); save();
+    $("sum").remove();
+    $("score").innerHTML=`<section class="card result"><div class="eyebrow">Ergebnis</div><div class="score tnum">${got}/${total}</div><div class="muted">Punkte</div>
+      <div class="ampel">${["#4CB050","#F6D33C","#F2992E","#D9412F"].map((c,k)=>`<i style="background:${c}" class="${k===lvl?"on":""}">${k===lvl?"✗":""}</i>`).join("")}</div>
+      <h2 class="display" style="font-size:22px">${["Sehr stark! So kannst du in den Test gehen.","Gut! Noch ein paar Wörter üben, dann sitzt es.","Schon einiges da. Mach morgen das Tagestraining und dann nochmal den Probe-Test.","Das war erst die Probe. Die falschen Wörter kommen jetzt öfter dran. Morgen wird's besser!"][lvl]}</h2>
+      <div class="row" style="width:100%"><button class="btn-main" style="flex:1" id="a">Neuer Probe-Test</button><button class="btn-ghost" id="z">Übersicht</button></div></section>`;
+    $("a").onclick=()=>{testStart();scrollTo(0,0)}; $("z").onclick=()=>{home();scrollTo(0,0)};
+    $("score").scrollIntoView({behavior:"smooth"}); if(lvl<=1) confetti();
+  };
+  scrollTo(0,0);
+}
+
+/* ---------- daily training ---------- */
+function dailyStart(){
+  FLOW={i:0,log:[],steps:[()=>startRound(),()=>paraRound(shuffle([...WORDS]).slice(0,1),0,0),()=>gramRound("m",4)]};
+  FLOW.steps[0]();
+}
+function flowNext(r){
+  FLOW.log.push(r); FLOW.i++;
+  if(FLOW.i<FLOW.steps.length){ scrollTo(0,0); return FLOW.steps[FLOW.i]() }
+  const log=FLOW.log; FLOW=null;
+  app.innerHTML=`<section class="card result"><div class="eyebrow">Tagestraining geschafft</div><h2 class="display" style="font-size:28px">Stark, Konrad!</h2>
+    <div class="dlog">${log.map(l=>`<div><span>${l.name}</span><b class="tnum">${l.name==="Erklären"?"✓":l.ok+" / "+l.n}</b></div>`).join("")}</div>
+    <div class="small muted">Morgen wieder, dann bist du fit für den Test.</div>
+    <div class="row" style="width:100%"><button class="btn-main" style="flex:1" id="z">Übersicht</button></div></section>`;
+  $("z").onclick=home; confetti();
 }
 
 /* ---------- speaking ---------- */
