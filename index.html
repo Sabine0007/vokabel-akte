@@ -160,6 +160,9 @@ table.irr td{padding:7px 4px;border-top:1px solid var(--line);vertical-align:top
 .ampel i{height:36px;border-radius:6px;display:grid;place-items:center;font-style:normal;font-weight:700;color:#1B2140;opacity:.3}
 .ampel i.on{opacity:1;outline:3px solid var(--ink);outline-offset:1px}
 .sk{display:grid;gap:6px}
+.bridge{margin-top:10px;background:var(--card);border:2px dashed var(--hi);border-radius:12px;padding:10px 12px;font-size:15px;text-align:left;color:var(--ink)}
+.tricky{display:grid;gap:4px;padding:12px 0;border-top:1px solid var(--line)}
+.tricky input{font:inherit;font-size:14px;padding:8px 10px;border-radius:10px;border:1px dashed var(--line);background:var(--bg);color:var(--ink);width:100%}
 .lesson{display:flex;gap:6px;align-items:center;flex-wrap:wrap;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:6px 6px 6px 14px}
 .lesson .eyebrow{flex:1;min-width:max-content}
 .lesson button{padding:9px 14px;background:transparent;font-weight:700}
@@ -256,9 +259,90 @@ const CRIME = [
  {en:"to regret",de:"bereuen",ex:"That man is going to regret not taking me seriously.",def:"to feel sorry or sad about something you did"}
 ];
 const MASTER = 1, ROUND = 5, KEY = "konrad-vokabel-akte-v1";
+/* ---------- Eselsbrücken: shown when a word goes wrong, on the tip, and in "Knifflige Wörter" ---------- */
+const MN={
+ "diet":"Klingt fast wie „Diät“. Diet = was du isst, deine Ernährung.",
+ "to afford":"Einen FORD kann ich mir nicht leisten! → to af-FORD = sich leisten.",
+ "cause":"Steckt in be-CAUSE (weil) – die Ursache ist das Warum.",
+ "to face":"Face = Gesicht. Einem Problem ins Gesicht schauen = ihm gegenüberstehen.",
+ "to feed":"Dein Insta-FEED füttert dich mit Bildern → to feed = füttern.",
+ "intake":"IN + TAKE = hinein-nehmen → was du in dich aufnimmst.",
+ "poverty":"Darin steckt fast POOR (arm) → Armut.",
+ "to waste":"Wastebasket = Mistkübel. Was im Mist landet, ist verschwendet.",
+ "advert":"Wie die „Ads“ auf YouTube: Ad = Advert = Werbung.",
+ "to contain":"CONTAINer! Im Container ist etwas drin → beinhalten.",
+ "cookery":"COOK steckt drin → alles rund ums Kochen.",
+ "fortunately":"FORTUNA ist die Glücksgöttin → glücklicherweise.",
+ "health":"HEAL = heilen steckt drin. Geheilt sein = Gesundheit.",
+ "ingredient":"Was IN das Essen kommt → IN-gredient = Zutat.",
+ "nutrition":"NUT = Nuss. Nüsse sind gute Ernährung → NUTrition.",
+ "overweight":"OVER = über, WEIGHT = Gewicht → übergewichtig.",
+ "well-known":"WELL = gut, KNOWN = bekannt → wohlbekannt.",
+ "man-made":"Von Menschen (MAN) gemacht (MADE) → künstlich.",
+ "to dislike":"DIS = nicht, LIKE = mögen. Wie ein Daumen nach unten 👎.",
+ "to be in charge":"Wer das Handy-Ladekabel (CHARGEr) hat, hat das Sagen!",
+ "disgusting":"Auf Österreichisch: gar kein GUSTo mehr drauf → dis-GUST-ing = ekelhaft.",
+ "home-cooked":"HOME = zu Hause, COOKED = gekocht → selbstgekocht.",
+ "Let's get started":"START steckt drin → Lass uns starten!",
+ "to persuade":"Per-SUADE klingt wie „süß“: Mit Süßigkeiten kann man jeden überzeugen.",
+ "to wait and see":"Wörtlich: warten und schauen → abwarten.",
+ "to fold":"F…L…D wie F-a-L-ten: Fold = falten.",
+ "gently":"Ein GENTLEman ist sanft und behutsam → gently.",
+ "oil":"Oil und Öl – beide starten mit O-Laut und enden mit L.",
+ "pan":"P(f)AN(ne): Nimm „Pfanne“, streich das f und das ne → pan.",
+ "to pour":"Pour klingt wie „pur“: den Saft pur ins Glas gießen.",
+ "to stir":"Ein STIER rührt mit seinem Horn im Kochtopf um → to stir.",
+ "donation":"DO-NATION: Tu (do) was für die ganze Nation → Spende.",
+ "criminal":"KRIMI! Im Krimi gibt es immer einen Kriminellen.",
+ "thief":"thIEf und dIEb – beide haben ein IE in der Mitte.",
+ "victim":"Kein VICTory (Sieg) für das VICTim – das Opfer verliert.",
+ "to commit":"„KOMM MIT!“, sagt der Gauner, „wir begehen ein Verbrechen.“",
+ "to arrest":"Die Polizei sagt: „Jetzt ist REST (Pause) für dich!“ → verhaften.",
+ "to blackmail":"BLACK MAIL = schwarzer Brief, ein Drohbrief → erpressen.",
+ "scam":"Scam klingt wie „Schaum“ – nur Schaum, nichts dahinter → Betrug.",
+ "personal data":"Fast wie Deutsch: persönliche Daten.",
+ "fake":"Wie FAKE News → gefälscht.",
+ "AI":"Artificial Intelligence = KI, nur auf Englisch.",
+ "data":"Data = Daten, fast gleich.",
+ "in recent years":"RECENTly = kürzlich → in den letzten Jahren.",
+ "to increase":"IN-crease geht rauf ↗, DE-crease geht runter ↘.",
+ "particular":"Ein PARTIKEL ist ein ganz bestimmtes Teilchen → particular = bestimmt.",
+ "regularly":"Nach der REGEL → regelmäßig.",
+ "to break into":"BREAK = brechen, INTO = hinein → einbrechen.",
+ "to confirm":"FIRM = fest. Etwas festmachen = bestätigen.",
+ "jewellery":"JUWELEN → Schmuck. (Viele e und l: jew-ELL-ery)",
+ "suspicious":"Klingt wie SUSPEKT → verdächtig.",
+ "to confess":"CONFESSion = Beichte → gestehen.",
+ "purpose":"Wozu machst du diese POSE? → pur-POSE = Zweck.",
+ "account":"COUNT = zählen. Auf dem Konto wird dein Geld gezählt.",
+ "common":"COMMt ON oft vor → häufig.",
+ "to access":"Der WLAN-ACCESS Point gibt dir Zugang → zugreifen.",
+ "to consist of":"KONSISTENZ: woraus etwas besteht.",
+ "invisible":"IN = nicht, VISIBLE = sichtbar (wie Vision, Video) → unsichtbar.",
+ "to keep in contact":"KEEP = behalten, CONTACT = Kontakt → in Kontakt bleiben.",
+ "weapon":"W-ea-P-on und W-a-F-fe: Beide starten mit W.",
+ "witness":"WIT-ness klingt wie „wissen“: Der Zeuge weiß, was passiert ist.",
+ "advantage":"Im ADVENT hast du einen Vorteil: jeden Tag Schokolade!",
+ "to look into":"LOOK INTO = hineinschauen → nachforschen.",
+ "police department":"DEPARTMENT Store = Kaufhaus mit Abteilungen → Polizeibehörde.",
+ "to predict":"PRE = vorher, DICT = sagen (wie Diktat) → voraussagen.",
+ "to reduce":"Reduce = reduzieren, fast gleich.",
+ "violence":"VIOLEtt wie ein blauer Fleck nach Gewalt → violence.",
+ "ID":"ID wie IDentität → Ausweis.",
+ "pattern":"PATTERN Lock am Handy = Entsperr-Muster.",
+ "tiring":"TIRED = müde → tiring = ermüdend.",
+ "imagination":"IMAGE = Bild. Bilder im Kopf = Vorstellungskraft.",
+ "complaint":"COMPLAIN = jammern. Wer jammert, macht eine Beschwerde.",
+ "misunderstanding":"MIS = falsch, UNDERSTANDING = verstehen → Missverständnis.",
+ "receipt":"Sieht aus wie REZEPT: das Rezept von deinem Einkauf. Das p ist stumm!",
+ "to regret":"GRETel bereut, dass sie ins Hexenhaus gegangen ist → re-GRET."
+};
+const bridge=w=>S.mn[w.en]||MN[w.en]||"";
+const bridgeHTML=w=>bridge(w)?`<div class="bridge"><b>🧠 Eselsbrücke:</b> ${esc(bridge(w))}</div>`:"";
+
 
 /* ---------- state ---------- */
-function freshState(){return {w:{},hist:[],paraDone:0,guessOk:0,gramOk:0,unit:"food",ex:{},pp:{}}} // ex: words explained well, pp: grammar sentences solved
+function freshState(){return {w:{},hist:[],paraDone:0,guessOk:0,gramOk:0,unit:"food",ex:{},pp:{},mn:{}}} // ex: words explained well, pp: grammar sentences solved
 let S = freshState();
 try{const raw=localStorage.getItem(KEY); if(raw) S=Object.assign(freshState(),JSON.parse(raw));}catch(e){}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
@@ -433,6 +517,8 @@ function home(){
     <button id="spk">Los</button>
   </section>
 
+  ${trickyHTML()}
+
   <section class="card">
     <div class="eyebrow">Lernverlauf</div>
     ${histHTML()}
@@ -455,6 +541,7 @@ function home(){
   $("go").onclick=startRound;
   $("daily").onclick=dailyStart;
   $("lvl2").onclick=()=>paraHome();
+  document.querySelectorAll(".own").forEach(i=>i.onchange=()=>{const v=i.value.trim(); if(v) S.mn[i.dataset.en]=v; else delete S.mn[i.dataset.en]; save(); i.previousElementSibling.innerHTML="<b>🧠</b> "+esc(v||MN[i.dataset.en]||"")});
   $("gram").onclick=gramHome;
   $("test").onclick=testStart;
   Object.keys(UNITS).forEach(k=>{$("u-"+k).onclick=()=>{if(k!==S.unit)setUnit(k)}});
@@ -473,6 +560,18 @@ function histHTML(){
   const bars=days.map((d,i)=>`<div class="b" title="${d}: ${per[i]} Wörter"><i style="height:${per[i]/max*52}px;${per[i]?"":"background:var(--line);height:2px"}"></i><span>${+d.slice(8)}</span></div>`).join("");
   const last=S.hist.slice(-5).reverse().map(h=>`<div><span>${fmt(h.d)} · ${HLABEL[h.t]||h.t}</span><span class="tnum">${h.t==="p"?h.n+" geschrieben":h.t==="t"?h.ok+" / "+h.n+" Punkte":h.ok+" / "+h.n+" richtig"}</span></div>`).join("");
   return `<div class="small muted" style="margin-top:6px">Geübte Aufgaben pro Tag, letzte 14 Tage</div><div class="hist">${bars}</div><div class="log">${last}</div>`;
+}
+
+// words that went wrong at least once, with the bridge and a field for Konrad's own one
+function trickyHTML(){
+  const list=WORDS.filter(w=>ws(w.en).bad>0).sort((a,b)=>ws(b.en).bad-ws(a.en).bad).slice(0,10);
+  if(!list.length) return "";
+  return `<details class="card"><summary><div class="eyebrow">Eselsbrücken</div><div class="row" style="justify-content:space-between;margin-top:4px"><h3>Knifflige Wörter</h3><span class="small muted">${list.length} ▾</span></div></summary>
+    <div class="small muted" style="margin:8px 0 4px">Wörter, die schon mal danebengingen. Eine eigene Eselsbrücke merkst du dir am besten!</div>
+    ${list.map(w=>`<div class="tricky"><div class="row" style="justify-content:space-between"><b>${esc(w.en)}</b><span class="small muted">${esc(w.de)}</span></div>
+      <div class="small"><b>🧠</b> ${esc(bridge(w))}</div>
+      <input class="own" data-en="${esc(w.en)}" value="${esc(S.mn[w.en]||"")}" placeholder="Deine eigene Eselsbrücke …" autocapitalize="sentences"></div>`).join("")}
+  </details>`;
 }
 const HLABEL={v:"Vokabeln",g:"Wort raten",s:"Sprechen",p:"Erklären",gr:"Past Perfect",t:"Probe-Test"};
 const fmt=d=>{const [y,m,dd]=d.split("-");return `${+dd}.${+m}.`};
@@ -518,6 +617,7 @@ function ask(){
     <div class="eyebrow">Wie heißt das auf ${rev?"Deutsch":"Englisch"}?</div>
     <div class="de-word">${rev?`<span class="mark">${esc(w.en)}</span>`:esc(w.de)}</div>
     <div class="hint" id="hint" hidden></div>
+    ${R.retype?bridgeHTML(w):""}
   </section>
   <form id="f" style="display:grid;gap:12px" autocomplete="off">
     <input class="answer" id="ans" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="go" placeholder="${R.retype?"Schreib es richtig ab":rev?"auf Deutsch tippen":"auf Englisch tippen"}">
@@ -529,6 +629,7 @@ function ask(){
   if($("tip")) $("tip").onclick=()=>{R.hinted.add(w.en);const h=$("hint");h.hidden=false;
     h.innerHTML=rev? "„"+esc(w.ex)+"“<br>Fängt an mit <b>"+esc(w.de[0])+"</b>"
       : (g?"„"+esc(g)+"“<br>":"")+"Fängt an mit <b>"+esc(noTo(w.en)[0])+"</b>, "+noTo(w.en).length+" Zeichen";
+    if(!rev&&bridge(w)) h.innerHTML+=`<div class="small" style="margin-top:8px;font-style:normal">🧠 ${esc(bridge(w))}</div>`;
     const t=$("tip");t.textContent="Lösung zeigen";t.onclick=()=>evaluate(w,inp.value,true);inp.focus()};
   $("f").onsubmit=e=>{e.preventDefault(); evaluate(w,inp.value)};
 }
@@ -556,7 +657,7 @@ function evaluate(w,val,giveUp){
     R.wrongs++;
     R.q.push(w); // comes back at the end of the round
     inp.classList.add("bad");
-    fb.innerHTML=`<div class="fb bad"><div class="small">${res.r==="near"?"Knapp daneben!":res.r==="giveup"?"Kein Problem, jetzt weißt du es.":"Leider falsch."} ${rev?"Auf Deutsch heißt es:":"So schreibt man es:"}</div><div class="right">${res.r==="giveup"||rev?esc(sol):diffHTML(w.en,val)}</div>${res.note?`<div class="small" style="margin-top:4px">${esc(res.note)}</div>`:""}<div class="small muted" style="margin-top:6px">${esc(w.ex)}</div></div>`;
+    fb.innerHTML=`<div class="fb bad"><div class="small">${res.r==="near"?"Knapp daneben!":res.r==="giveup"?"Kein Problem, jetzt weißt du es.":"Leider falsch."} ${rev?"Auf Deutsch heißt es:":"So schreibt man es:"}</div><div class="right">${res.r==="giveup"||rev?esc(sol):diffHTML(w.en,val)}</div>${res.note?`<div class="small" style="margin-top:4px">${esc(res.note)}</div>`:""}<div class="small muted" style="margin-top:6px">${esc(w.ex)}</div>${bridgeHTML(w)}</div>`;
     $("btns").innerHTML='<button class="btn-main" style="flex:1" id="next">Einmal richtig abschreiben</button>';
     const n=$("next"); n.focus(); n.onclick=e=>{e.preventDefault();R.retype=true;R.q.splice(R.i+1,0);ask()};
   }
