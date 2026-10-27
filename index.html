@@ -155,6 +155,7 @@ table.irr td{padding:7px 4px;border-top:1px solid var(--line);vertical-align:top
 .ampel{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;width:100%}
 .ampel i{height:36px;border-radius:6px;display:grid;place-items:center;font-style:normal;font-weight:700;color:#1B2140;opacity:.3}
 .ampel i.on{opacity:1;outline:3px solid var(--ink);outline-offset:1px}
+.sk{display:grid;gap:6px}
 .dlog{display:grid;gap:6px;width:100%}
 .dlog div{display:flex;justify-content:space-between;background:var(--bg);border-radius:10px;padding:10px 14px}
 .small{font-size:14px}
@@ -249,7 +250,7 @@ const CRIME = [
 const MASTER = 1, ROUND = 5, KEY = "konrad-vokabel-akte-v1";
 
 /* ---------- state ---------- */
-function freshState(){return {w:{},hist:[],paraDone:0,guessOk:0,gramOk:0,unit:"food"}}
+function freshState(){return {w:{},hist:[],paraDone:0,guessOk:0,gramOk:0,unit:"food",ex:{},pp:{}}} // ex: words explained well, pp: grammar sentences solved
 let S = freshState();
 try{const raw=localStorage.getItem(KEY); if(raw) S=Object.assign(freshState(),JSON.parse(raw));}catch(e){}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
@@ -350,6 +351,14 @@ function home(){
     <div><div class="eyebrow">Heute · ca. 10 Minuten</div><h3 style="margin-top:4px">Tagestraining</h3></div>
     <div class="small muted">5 Vokabeln · 1 Wort auf Englisch erklären · 4 Sätze im Past Perfect. Einmal am Tag, dann bist du fit für den Test.</div>
     <button class="btn-main" id="daily">Tagestraining starten</button>
+  </section>
+
+  <section class="card" style="display:grid;gap:14px">
+    <div class="eyebrow">Das kannst du schon</div>
+    ${[["Vokabeln","sitzen",m,tot,"var(--ok)"],
+       ["Erklären","gut erklärt",WORDS.filter(w=>S.ex[w.en]).length,tot,"var(--blue)"],
+       ["Past Perfect","Sätze geschafft",[...PP_BUILD,...PP_GAP].filter(x=>S.pp[x.a]).length,PP_BUILD.length+PP_GAP.length,"var(--hi)"]]
+      .map(([l,u,n,t,c])=>`<div class="sk"><div class="row" style="justify-content:space-between"><b>${l}</b><span class="tnum small muted"><b style="color:var(--ink);font-size:17px">${n}</b> / ${t} ${u}</span></div><div class="meter" style="height:10px"><i style="width:${n/t*100}%;background:${c}"></i></div></div>`).join("")}
   </section>
 
   <section class="card" style="display:grid;gap:14px">
@@ -469,7 +478,8 @@ function report(){
   const tests=S.hist.filter(h=>h.t==="t"&&h.u===S.unit);
   return `Konrad · Englisch ${UNITS[S.unit].label}\nStand ${fmt(today())}${today().slice(0,4)}: ${m} von ${WORDS.length} Wörtern sitzen.\nGeübt an ${days} ${days===1?"Tag":"Tagen"}, ${S.hist.length} Runden, ${asked?Math.round(ok/asked*100):0} % beim 1. Versuch richtig.`
    +(hard.length?`\nNoch knifflig: ${hard.join(", ")}`:"")
-   +`\nErklären: ${S.paraDone} Erklärungen geschrieben.`
+   +`\nErklären: ${WORDS.filter(w=>S.ex[w.en]).length} von ${WORDS.length} Wörtern gut erklärt (${S.paraDone} Erklärungen geschrieben).`
+   +`\nPast Perfect: ${[...PP_BUILD,...PP_GAP].filter(x=>S.pp[x.a]).length} von ${PP_BUILD.length+PP_GAP.length} Sätzen geschafft.`
    +(grN?`\nPast Perfect: ${grOk} von ${grN} Sätzen beim 1. Versuch richtig.`:"")
    +(tests.length?`\nProbe-Tests: ${tests.map(t=>`${fmt(t.d)} ${t.ok}/${t.n}`).join(", ")}`:"");
 }
@@ -631,7 +641,7 @@ function paraRound(list,i,written){
     const good=upd(); t.readOnly=true;
     $("out").innerHTML=`<div class="card" style="display:grid;gap:8px"><div class="eyebrow">So könnte man es sagen</div><div class="model">${esc(cap(w.def))}.</div><div class="small muted">Deine Erklärung muss nicht gleich sein. Wichtig ist: Versteht jemand das Wort, ohne es zu hören?</div>${good?"":'<div class="small" style="color:var(--bad)">Schau dir die Liste oben nochmal an.</div>'}</div>`;
     $("btns").innerHTML='<button class="btn-main" id="n">Weiter</button>';
-    S.paraDone++; save();
+    S.paraDone++; if(good) S.ex[w.en]=1; save();
     $("n").onclick=()=>paraRound(list,i+1,written+1);
   };
 }
@@ -764,7 +774,7 @@ function gramRound(kind,n){
     $("f").onsubmit=e=>{e.preventDefault();
       const r=ppCheck(it,inp.value); if(r.r==="empty"){inp.focus();return}
       inp.readOnly=true;
-      if(r.r==="ok"){ if(first) ok++; inp.classList.add("ok"); $("stamp").classList.add("show");
+      if(r.r==="ok"){ if(first) ok++; S.pp[it.a]=1; save(); inp.classList.add("ok"); $("stamp").classList.add("show");
         $("fb").innerHTML=`<div class="fb ok"><b>${pick(["Richtig!","Sauber!","Genau so!","Volltreffer!"])}</b>${it.why?`<div class="small" style="margin-top:4px">${esc(it.why)}</div>`:""}</div>`;
       } else { inp.classList.add("bad"); if(first){again.add(it.a);q.push(it)}
         $("fb").innerHTML=`<div class="fb bad"><div class="small">${r.r==="near"?"Knapp daneben!":"Noch nicht."} ${r.tip}</div><div class="right" style="font-size:19px;margin-top:6px">${esc(it.a)}</div>${it.why?`<div class="small muted" style="margin-top:6px">${esc(it.why)}</div>`:""}${first?'<div class="small muted" style="margin-top:4px">Der Satz kommt am Ende nochmal.</div>':""}</div>`;
@@ -818,7 +828,7 @@ function testGrade(){
       <div class="small muted">Beispiel: ${esc(cap(w.def))}.</div>
       ${v?`<div class="small">Wie gut passt deine Erklärung? Sei ehrlich:</div><div class="row rate" data-k="${k}"><button type="button" data-p="2" ${used?"disabled":""}>✓ passt</button><button type="button" data-p="1">~ halb</button><button type="button" data-p="0">✗ falsch</button></div>`:""}</div>`}).join("");
   let p3pts=0;
-  const p3=T.gr.map((g,k)=>{const v=$("g"+k).value, r=v.trim()?ppCheck(g,v):{r:"bad",tip:""}; const p=r.r==="ok"?1:r.r==="near"?.5:0; p3pts+=p;
+  const p3=T.gr.map((g,k)=>{const v=$("g"+k).value, r=v.trim()?ppCheck(g,v):{r:"bad",tip:""}; const p=r.r==="ok"?1:r.r==="near"?.5:0; p3pts+=p; if(p===1) S.pp[g.a]=1;
     return `<div class="tex"><span class="small muted">${g.k==="b"?esc(g.c):esc(g.s)}</span><span>${p===1?MK.ok:p?MK.half:MK.bad} ${esc(v||"–")}</span>${p<1?`<div class="small">richtig: <b>${esc(g.a)}</b>${r.tip?` · ${r.tip}`:""}</div>`:""}</div>`}).join("");
   pts+=p3pts; T.auto=pts;
   app.innerHTML=`
@@ -834,6 +844,7 @@ function testGrade(){
     if(T.rate.some(r=>r===null)){$("score").innerHTML='<div class="fb bad small">Bewerte zuerst alle Erklärungen in Teil 2.</div>';return}
     const total=T.tr.length+T.ex.length*2+T.gr.length, got=T.auto+T.rate.reduce((s,r)=>s+r,0), pct=got/total;
     const lvl=pct>=.85?0:pct>=.7?1:pct>=.5?2:3;
+    T.ex.forEach((w,k)=>{if(T.rate[k]===2) S.ex[w.en]=1});
     S.hist.push({d:today(),t:"t",n:total,ok:got,u:S.unit}); save();
     $("sum").remove();
     $("score").innerHTML=`<section class="card result"><div class="eyebrow">Ergebnis</div><div class="score tnum">${got}/${total}</div><div class="muted">Punkte</div>
