@@ -466,6 +466,13 @@ function home(){
     <button class="btn-main" id="daily">Tagestraining starten</button>
   </section>
 
+  <section class="card" style="display:grid;gap:10px;border:2px solid var(--hi)">
+    <div class="eyebrow">Neu · Zeiten-Test üben</div><h3>Lückentext-Treppe</h3>
+    <div class="muted small">Stufe 1 Zeit erkennen · Stufe 2 Form wählen · Stufe 3 selbst schreiben</div>
+    <button class="btn-main" id="stairs">Weiter mit ${TG_LV[tgNext()].split(" · ")[0]}</button>
+    <button class="btn-ghost" id="stairsAll">Alle Stufen ansehen</button>
+  </section>
+
   <section class="card" style="display:grid;gap:14px">
     <div class="eyebrow">Das kannst du schon</div>
     ${[["Vokabeln","sitzen",m,tot,"var(--ok)"],
@@ -558,7 +565,7 @@ function home(){
     <div id="confirmBox" hidden></div>
   </section>`;
   $("go").onclick=startRound;
-  $("daily").onclick=dailyStart;
+  $("daily").onclick=dailyStart; $("stairs").onclick=tgStart; $("stairsAll").onclick=()=>{gramHome();setTimeout(()=>$("tg1").scrollIntoView({block:"center"}),0)};
   $("lvl2").onclick=()=>paraHome();
   document.querySelectorAll(".own").forEach(i=>i.onchange=()=>{const v=i.value.trim(); if(v) S.mn[i.dataset.en]=v; else delete S.mn[i.dataset.en]; save(); i.previousElementSibling.innerHTML="<b>🧠</b> "+esc(v||MN[i.dataset.en]||"")});
   $("gram").onclick=gramHome;
