@@ -147,6 +147,8 @@ textarea.para{width:100%;min-height:110px;font:inherit;font-size:18px;padding:12
 .tg-in.ok{background:var(--ok-soft);border-color:var(--ok)}
 .tg-in.bad{background:var(--bad-soft);border-color:var(--bad)}
 .tg-cue{font-size:14px;color:var(--muted);margin-left:4px}
+.tg-line{margin-top:10px;padding-top:8px;border-top:1px dashed var(--line)}
+.mn-tip{background:var(--card);border-radius:8px;padding:6px 10px}
 table.irr{width:100%;border-collapse:collapse;margin-top:10px;font-size:15px}
 table.irr th{text-align:left;font-size:12px;color:var(--muted);font-weight:700;padding:6px 4px}
 table.irr td{padding:7px 4px;border-top:1px solid var(--line);vertical-align:top}
@@ -1037,10 +1039,51 @@ const TGAP=[
  {s:"Give me your binoculars! What [he / do]? He [get] off his car, he [take] a bunch of red roses and [hurry] to her door.",a:[["is he doing"],["is getting","gets"],["is taking","takes"],["is hurrying","hurries"]],t:["prp","prp","prp","prp"],why:"Wir schauen gerade zu → Present Progressive."}
 ];
 // compare without caring about short forms: don't = do not, I'm = I am …
-const tgN=s=>norm(s).replace(/[.,!?]/g,"").replace(/\bwon't\b/g,"will not").replace(/\bcan't\b/g,"cannot").replace(/n't\b/g," not").replace(/'m\b/g," am").replace(/'re\b/g," are").replace(/'ve\b/g," have").replace(/'ll\b/g," will").replace(/\s+/g," ").trim();
+const tgN=s=>norm(s).replace(/[.,!?]/g,"").replace(/\bwont\b/g,"will not").replace(/\b(do|does|did|have|has|had|was|were|is|are)nt\b/g,"$1 not").replace(/\bwon't\b/g,"will not").replace(/\bcan't\b/g,"cannot").replace(/n't\b/g," not").replace(/'m\b/g," am").replace(/'re\b/g," are").replace(/'ve\b/g," have").replace(/'ll\b/g," will").replace(/\s+/g," ").trim();
 const tgParts=it=>it.s.split(/\[([^\]]+)\]/); // even = text, odd = cue
 function tgHTML(it,inputs){
   return tgParts(it).map((p,j)=>j%2?(inputs?`<span class="tg-gap"><input class="tg-in" data-g="${(j-1)/2}" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Lücke ${(j+1)/2}: ${esc(p)}"><span class="tg-cue">(${esc(p)})</span></span>`:`<span class="blank">&nbsp;?&nbsp;</span> <span class="tg-cue">(${esc(p)})</span>`):esc(p)).join("");
+}
+// what each tense is for + a mnemonic (Eselsbrücke), shown when Konrad picks the wrong tense
+const TG_MEAN={prs:"passiert immer wieder (Gewohnheit, Fakt)",prp:"passiert gerade jetzt",ps:"ist passiert und vorbei",pc:"war gerade im Gange",prf:"ist passiert und zählt jetzt noch",prfp:"läuft schon eine Weile bis jetzt",pp:"war noch früher als etwas anderes Vergangenes",will:"Vermutung oder spontane Entscheidung für die Zukunft",gt:"schon geplant für die Zukunft",mod:"must / may in einer anderen Zeit"};
+const TG_MN={
+ prs:"📅 <b>Stundenplan-Zeit:</b> Was immer wieder passiert (every day, normally, whenever). Und: <b>he, she, it – das S muss mit!</b>",
+ prp:"📹 <b>Live-Video:</b> Look! Now! Es passiert genau jetzt → <b>am / is / are + -ing</b>.",
+ ps:"📸 <b>Foto im Album:</b> passiert, fertig, vorbei. yesterday, last …, … ago → <b>-ed oder 2. Form</b>.",
+ pc:"🎬 <b>Film im Hintergrund:</b> Der Film läuft (was / were + -ing) – <b>suddenly</b> platzt etwas Kurzes rein (Past Simple). <b>while</b> = Film läuft.",
+ prf:"🌉 <b>Brücke von früher bis jetzt:</b> Das Ergebnis sieht man noch. just, already, yet, never, ever, since, for → <b>have / has + 3. Form</b>.",
+ prfp:"⏱️ <b>Stoppuhr läuft noch:</b> Wie lange schon? for / since → <b>have / has been + -ing</b>.",
+ pp:"⏪ <b>Vor-Vergangenheit:</b> Was noch FRÜHER war, bekommt <b>had</b>.",
+ will:"🔮 <b>Glaskugel-Zeit:</b> I think, I hope, maybe, probably, I promise, „Then I …“ (spontan) → <b>will</b>.",
+ gt:"🗓️ <b>Plan im Kalender:</b> Schon vorher beschlossen → <b>going to</b>.",
+ mod:"🔧 <b>must kann nur JETZT.</b> Vergangenheit: <b>had to</b>. Zukunft: <b>will have to</b>. Darf später: <b>will be allowed to</b>."
+};
+const TG_PAST2=new Set(IRREG.flatMap(r=>r[1].split(" / ")).concat(["began","stole","rang","fell","broke","bit","took","met","spent","dug","flew","rode","got"]));
+// guess which tense Konrad wrote (normalized answer)
+function tgTense(a){
+  if(!a) return "";
+  if(/\b(had to|have to|has to|be allowed|must)\b/.test(a)) return "mod";
+  if(/\bwill\b/.test(a)) return "will";
+  if(/\b(am|is|are|was|were)\b.*\bgoing to \w+/.test(a)) return "gt";
+  if(/\b(have|has)\b.*\bbeen \w+ing\b/.test(a)) return "prfp";
+  if(/\bhad\b(?! to)\s+\S+/.test(a)) return "pp";
+  if(/\b(was|were)\b.*\b\w{2,}ing\b/.test(a)) return "pc";
+  if(/\b(am|is|are)\b.*\b\w{2,}ing\b/.test(a)) return "prp";
+  if(/\b(have|has)\b\s+\S+/.test(a)) return "prf";
+  if(/\bdid\b/.test(a)) return "ps";
+  if(/\b(do|does)\b/.test(a)) return "prs";
+  if(/^(was|were)\b/.test(a)||/\b(was|were)$/.test(a)) return "ps";
+  if(/\b(am|is|are)\b/.test(a)) return "prs";
+  if(/\b\w+ed$/.test(a)||TG_PAST2.has(a.split(" ").pop())||a==="had") return "ps";
+  if(/^\w+s$/.test(a)||a==="has") return "prs";
+  return "";
+}
+function tgWhy(v,it,k){
+  const want=it.t[k], got=tgTense(v), accGot=it.a[k].map(x=>tgTense(tgN(x)));
+  if(!v) return `<div class="small" style="margin-top:4px">Die Lücke war leer. ${TG_MN[want]}</div>`;
+  if(got&&!accGot.includes(got)) return `<div class="small" style="margin-top:4px">Du hast <b>${TG_NAME[got]}</b> genommen – das heißt: ${TG_MEAN[got]}. Hier passt <b>${TG_NAME[want]}</b>: ${TG_MEAN[want]}.</div><div class="small mn-tip" style="margin-top:4px">${TG_MN[want]}</div>`;
+  if(got) return `<div class="small" style="margin-top:4px">👍 Die Zeit stimmt! Nur die Form ist noch nicht ganz richtig. Bauplan: <b>${esc(TG_HOW[want])}</b></div>`;
+  return `<div class="small mn-tip" style="margin-top:4px">${TG_MN[want]}</div>`;
 }
 function tgRound(n){
   const q=shuffle(TGAP.map((x,idx)=>({...x,id:"tg"+idx}))).slice(0,n), total=q.length, again=new Set(); let i=0, ok=0;
@@ -1071,7 +1114,7 @@ function tgRound(n){
       ins.forEach((el,k)=>{ const v=tgN(el.value), acc=it.a[k].map(tgN), good=acc.includes(v);
         el.readOnly=true; el.classList.add(good?"ok":"bad");
         if(!good){ all=false; const near=v&&Math.min(...acc.map(x=>lev(v,x)))<=2;
-          lines.push(`<div class="small" style="margin-top:6px">${it.a.length>1?(k+1)+". ":""}${v?`<s>${esc(el.value.trim())}</s> → `:""}<b>${esc(it.a[k][0])}</b> <span class="muted">· ${TG_NAME[it.t[k]]}${near?" · fast, schau auf die Schreibweise":""}</span></div>`) } });
+          lines.push(`<div class="tg-line"><div class="small">${it.a.length>1?(k+1)+". ":""}${v?`<s>${esc(el.value.trim())}</s> → `:""}<b>${esc(it.a[k][0])}</b> <span class="muted">· ${TG_NAME[it.t[k]]}${near?" · fast, schau auf die Schreibweise":""}</span></div>${near?"":tgWhy(v,it,k)}</div>`) } });
       if(all){ if(first) ok++; S.pp[it.id]=1; save(); $("stamp").classList.add("show");
         $("fb").innerHTML=`<div class="fb ok"><b>${pick(["Richtig!","Sauber!","Genau so!","Volltreffer!"])}</b><div class="small" style="margin-top:4px">${esc(it.why)}</div></div>`;
       } else { if(first){again.add(it.id);q.push(it)}
