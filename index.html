@@ -141,6 +141,12 @@ textarea.para{width:100%;min-height:110px;font:inherit;font-size:18px;padding:12
 .cue{font-size:21px;font-weight:700;margin-top:10px;text-wrap:balance}
 .blank{display:inline-block;min-width:3em;border-bottom:3px solid var(--hi);color:var(--muted)}
 .answer.long{font-size:18px;text-align:left}
+.tg-s{font-size:18px;line-height:2.3;margin-top:10px;text-align:left}
+.tg-gap{white-space:nowrap}
+.tg-in{font:inherit;font-size:17px;width:9.5em;max-width:62vw;height:1.8em;min-height:0;padding:0 6px;vertical-align:baseline;border:0;border-bottom:3px solid var(--hi);border-radius:4px 4px 0 0;background:var(--bg);color:var(--ink)}
+.tg-in.ok{background:var(--ok-soft);border-color:var(--ok)}
+.tg-in.bad{background:var(--bad-soft);border-color:var(--bad)}
+.tg-cue{font-size:14px;color:var(--muted);margin-left:4px}
 table.irr{width:100%;border-collapse:collapse;margin-top:10px;font-size:15px}
 table.irr th{text-align:left;font-size:12px;color:var(--muted);font-weight:700;padding:6px 4px}
 table.irr td{padding:7px 4px;border-top:1px solid var(--line);vertical-align:top}
@@ -492,7 +498,7 @@ function home(){
     <div style="flex:1;min-width:0">
       <div class="eyebrow">Test-Teil 3 · Grammatik</div>
       <h3>Die Zeiten</h3>
-      <div class="muted small">Past Simple, Past Progressive und neu: Past Perfect.</div>
+      <div class="muted small">Past Simple, Past Progressive, Past Perfect · neu: Lückentext mit allen Zeiten.</div>
     </div>
     <button id="gram">Los</button>
   </section>
@@ -870,6 +876,7 @@ const ALL_TENSES=[
  {n:"Past Progressive",de:"Verlaufsform der Vergangenheit",f:"was / were + verb<b>-ing</b>",ex:"Tom <b>was running</b> in the park when it started to rain.",en:"Things that were going on at a moment in the past.",hint:"war gerade im Gange · while, when, at 5 o'clock yesterday",neg:"he <b>wasn't</b> running · <b>Were</b> they talking?"},
  {n:"Present Perfect",de:"Perfekt / vollendete Gegenwart",f:"have / has + 3rd form",ex:"I <b>have</b> already <b>eaten</b> my lunch.",en:"Things that happened in the past, but are important now. We don't say when.",hint:"Ergebnis zählt jetzt · already, just, ever, never, yet, since, for",neg:"I <b>haven't</b> eaten · <b>Have</b> you ever tried sushi?"},
  {n:"Past Perfect",de:"Vorvergangenheit",f:"had + 3rd form",ex:"When we arrived, the guests <b>had eaten</b> all the pizza.",en:"Things that happened before another thing in the past.",hint:"noch früher als die Vergangenheit · after, before, by the time",neg:"he <b>hadn't</b> washed · <b>Had</b> you tried it?",isNew:1},
+ {n:"Present Perfect Progressive",de:"Verlaufsform des Perfekts",f:"have / has been + verb<b>-ing</b>",ex:"I <b>have been waiting</b> for half an hour.",en:"Things that started in the past and are still going on now.",hint:"wie lange schon · for, since, how long",neg:"I <b>haven't been</b> waiting",isNew:1},
  {n:"will-Future",de:"Zukunft mit will",f:"will + verb",ex:"I think it <b>will</b> rain tomorrow.",en:"Things you think or guess about the future, and quick decisions.",hint:"Vermutung, spontane Entscheidung · I think, maybe, probably",neg:"it <b>won't</b> rain"},
  {n:"going to-Future",de:"Zukunft mit going to",f:"am / is / are + going to + verb",ex:"We <b>are going to</b> bake a cake on Saturday.",en:"Plans for the future.",hint:"Pläne, Absichten · tomorrow, next week",neg:"we <b>aren't going to</b> bake"}
 ];
@@ -894,6 +901,11 @@ function gramHome(){
   <section class="card" style="display:grid;gap:10px;border:2px solid var(--blue)">
     <h3>Alle Zeiten gemischt</h3><p class="muted small" style="margin:0">Wie im Test: Oben steht die Zeit, du baust den Satz.</p>
     <button class="btn-main" id="m">Gemischt üben · 6 Sätze</button>
+  </section>
+  <section class="card" style="display:grid;gap:10px;border:2px solid var(--hi)">
+    <div class="eyebrow">Neu · wie auf dem Übungsblatt</div><h3>Lückentext · alle Zeiten</h3>
+    <p class="muted small" style="margin:0">Fill in the correct verb forms! Welche Zeit passt? Achte auf Signalwörter wie yesterday, now, every week, since, while, tomorrow.</p>
+    <div class="row"><button class="btn-main" id="tg" style="flex:1">Lückentext · 5 Sätze</button><span class="small muted tnum">${TGAP.filter((x,k)=>S.pp["tg"+k]).length} / ${TGAP.length}</span></div>
   </section>
   ${tcard("ps","Zeit 1 · Was ist passiert?","Past Simple",`
     <div class="formula">Verb + <span class="mark">-ed</span> <span class="small muted" style="font-weight:400">oder 2. Form</span></div>
@@ -928,7 +940,7 @@ function gramHome(){
     <table class="irr"><thead><tr><th>Grundform</th><th>Past Simple</th><th>3. Form</th></tr></thead><tbody>${IRREG.map(r=>`<tr><td>${r[0]}<div class="muted small">${r[3]}</div></td><td>${r[1]}</td><td><b>${r[2]}</b></td></tr>`).join("")}</tbody></table>
   </details>
   ${tensesHTML()}`;
-  $("back").onclick=home; $("m").onclick=()=>gramRound("m",6);
+  $("back").onclick=home; $("m").onclick=()=>gramRound("m",6); $("tg").onclick=()=>tgRound(5);
   ["ps","pc","b","g"].forEach(k=>$(k).onclick=()=>gramRound(k,5));
 }
 function gramItems(kind,n){
@@ -968,6 +980,102 @@ function gramRound(kind,n){
         $("fb").innerHTML=`<div class="fb ok"><b>${pick(["Richtig!","Sauber!","Genau so!","Volltreffer!"])}</b>${it.why?`<div class="small" style="margin-top:4px">${esc(it.why)}</div>`:""}</div>`;
       } else { inp.classList.add("bad"); if(first){again.add(it.a);q.push(it)}
         $("fb").innerHTML=`<div class="fb bad"><div class="small">${r.r==="near"?"Knapp daneben!":"Noch nicht."} ${r.tip}</div><div class="right" style="font-size:19px;margin-top:6px">${esc(it.a)}</div>${it.why?`<div class="small muted" style="margin-top:6px">${esc(it.why)}</div>`:""}${first?'<div class="small muted" style="margin-top:4px">Der Satz kommt am Ende nochmal.</div>':""}</div>`;
+      }
+      $("btns").innerHTML='<button class="btn-main" style="flex:1" id="next">Weiter</button>';
+      const nx=$("next"); nx.focus(); nx.onclick=ev=>{ev.preventDefault();i++;step()};
+    };
+  };
+  step();
+}
+
+/* ---------- grammar: gap texts with all tenses, like the school test sheets ---------- */
+// [cue] = one gap; a = accepted answers per gap; t = tense per gap; why = short reason in German
+const TG_NAME={prs:"Present Simple",prp:"Present Progressive",ps:"Past Simple",pc:"Past Progressive",prf:"Present Perfect",prfp:"Present Perfect Progressive",pp:"Past Perfect",will:"will-Future",gt:"going to-Future",mod:"must / can / may in anderen Zeiten"};
+const TG_HOW={prs:"Grundform, bei he/she/it + s · Frage/Verneinung mit do / does",prp:"am / is / are + -ing",ps:"-ed oder 2. Form · Frage/Verneinung mit did",pc:"was / were + -ing",prf:"have / has + 3. Form",prfp:"have / has been + -ing",pp:"had + 3. Form",will:"will + Grundform",gt:"am / is / are going to + Grundform",mod:"must → had to / will have to · may → will be allowed to"};
+const TGAP=[
+ {s:"When we [arrive] at the party, some people [dance], some [talk], some [sit] at the bar and one young man [tell] jokes.",a:[["arrived"],["were dancing"],["were talking"],["were sitting"],["was telling"]],t:["ps","pc","pc","pc","pc"],why:"Ankommen ist ein kurzer Moment (Past Simple). Alles andere war da gerade im Gange (was / were + -ing)."},
+ {s:"Think of the place where you live. What [it / look] like in ten years' time? – There [be] a bank where the ice-cream shop [be] now.",a:[["will it look"],["will be"],["is"]],t:["will","will","prs"],why:"In ten years' time = Vermutung über die Zukunft → will. „now“ → Present Simple."},
+ {s:"When Susan [have] a bath, the telephone [ring].",a:[["was having","was taking"],["rang"]],t:["pc","ps"],why:"Das Baden war gerade im Gange, dann kam das Läuten dazwischen."},
+ {s:"I think Phil [wait] for Liz in the coffee shop.",a:[["is waiting","will wait"]],t:["prp"],why:"Er wartet gerade jetzt (oder: Vermutung → will wait)."},
+ {s:"Why [you / work] so hard these days? – Because I [buy] a car, so I [save] as much as I can.",a:[["are you working"],["am going to buy"],["am saving","am saving up"]],t:["prp","gt","prp"],why:"„these days“ = gerade in dieser Zeit → -ing. Den Autokauf hat er vor → going to."},
+ {s:"Mr Toucan, our neighbour, [wash] his car every week. He [just / wash] it again. It looks super now.",a:[["washes"],["has just washed"]],t:["prs","prf"],why:"every week → Present Simple (he → -es). just + Ergebnis jetzt → has + 3. Form."},
+ {s:"I [wait] for half an hour. But now I [go] home.",a:[["have been waiting","have waited"],["am going","am going to go"]],t:["prfp","prp"],why:"for half an hour bis jetzt → have been waiting. Jetzt gehe ich (Absicht) → am going."},
+ {s:"We [meet] our friends last week but this week we [not see] them yet.",a:[["met"],["have not seen"]],t:["ps","prf"],why:"last week → Past Simple. yet → Present Perfect."},
+ {s:"You [must / learn] the vocabulary when you come back.",a:[["will have to learn","will have to study"]],t:["mod"],why:"must gibt es nur in der Gegenwart. Zukunft: will have to."},
+ {s:"My mum normally [have] a cup of tea for breakfast but this morning she [have] a cup of coffee.",a:[["has"],["is having"]],t:["prs","prp"],why:"normally → Present Simple. this morning, gerade jetzt anders → is having."},
+ {s:"In the next few days we [probably / know] how much money we [need] for our projects. – [money / be] a problem? – I hope it [not be] a big problem. Maybe we [get] some local firms to help us.",a:[["will probably know"],["will need"],["will money be"],["will not be"],["will get"]],t:["will","will","will","will","will"],why:"Vermutungen über die Zukunft: probably, I hope, maybe → will."},
+ {s:"What [you / give] Jenny for her birthday? – A book about astrology. – But she [not like] reading. – Oh. Then I [buy] her a CD.",a:[["are you going to give"],["does not like"],["will buy"]],t:["gt","prs","will"],why:"Schon geplant → going to. Sie mag es grundsätzlich nicht → Present Simple. „Then I …“ = spontane Entscheidung → will."},
+ {s:"This is the BBC weather forecast for tomorrow: In the north of Scotland it [be] stormy. In the south-west of England there [be] sunny periods.",a:[["will be"],["will be"]],t:["will","will"],why:"Wettervorhersage = Vermutung über morgen → will."},
+ {s:"The roads are busy at 5 o'clock. – Then I [leave] earlier.",a:[["will leave"]],t:["will"],why:"„Then I …“ = spontane Entscheidung → will."},
+ {s:"When Mr Blake [drive] through the woods, a fox suddenly [cross] the road.",a:[["was driving"],["crossed"]],t:["pc","ps"],why:"Das Fahren war im Gange, suddenly kam der Fuchs dazwischen."},
+ {s:"Two hours ago I [must / clean] all the shoes, now I [must / practise] the trumpet, but later in the evening I [be allowed to / watch] TV.",a:[["had to clean"],["must practise","have to practise","must practice","have to practice"],["will be allowed to watch"]],t:["mod","prs","mod"],why:"ago → had to. now → must. later → will be allowed to."},
+ {s:"While Inspector Thackeray [speak] to Mr and Mrs Palmer, Sergeant Silver [take] a photo of the car.",a:[["was speaking"],["took","was taking"]],t:["pc","ps"],why:"while → das eine war gerade im Gange (was + -ing)."},
+ {s:"My dad [not speak] to me in the last two weeks.",a:[["has not spoken"]],t:["prf"],why:"in the last two weeks = bis jetzt → has + 3. Form."},
+ {s:"Last week somebody [steal] all his money. He [be] very unhappy then.",a:[["stole"],["was"]],t:["ps","ps"],why:"last week, then → Past Simple. steal → stole (unregelmäßig)."},
+ {s:"I hope that the weather [be] fine tomorrow.",a:[["will be","is"]],t:["will"],why:"tomorrow + I hope → will be."},
+ {s:"Whenever Mrs Franklin [meet] me, she [ask] how my mum and my dad [be].",a:[["meets","met"],["asks","asked"],["are","were"]],t:["prs","prs","prs"],why:"whenever = jedes Mal → Present Simple (he/she → -s)."},
+ {s:"Where [you / be] this morning? I [try] to phone you three times.",a:[["were you"],["tried","have tried"]],t:["ps","ps"],why:"this morning ist vorbei → Past Simple. try → tried (y wird i)."},
+ {s:"How much money [you / spend] on books every year?",a:[["do you spend"]],t:["prs"],why:"every year → Present Simple, Frage mit do."},
+ {s:"How much money [you / spend] in your last holidays?",a:[["did you spend"]],t:["ps"],why:"last holidays → Past Simple, Frage mit did + Grundform."},
+ {s:"She [begin] to cry when Fred [step] on her toes.",a:[["began"],["stepped"]],t:["ps","ps"],why:"Zwei kurze Dinge hintereinander → Past Simple. step → stepped (p verdoppelt)."},
+ {s:"How long [you / stay] in Rome next year?",a:[["will you stay","are you going to stay","are you staying"]],t:["will"],why:"next year → Zukunft."},
+ {s:"Our next English test [be] on November 5th.",a:[["is","will be"]],t:["prs"],why:"Fester Termin (Stundenplan) → Present Simple, will geht auch."},
+ {s:"I promise, I [never talk] back again.",a:[["will never talk"]],t:["will"],why:"Versprechen → will. never steht zwischen will und Verb."},
+ {s:"When the children [dig] a deep hole in the sand, they [find] a big shell yesterday.",a:[["were digging"],["found"]],t:["pc","ps"],why:"Das Graben war im Gange, dann haben sie die Muschel gefunden."},
+ {s:"I hope you [have] a nice time in Vienna.",a:[["will have","have"]],t:["will"],why:"I hope + Zukunft → will."},
+ {s:"The house [be] still empty, because the Fishers [not yet arrive].",a:[["is"],["have not arrived yet","have not yet arrived"]],t:["prs","prf"],why:"still → jetzt. not yet → Present Perfect."},
+ {s:"Ben [have] his car since 1997.",a:[["has had"]],t:["prf"],why:"since → has + 3. Form (have → had)."},
+ {s:"While we [eat] our lunch, a swarm of bees suddenly [attack] us last Sunday.",a:[["were eating"],["attacked"]],t:["pc","ps"],why:"while → im Gange. suddenly → Past Simple."},
+ {s:"The glass [break] when Sally [fill] it with hot tea three minutes ago.",a:[["broke"],["filled"]],t:["ps","ps"],why:"ago → Past Simple. break → broke."},
+ {s:"I [not understand] this sentence. What does it mean?",a:[["do not understand"]],t:["prs"],why:"understand gibt es nicht mit -ing → don't understand."},
+ {s:"They [never have] a worse storm in Florida.",a:[["have never had"]],t:["prf"],why:"never bis jetzt → have never had."},
+ {s:"All right then. I [pick you up] in half an hour.",a:[["will pick you up"]],t:["will"],why:"„All right then“ = spontane Zusage → will."},
+ {s:"[you / already hear] about Sue's accident? She [break] her arm when she [fall] down the stairs. Now she [be] in hospital with her arm in plaster.",a:[["have you already heard"],["broke"],["fell"],["is"]],t:["prf","ps","ps","prs"],why:"already → Present Perfect. Der Unfall selbst → Past Simple. Now → Present Simple."},
+ {s:"When Phil [ride] his bike, a dog suddenly [jump] onto the road and [bite] him.",a:[["was riding"],["jumped"],["bit"]],t:["pc","ps","ps"],why:"Das Radfahren war im Gange, suddenly → Past Simple. bite → bit."},
+ {s:"While Roger [pack] his suitcase, Linda [write] something into her diary.",a:[["was packing"],["was writing","wrote"]],t:["pc","pc"],why:"while → beides war gleichzeitig im Gange."},
+ {s:"What's that funny smell? – I think Lucy [fry] some sausages.",a:[["is frying"]],t:["prp"],why:"Es riecht jetzt → passiert gerade → is + -ing."},
+ {s:"Give me your binoculars! What [he / do]? He [get] off his car, he [take] a bunch of red roses and [hurry] to her door.",a:[["is he doing"],["is getting","gets"],["is taking","takes"],["is hurrying","hurries"]],t:["prp","prp","prp","prp"],why:"Wir schauen gerade zu → Present Progressive."}
+];
+// compare without caring about short forms: don't = do not, I'm = I am …
+const tgN=s=>norm(s).replace(/[.,!?]/g,"").replace(/\bwon't\b/g,"will not").replace(/\bcan't\b/g,"cannot").replace(/n't\b/g," not").replace(/'m\b/g," am").replace(/'re\b/g," are").replace(/'ve\b/g," have").replace(/'ll\b/g," will").replace(/\s+/g," ").trim();
+const tgParts=it=>it.s.split(/\[([^\]]+)\]/); // even = text, odd = cue
+function tgHTML(it,inputs){
+  return tgParts(it).map((p,j)=>j%2?(inputs?`<span class="tg-gap"><input class="tg-in" data-g="${(j-1)/2}" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Lücke ${(j+1)/2}: ${esc(p)}"><span class="tg-cue">(${esc(p)})</span></span>`:`<span class="blank">&nbsp;?&nbsp;</span> <span class="tg-cue">(${esc(p)})</span>`):esc(p)).join("");
+}
+function tgRound(n){
+  const q=shuffle(TGAP.map((x,idx)=>({...x,id:"tg"+idx}))).slice(0,n), total=q.length, again=new Set(); let i=0, ok=0;
+  const back=()=>{ if(FLOW){FLOW=null;home()} else gramHome() };
+  const step=()=>{
+    if(i>=q.length){ S.gramOk=(S.gramOk||0)+ok; S.hist.push({d:today(),t:"gr",n:total,ok,u:S.unit}); save();
+      if(FLOW) return flowNext({name:"Lückentext",ok,n:total});
+      app.innerHTML=`<section class="card result"><div class="eyebrow">Lückentext · alle Zeiten</div><div class="score tnum">${ok}/${total}</div><div class="muted">Sätze beim ersten Versuch ganz richtig</div><div class="row" style="width:100%"><button class="btn-main" style="flex:1" id="a">Nochmal</button><button class="btn-ghost" id="z">Zurück</button></div></section>`;
+      $("a").onclick=()=>tgRound(n); $("z").onclick=gramHome; if(ok>=total*.7) confetti(); return}
+    const it=q[i], first=!again.has(it.id);
+    app.innerHTML=`<div class="qhead"><button class="btn-ghost" id="x" aria-label="Beenden">✕</button><div class="qbar"><i style="width:${Math.min(i,total)/total*100}%"></i></div><span class="muted small tnum">${Math.min(i,total)}/${total}</span></div>
+    <section class="card prompt"><span class="stamp" id="stamp">RICHTIG</span>
+      <div class="eyebrow">Fill in the correct verb forms!</div>
+      <div class="tg-s">${tgHTML(it,true)}</div>
+      <div class="hint" id="hint" hidden></div></section>
+    <form id="f" style="display:grid;gap:12px" autocomplete="off">
+      <div id="fb"></div>
+      <div class="row" id="btns"><button class="btn-main" style="flex:1">Prüfen</button><button type="button" id="tip" class="btn-ghost">Tipp</button></div>
+    </form>`;
+    $("x").onclick=back;
+    const ins=[...document.querySelectorAll(".tg-in")]; ins[0].focus();
+    ins.forEach((el,k)=>el.onkeydown=e=>{ if(e.key==="Enter"&&k<ins.length-1){e.preventDefault();ins[k+1].focus()} });
+    $("tip").onclick=()=>{const h=$("hint");h.hidden=false;
+      h.innerHTML=it.t.map((t,k)=>`${it.t.length>1?(k+1)+". Lücke: ":""}<b>${TG_NAME[t]}</b> <span class="muted">· ${esc(TG_HOW[t])}</span>`).join("<br>")};
+    $("f").onsubmit=e=>{e.preventDefault();
+      if(ins.every(el=>!el.value.trim())){ins[0].focus();return}
+      let all=true; const lines=[];
+      ins.forEach((el,k)=>{ const v=tgN(el.value), acc=it.a[k].map(tgN), good=acc.includes(v);
+        el.readOnly=true; el.classList.add(good?"ok":"bad");
+        if(!good){ all=false; const near=v&&Math.min(...acc.map(x=>lev(v,x)))<=2;
+          lines.push(`<div class="small" style="margin-top:6px">${it.a.length>1?(k+1)+". ":""}${v?`<s>${esc(el.value.trim())}</s> → `:""}<b>${esc(it.a[k][0])}</b> <span class="muted">· ${TG_NAME[it.t[k]]}${near?" · fast, schau auf die Schreibweise":""}</span></div>`) } });
+      if(all){ if(first) ok++; S.pp[it.id]=1; save(); $("stamp").classList.add("show");
+        $("fb").innerHTML=`<div class="fb ok"><b>${pick(["Richtig!","Sauber!","Genau so!","Volltreffer!"])}</b><div class="small" style="margin-top:4px">${esc(it.why)}</div></div>`;
+      } else { if(first){again.add(it.id);q.push(it)}
+        $("fb").innerHTML=`<div class="fb bad"><b>Noch nicht ganz.</b>${lines.join("")}<div class="small muted" style="margin-top:8px">${esc(it.why)}</div>${first?'<div class="small muted" style="margin-top:4px">Der Satz kommt am Ende nochmal.</div>':""}</div>`;
       }
       $("btns").innerHTML='<button class="btn-main" style="flex:1" id="next">Weiter</button>';
       const nx=$("next"); nx.focus(); nx.onclick=ev=>{ev.preventDefault();i++;step()};
