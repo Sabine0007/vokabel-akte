@@ -149,6 +149,17 @@ textarea.para{width:100%;min-height:110px;font:inherit;font-size:18px;padding:12
 .tg-cue{font-size:14px;color:var(--muted);margin-left:4px}
 .tg-line{margin-top:10px;padding-top:8px;border-top:1px dashed var(--line)}
 .mn-tip{background:var(--card);border-radius:8px;padding:6px 10px}
+.sig{background:var(--hi);color:var(--hi-ink);border-radius:3px;padding:0 2px}
+.tg-done{font-weight:700;color:var(--blue)}
+.tg-fill{background:var(--ok-soft);border-radius:4px;padding:0 4px}
+.opts{display:grid;gap:8px}
+.opt{text-align:left;background:var(--card);border:2px solid var(--line);display:grid;gap:2px;font-size:17px}
+.opt.ok{border-color:var(--ok);background:var(--ok-soft)}
+.opt.bad{border-color:var(--bad);background:var(--bad-soft)}
+.opt:disabled{cursor:default;color:inherit}
+.stair{display:flex;gap:10px;align-items:center}
+.stair button{flex:1;text-align:left}
+.stair .chip{flex:none}
 table.irr{width:100%;border-collapse:collapse;margin-top:10px;font-size:15px}
 table.irr th{text-align:left;font-size:12px;color:var(--muted);font-weight:700;padding:6px 4px}
 table.irr td{padding:7px 4px;border-top:1px solid var(--line);vertical-align:top}
@@ -905,9 +916,9 @@ function gramHome(){
     <button class="btn-main" id="m">Gemischt üben · 6 Sätze</button>
   </section>
   <section class="card" style="display:grid;gap:10px;border:2px solid var(--hi)">
-    <div class="eyebrow">Neu · wie auf dem Übungsblatt</div><h3>Lückentext · alle Zeiten</h3>
-    <p class="muted small" style="margin:0">Fill in the correct verb forms! Welche Zeit passt? Achte auf Signalwörter wie yesterday, now, every week, since, while, tomorrow.</p>
-    <div class="row"><button class="btn-main" id="tg" style="flex:1">Lückentext · 5 Sätze</button><span class="small muted tnum">${TGAP.filter((x,k)=>S.pp["tg"+k]).length} / ${TGAP.length}</span></div>
+    <div class="eyebrow">Neu · Sätze vom Übungsblatt</div><h3>Lückentext-Treppe · alle Zeiten</h3>
+    <p class="muted small" style="margin:0">Schritt für Schritt: erst die Zeit erkennen, dann die Form auswählen, dann selbst schreiben wie im Test. Ab 6 von 8 richtig geht's eine Stufe höher. Springen darfst du immer.</p>
+    ${[1,2,3].map(lv=>`<div class="stair"><button id="tg${lv}" ${tgNext()===lv?'class="btn-main"':""}>${TG_LV[lv]}</button>${lv<3?(tgBest(lv)>=6?'<span class="chip up">✓ geschafft</span>':`<span class="small muted tnum">Rekord ${tgBest(lv)}/8</span>`):`<span class="small muted tnum">${TGAP.filter((x,k)=>S.pp["tg"+k]).length}/${TGAP.length}</span>`}</div>`).join("")}
   </section>
   ${tcard("ps","Zeit 1 · Was ist passiert?","Past Simple",`
     <div class="formula">Verb + <span class="mark">-ed</span> <span class="small muted" style="font-weight:400">oder 2. Form</span></div>
@@ -942,7 +953,7 @@ function gramHome(){
     <table class="irr"><thead><tr><th>Grundform</th><th>Past Simple</th><th>3. Form</th></tr></thead><tbody>${IRREG.map(r=>`<tr><td>${r[0]}<div class="muted small">${r[3]}</div></td><td>${r[1]}</td><td><b>${r[2]}</b></td></tr>`).join("")}</tbody></table>
   </details>
   ${tensesHTML()}`;
-  $("back").onclick=home; $("m").onclick=()=>gramRound("m",6); $("tg").onclick=()=>tgRound(5);
+  $("back").onclick=home; $("m").onclick=()=>gramRound("m",6); $("tg1").onclick=()=>tgLevel(1,8); $("tg2").onclick=()=>tgLevel(2,8); $("tg3").onclick=()=>tgRound(5);
   ["ps","pc","b","g"].forEach(k=>$(k).onclick=()=>gramRound(k,5));
 }
 function gramItems(kind,n){
@@ -1127,6 +1138,108 @@ function tgRound(n){
   step();
 }
 
+/* ---------- gap text stairs: step 1 pick the tense, step 2 pick the form, step 3 write (tgRound) ---------- */
+// two wrong forms per gap, same order as TGAP (gaps split by |)
+const TG_D=[
+ "were arriving,had arrived|danced,are dancing|talked,was talking|sat,are sitting|told,were telling",
+ "does it look,is it looking|is,was|was,has been",
+ "had,is having|was ringing,rings",
+ "waits,waited",
+ "do you work,did you work|bought,buy|saved,save",
+ "is washing,washed|just washed,is just washing",
+ "am waiting,waited|went,go",
+ "have met,meet|did not see,do not see",
+ "must learn,had to learn",
+ "is having,have|has,had",
+ "probably know,probably knew|need,needed|is money,was money|is not,was not|get,got",
+ "do you give,did you give|is not liking,did not like|buy,bought",
+ "is,was|are,were",
+ "leave,left",
+ "drove,is driving|was crossing,crosses",
+ "must clean,will have to clean|had to practise,will have to practise|may watch,was allowed to watch",
+ "spoke,is speaking|takes,has taken",
+ "did not speak,does not speak",
+ "had stolen,has stolen|is,has been",
+ "was,has been",
+ "is meeting,has met|is asking,has asked|is,have been",
+ "are you,will you be|try,was trying",
+ "did you spend,are you spending",
+ "do you spend,have you spent",
+ "begins,was beginning|steps,was stepping",
+ "did you stay,do you stay",
+ "was,has been",
+ "never talked,never talk",
+ "dug,are digging|were finding,find",
+ "had,have had",
+ "was,has been|did not arrive yet,are not arriving yet",
+ "has,had",
+ "ate,are eating|were attacking,attack",
+ "was breaking,breaks|was filling,fills",
+ "am not understanding,did not understand",
+ "never have,never had",
+ "picked you up,pick you up",
+ "did you already hear,do you already hear|was breaking,has broken|was falling,falls|was,has been",
+ "rode,is riding|was jumping,jumps|was biting,bites",
+ "packed,is packing|writes,is writing",
+ "fries,fried",
+ "does he do,did he do|got,has got|took,has taken|hurried,has hurried"
+].map(s=>s.split("|").map(g=>g.split(",")));
+const TG_G=TGAP.flatMap((it,i)=>it.a.map((acc,k)=>({it,k,id:"tg"+i+"-"+k,d:TG_D[i][k]})));
+const TG_SIG=/\b(yesterday|last (week|sunday|year|holidays)|\w+ ago|while|whenever|suddenly|normally|every (week|year|day)|now|these days|this morning|since \d+|for half an hour|in the last two weeks|already|yet|never|still|tomorrow|next (year|few days)|in ten years' time|in half an hour|later in the evening|i think|i hope|maybe|probably|i promise|then i|look)\b/gi;
+const tgSig=t=>t.replace(TG_SIG,m=>`<mark class="sig">${m}</mark>`);
+function tgOne(g,fill){
+  return tgParts(g.it).map((p,j)=>{ if(j%2===0) return tgSig(esc(p)); const k=(j-1)/2;
+    if(k!==g.k) return `<span class="tg-done">${esc(g.it.a[k][0])}</span>`;
+    return fill!=null?`<b class="tg-fill">${esc(fill)}</b>`:`<span class="blank">&nbsp;?&nbsp;</span> <span class="tg-cue">(${esc(p)})</span>`}).join("");
+}
+const tgOkTenses=g=>new Set([g.it.t[g.k],...g.it.a[g.k].map(x=>tgTense(tgN(x)))].filter(Boolean));
+function tgOptions(g,lv){
+  if(lv===2) return shuffle([{v:g.it.a[g.k][0],ok:1},...g.d.map(v=>({v}))]);
+  const good=tgOkTenses(g), o=[g.it.t[g.k]];
+  [...g.d.map(x=>tgTense(tgN(x))),"ps","pc","prs","prp","prf","will","pp"].forEach(t=>{ if(t&&!good.has(t)&&!o.includes(t)&&o.length<3) o.push(t) });
+  return shuffle(o.map((t,j)=>({v:t,ok:j===0?1:0})));
+}
+const TG_LV={1:"Stufe 1 · Welche Zeit passt?",2:"Stufe 2 · Welche Form passt?",3:"Stufe 3 · Selbst schreiben"};
+const tgBest=lv=>(S.tgs||{})[lv]||0;
+const tgNext=()=>tgBest(1)<6?1:tgBest(2)<6?2:3;
+function tgLevel(lv,n){
+  const q=shuffle([...TG_G]).slice(0,n), total=q.length, again=new Set(); let i=0, ok=0;
+  const back=()=>{ if(FLOW){FLOW=null;home()} else gramHome() };
+  const step=()=>{
+    if(i>=q.length){ S.tgs=S.tgs||{}; S.tgs[lv]=Math.max(tgBest(lv),ok); S.gramOk=(S.gramOk||0)+ok; S.hist.push({d:today(),t:"gr",n:total,ok,u:S.unit}); save();
+      const up=ok>=6;
+      app.innerHTML=`<section class="card result"><div class="eyebrow">${TG_LV[lv]}</div><div class="score tnum">${ok}/${total}</div><div class="muted">beim ersten Versuch richtig</div>
+        <p style="margin:0">${up?`Stark! Du bist bereit für <b>${TG_LV[lv+1]}</b>.`:"Ab 6 richtigen geht's auf die nächste Stufe. Nochmal?"}</p>
+        <div class="row" style="width:100%"><button class="btn-main" style="flex:1" id="a">${up?"Weiter zu Stufe "+(lv+1):"Nochmal"}</button><button class="btn-ghost" id="z">Zurück</button></div></section>`;
+      $("a").onclick=()=>up?(lv===2?tgRound(5):tgLevel(lv+1,8)):tgLevel(lv,8); $("z").onclick=gramHome; if(up) confetti(); return}
+    const g=q[i], first=!again.has(g.id), opts=tgOptions(g,lv);
+    app.innerHTML=`<div class="qhead"><button class="btn-ghost" id="x" aria-label="Beenden">✕</button><div class="qbar"><i style="width:${Math.min(i,total)/total*100}%"></i></div><span class="muted small tnum">${Math.min(i,total)}/${total}</span></div>
+    <section class="card prompt"><span class="stamp" id="stamp">RICHTIG</span>
+      <div class="eyebrow">${TG_LV[lv]}</div>
+      <div class="tg-s">${tgOne(g)}</div>
+      <div class="small muted" style="margin-top:6px">Gelb = Signalwort. Das verrät dir die Zeit.</div></section>
+    <div class="opts">${opts.map((o,j)=>`<button class="opt" data-j="${j}">${lv===1?`${TG_NAME[o.v]}<span class="small muted">${TG_MEAN[o.v]}</span>`:esc(o.v)}</button>`).join("")}</div>
+    <div id="fb"></div><div id="btns"></div>`;
+    $("x").onclick=back;
+    document.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{
+      const o=opts[+b.dataset.j], right=!!o.ok;
+      document.querySelectorAll(".opt").forEach((x,j)=>{x.disabled=true; if(opts[j].ok) x.classList.add("ok")});
+      const sol=`<div class="tg-s" style="margin-top:6px">${tgOne(g,g.it.a[g.k][0])}</div>`;
+      if(right){ if(first) ok++; save(); $("stamp").classList.add("show");
+        $("fb").innerHTML=`<div class="fb ok"><b>${pick(["Richtig!","Sauber!","Genau so!","Volltreffer!"])}</b> ${TG_NAME[g.it.t[g.k]]}${sol}<div class="small" style="margin-top:4px">${esc(g.it.why)}</div></div>`;
+      } else { b.classList.add("bad"); if(first){again.add(g.id);q.push(g)}
+        const got=lv===1?o.v:tgTense(tgN(o.v)), want=g.it.t[g.k];
+        const why=lv===2?tgWhy(tgN(o.v),g.it,g.k):`<div class="small" style="margin-top:4px">${TG_NAME[got]} heißt: ${TG_MEAN[got]}. Hier passt <b>${TG_NAME[want]}</b>: ${TG_MEAN[want]}.</div><div class="small mn-tip" style="margin-top:4px">${TG_MN[want]}</div>`;
+        $("fb").innerHTML=`<div class="fb bad"><b>Noch nicht.</b>${why}${sol}<div class="small muted" style="margin-top:6px">${esc(g.it.why)}</div>${first?'<div class="small muted" style="margin-top:4px">Kommt am Ende nochmal.</div>':""}</div>`;
+      }
+      $("btns").innerHTML='<button class="btn-main" id="next">Weiter</button>';
+      const nx=$("next"); nx.focus(); nx.onclick=()=>{i++;step()};
+    });
+  };
+  step();
+}
+function tgStart(){ const lv=tgNext(); lv===3?tgRound(5):tgLevel(lv,8) }
+
 /* ---------- probe test: same three parts as the school test ---------- */
 let T=null;
 function testStart(){
@@ -1303,8 +1416,8 @@ function confetti(){
 }
 
 home();
-// direct links: …/#zeiten opens the grammar page, …/#lueckentext starts the gap text
-if(location.hash==="#zeiten") gramHome(); else if(location.hash==="#lueckentext") tgRound(5);
+// direct links: …/#zeiten opens the grammar page, …/#lueckentext starts the gap text stairs at the right step
+if(location.hash==="#zeiten") gramHome(); else if(location.hash==="#lueckentext") tgStart();
 </script>
 
 </body>
