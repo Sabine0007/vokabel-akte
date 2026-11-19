@@ -1,0 +1,1439 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Vokabel-Akte">
+<style>[hidden]{display:none!important}body{margin:0}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
+</head>
+<body>
+<a href="./" style="display:block;max-width:580px;margin:0 auto 10px;font:700 15px/1.4 'Atkinson Hyperlegible',system-ui,sans-serif;color:inherit;opacity:.7;text-decoration:none">← Englisch / Deutsch wählen</a>
+
+<title>Konrads Vokabel-Akte</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Special+Elite&display=swap">
+<style>
+/* Layout: one narrow column like a police case file on a phone; highlighter labels from the textbook, a red stamp for solved cases */
+:root{
+  --bg:#EDF0F7; --card:#FFFFFF; --ink:#1B2140; --muted:#5B6385; --line:#D5DAE8;
+  --blue:#2F45A8; --blue-soft:#E3E8FA; --hi:#FFD23F; --hi-ink:#1B2140;
+  --ok:#1F8A5B; --ok-soft:#DDF3E8; --bad:#C8402F; --bad-soft:#FBE3DF;
+  --f-display:"Special Elite","Courier New",ui-monospace,monospace;
+  --f-body:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12162B; --card:#1C2242; --ink:#E9ECF7; --muted:#9AA3C7; --line:#2D3561;
+  --blue:#8EA2FF; --blue-soft:#253066; --hi:#FFD23F; --hi-ink:#1B2140;
+  --ok:#4CC38A; --ok-soft:#163A2B; --bad:#FF7A66; --bad-soft:#4A221C; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12162B; --card:#1C2242; --ink:#E9ECF7; --muted:#9AA3C7; --line:#2D3561;
+  --blue:#8EA2FF; --blue-soft:#253066; --hi:#FFD23F; --hi-ink:#1B2140;
+  --ok:#4CC38A; --ok-soft:#163A2B; --bad:#FF7A66; --bad-soft:#4A221C; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.45;padding:16px;padding-block:16px 40px}
+.wrap{max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+h1,h2,h3{margin:0;text-wrap:balance}
+.eyebrow{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.display{font-family:var(--f-display);font-weight:400}
+.mark{background:var(--hi);color:var(--hi-ink);padding:.05em .4em;border-radius:6px;display:inline-block;transform:rotate(-1.5deg)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px}
+.muted{color:var(--muted)}
+button{font:inherit;cursor:pointer;border:0;border-radius:12px;padding:14px 18px;font-weight:700;color:inherit;background:var(--blue-soft)}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--hi);outline-offset:2px}
+.btn-main{background:var(--blue);color:var(--card);font-size:18px;width:100%}
+.btn-ghost{background:transparent;border:1px solid var(--line)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.row > *{min-width:0}
+.tnum{font-variant-numeric:tabular-nums}
+
+/* header */
+.top{display:flex;justify-content:space-between;align-items:flex-end;gap:12px}
+.top h1{font-family:var(--f-display);font-size:30px;line-height:1.1}
+.unit{font-size:13px;color:var(--muted)}
+
+/* progress */
+.meter{height:14px;border-radius:99px;background:var(--line);overflow:hidden;display:flex}
+.meter i{display:block;height:100%}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+.big{font-family:var(--f-display);font-size:44px;line-height:1}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat{background:var(--bg);border-radius:12px;padding:10px 12px}
+.stat b{display:block;font-size:22px}
+.stat span{font-size:12px;color:var(--muted)}
+
+/* level 2 */
+.lock{display:flex;gap:14px;align-items:center}
+.lock .pad{width:46px;height:46px;flex:none;border-radius:12px;display:grid;place-items:center;background:var(--bg);font-family:var(--f-display);font-size:22px}
+
+/* word list */
+details summary{cursor:pointer;font-weight:700;list-style:none}
+details summary::-webkit-details-marker{display:none}
+.words{display:grid;gap:6px;margin-top:12px}
+.w{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:15px}
+.w:last-child{border:0}
+.w .de{color:var(--muted);text-align:right}
+.boxes{display:inline-flex;gap:3px;margin-right:8px;vertical-align:1px}
+.boxes i{width:8px;height:8px;border-radius:2px;background:var(--line)}
+.boxes i.on{background:var(--ok)}
+
+/* quiz */
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.qbar{flex:1;height:8px;border-radius:99px;background:var(--line);overflow:hidden}
+.qbar i{display:block;height:100%;background:var(--blue);transition:width .3s}
+.prompt{position:relative;padding:26px 18px 22px;text-align:center}
+.prompt .de-word{font-size:28px;font-weight:700;margin:8px 0 2px;text-wrap:balance}
+.prompt .hint{margin-top:12px;font-size:15px;color:var(--muted);font-style:italic}
+.answer{width:100%;font:inherit;font-size:22px;padding:14px 16px;border-radius:12px;border:2px solid var(--line);background:var(--card);color:var(--ink);text-align:center}
+.answer.ok{border-color:var(--ok);background:var(--ok-soft)}
+.answer.bad{border-color:var(--bad);background:var(--bad-soft)}
+.fb{border-radius:12px;padding:14px 16px;font-size:16px}
+.fb.ok{background:var(--ok-soft)}
+.fb.bad{background:var(--bad-soft)}
+.fb .right{font-size:22px;font-weight:700;letter-spacing:.02em}
+.miss{color:var(--bad);text-decoration:underline;text-decoration-thickness:3px}
+.stamp{position:absolute;right:12px;top:10px;font-family:var(--f-display);color:var(--bad);border:3px solid var(--bad);border-radius:8px;padding:2px 10px;font-size:20px;transform:rotate(12deg) scale(1.6);opacity:0;pointer-events:none}
+.stamp.show{animation:stamp .35s ease-out forwards}
+@keyframes stamp{to{transform:rotate(12deg) scale(1);opacity:.9}}
+@media (prefers-reduced-motion:reduce){.stamp.show{animation:none;transform:rotate(12deg);opacity:.9}.qbar i{transition:none}}
+
+/* result */
+.result{text-align:center;display:flex;flex-direction:column;gap:14px;align-items:center}
+.result .score{font-family:var(--f-display);font-size:56px;line-height:1}
+.chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.chip{font-size:14px;padding:4px 10px;border-radius:99px;background:var(--bg);border:1px solid var(--line)}
+.chip.up{border-color:var(--ok);color:var(--ok)}
+
+/* history */
+.hist{display:flex;align-items:flex-end;gap:4px;height:70px;margin-top:12px}
+.hist .b{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:3px;height:100%;min-width:0}
+.hist .b i{display:block;width:100%;max-width:22px;border-radius:4px 4px 0 0;background:var(--blue)}
+.hist .b span{font-size:10px;color:var(--muted)}
+.log{font-size:14px;margin-top:10px;display:grid;gap:4px}
+.log div{display:flex;justify-content:space-between;gap:10px;color:var(--muted)}
+
+textarea.para{width:100%;min-height:110px;font:inherit;font-size:18px;padding:12px 14px;border-radius:12px;border:2px solid var(--line);background:var(--card);color:var(--ink);resize:vertical}
+.checks{display:grid;gap:6px;font-size:15px}
+.checks div::before{content:"○ ";color:var(--muted)}
+.checks div.y::before{content:"✓ ";color:var(--ok);font-weight:700}
+.checks div.n::before{content:"✗ ";color:var(--bad);font-weight:700}
+.starters{display:flex;flex-wrap:wrap;gap:6px}
+.starters{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.starters button{padding:8px 10px;font-size:14px;font-weight:700;border-radius:12px;text-align:left;display:grid;gap:1px}
+.starters button small{font-weight:400;color:var(--muted);font-size:12px}
+.tense{display:grid;gap:6px;padding:14px 0;border-top:1px solid var(--line)}
+.tform{font-weight:700;font-size:17px;background:var(--bg);border-radius:10px;padding:8px 12px}
+.model{border-left:4px solid var(--hi);padding:4px 0 4px 12px;font-style:italic}
+.confirm{background:var(--bad-soft);border-radius:12px;padding:12px}
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:5}
+
+/* past perfect */
+.formula{font-size:26px;font-weight:700}
+.ppw{background:var(--hi);color:var(--hi-ink);padding:0 .25em;border-radius:4px}
+.tl{position:relative;height:74px;margin:4px 0}
+.tl-line{position:absolute;left:0;right:0;top:12px;height:3px;background:var(--line)}
+.tl-line::after{content:"";position:absolute;right:-2px;top:-5px;border:6px solid transparent;border-left:9px solid var(--line)}
+.tl-pt{position:absolute;top:4px;display:flex;flex-direction:column;gap:2px;font-size:13px}
+.tl-pt i{width:19px;height:19px;border-radius:50%;background:var(--blue);border:3px solid var(--card)}
+.tl-pt.first i{background:var(--hi)}
+.tl-pt span{color:var(--muted)}
+.tl-now{position:absolute;right:0;top:24px;font-size:13px;color:var(--muted)}
+.cue{font-size:21px;font-weight:700;margin-top:10px;text-wrap:balance}
+.blank{display:inline-block;min-width:3em;border-bottom:3px solid var(--hi);color:var(--muted)}
+.answer.long{font-size:18px;text-align:left}
+.tg-s{font-size:18px;line-height:2.3;margin-top:10px;text-align:left}
+.tg-gap{white-space:nowrap}
+.tg-in{font:inherit;font-size:17px;width:9.5em;max-width:62vw;height:1.8em;min-height:0;padding:0 6px;vertical-align:baseline;border:0;border-bottom:3px solid var(--hi);border-radius:4px 4px 0 0;background:var(--bg);color:var(--ink)}
+.tg-in.ok{background:var(--ok-soft);border-color:var(--ok)}
+.tg-in.bad{background:var(--bad-soft);border-color:var(--bad)}
+.tg-cue{font-size:14px;color:var(--muted);margin-left:4px}
+.tg-line{margin-top:10px;padding-top:8px;border-top:1px dashed var(--line)}
+.mn-tip{background:var(--card);border-radius:8px;padding:6px 10px}
+.sig{background:var(--hi);color:var(--hi-ink);border-radius:3px;padding:0 2px}
+.tg-done{font-weight:700;color:var(--blue)}
+.tg-fill{background:var(--ok-soft);border-radius:4px;padding:0 4px}
+.opts{display:grid;gap:8px}
+.opt{text-align:left;background:var(--card);border:2px solid var(--line);display:grid;gap:2px;font-size:17px}
+.opt.ok{border-color:var(--ok);background:var(--ok-soft)}
+.opt.bad{border-color:var(--bad);background:var(--bad-soft)}
+.opt:disabled{cursor:default;color:inherit}
+.stair{display:flex;gap:10px;align-items:center}
+.stair button{flex:1;text-align:left}
+.stair .chip{flex:none}
+table.irr{width:100%;border-collapse:collapse;margin-top:10px;font-size:15px}
+table.irr th{text-align:left;font-size:12px;color:var(--muted);font-weight:700;padding:6px 4px}
+table.irr td{padding:7px 4px;border-top:1px solid var(--line);vertical-align:top}
+
+/* probe test */
+.tsec{display:grid;gap:4px}
+.trow{display:grid;grid-template-columns:1fr 1.2fr;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line);font-size:16px}
+.trow:last-child{border:0}
+.trow.res{align-items:start}
+.tin{font:inherit;width:100%;padding:10px 12px;border-radius:10px;border:2px solid var(--line);background:var(--card);color:var(--ink)}
+.tex{display:grid;gap:6px;margin-top:14px}
+.mk{font-weight:700;margin-right:4px}
+.mk.ok{color:var(--ok)} .mk.half{color:#C98A00} .mk.bad{color:var(--bad)}
+.rate button{padding:8px 12px;font-size:15px}
+.rate button.sel{background:var(--blue);color:var(--card)}
+.ampel{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;width:100%}
+.ampel i{height:36px;border-radius:6px;display:grid;place-items:center;font-style:normal;font-weight:700;color:#1B2140;opacity:.3}
+.ampel i.on{opacity:1;outline:3px solid var(--ink);outline-offset:1px}
+.sk{display:grid;gap:6px}
+.bridge{margin-top:10px;background:var(--card);border:2px dashed var(--hi);border-radius:12px;padding:10px 12px;font-size:15px;text-align:left;color:var(--ink)}
+.tricky{display:grid;gap:4px;padding:12px 0;border-top:1px solid var(--line)}
+.tricky input{font:inherit;font-size:14px;padding:8px 10px;border-radius:10px;border:1px dashed var(--line);background:var(--bg);color:var(--ink);width:100%}
+.lesson{display:flex;gap:6px;align-items:center;flex-wrap:wrap;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:6px 6px 6px 14px}
+.lesson .eyebrow{flex:1;min-width:max-content}
+.lesson button{padding:9px 14px;background:transparent;font-weight:700}
+.lesson button.on{background:var(--blue);color:var(--card)}
+.dlog{display:grid;gap:6px;width:100%}
+.dlog div{display:flex;justify-content:space-between;background:var(--bg);border-radius:10px;padding:10px 14px}
+.small{font-size:14px}
+</style>
+
+<canvas id="confetti"></canvas>
+<div class="wrap" id="app"></div>
+
+<script>
+const FOOD = [
+ {en:"diet",de:"Ernährung; Diät",ex:"To stay fit, you need a healthy diet.",def:"the food that you usually eat"},
+ {en:"to afford",de:"sich leisten",ex:"We can't afford to go abroad this summer.",def:"to have enough money to pay for something"},
+ {en:"cause",de:"Ursache",ex:"Poverty is the main cause of hunger.",def:"the thing that makes something happen"},
+ {en:"to face",de:"konfrontieren; gegenüberstehen",ex:"Millions of people face hunger in poor countries.",def:"to have a difficult situation or problem in front of you"},
+ {en:"to feed",de:"ernähren; füttern",ex:"They have a large family to feed.",def:"to give food to a person or an animal"},
+ {en:"intake",de:"Einnahme; Aufnahme",ex:"People in America have a higher intake of calories than people in Africa.",def:"the amount of food or drink that you take into your body"},
+ {en:"poverty",de:"Armut",ex:"Millions of people live in extreme poverty worldwide.",def:"when people have very little money and cannot buy the things they need"},
+ {en:"to waste",de:"verschwenden",ex:"We need to waste less food in order to feed the population.",def:"to use more of something than you need, or to throw away something that is still good"},
+ {en:"advert",alt:["advertisement"],de:"Reklame; Anzeige; Werbung",ex:"You want to sell your car? I saw your advert in the local newspaper.",def:"a picture, a short text or a film that wants you to buy something"},
+ {en:"to contain",de:"beinhalten; enthalten",ex:"Some fizzy drinks contain 35 g of sugar.",def:"to have something inside"},
+ {en:"cookery",de:"Kochen; Kochkunst",ex:"Learn to cook by watching a cookery programme.",def:"the art of making food"},
+ {en:"fortunately",de:"glücklicherweise; zum Glück",ex:"Fortunately, we arrived at the train station just in time to catch our train.",def:"luckily, something good happened"},
+ {en:"health",de:"Gesundheit",ex:"Everyone needs a minimum intake of calories per day for good health.",def:"how well your body and your mind are"},
+ {en:"ingredient",de:"Zutat",ex:"A recipe gives you a list of ingredients to use.",def:"one of the foods you use to make a dish"},
+ {en:"nutrition",de:"Ernährung",ex:"Good nutrition means eating good food regularly.",def:"the food your body needs to grow and to stay healthy"},
+ {en:"overweight",de:"übergewichtig",ex:"If you eat too much too often, you will soon be overweight.",def:"heavier than is healthy"},
+ {en:"well-known",alt:["well known"],de:"wohlbekannt, berühmt",ex:"Jamie Oliver is a well-known chef.",def:"known by a lot of people, famous"},
+ {en:"man-made",alt:["man made"],de:"künstlich",ex:"Artificial food isn't natural – it's man-made.",def:"made by people, not by nature"},
+ {en:"to dislike",de:"nicht mögen, nicht leiden können",ex:"I like tomatoes, but I dislike spinach.",def:"to not like something"},
+ {en:"to be in charge",de:"das Sagen haben, verantwortlich sein",ex:"You need to talk to Mara. She is in charge of the food festival.",def:"to be the person who decides and who is responsible"},
+ {en:"disgusting",de:"ekelhaft, widerlich",ex:"Pasta with ketchup? That sounds disgusting!",def:"very bad, so that you feel a little sick"},
+ {en:"home-cooked",alt:["home cooked"],de:"selbstgekocht",ex:"The food at the school's food festival should be fresh and home-cooked.",def:"made at home, not in a factory or a restaurant"},
+ {en:"Let's get started",alt:["let us get started","lets get started"],de:"Lasst uns anfangen; Packen wir's an",ex:"Thank you for coming to the meeting – let's get started right away.",def:"we say this when we want to begin something together"},
+ {en:"to persuade",de:"überzeugen",ex:"We need a good poster to persuade as many kids as possible to take part in the project.",def:"to make someone want to do or believe something"},
+ {en:"to wait and see",de:"abwarten",ex:"We'll have to wait and see.",def:"to wait to find out what will happen"},
+ {en:"to fold",de:"zusammenklappen, falten",ex:"Pick up the pan and fold the omelette.",def:"to bend something so that one part lies on top of the other part"},
+ {en:"gently",de:"sanft, behutsam",ex:"Stir the soup gently.",def:"in a soft and careful way"},
+ {en:"oil",de:"Öl",ex:"Would you like some olive oil in your salad?",def:"a yellow liquid from plants that you use for cooking"},
+ {en:"pan",de:"Pfanne",ex:"Heat some oil in a pan.",def:"a round metal thing that you use to cook food on the stove"},
+ {en:"to pour",de:"schütten, gießen",ex:"Beat the eggs in a cup and pour them into the pan.",def:"to make a liquid flow out of a cup or a bottle"},
+ {en:"to stir",de:"rühren, umrühren",ex:"He used a spoon to stir the soup.",def:"to move a spoon round and round in a liquid"},
+ {en:"donation",de:"Spende",ex:"She made a big donation to the local animal shelter.",def:"money or things that you give to help people or animals"}
+];
+const CRIME = [
+ // Word File: Crime
+ {en:"criminal",de:"Kriminelle/r",ex:"The police caught the criminal after a long chase.",def:"a person who does something that is against the law"},
+ {en:"thief",de:"Dieb/Diebin",ex:"The thief stole my bike from the school yard.",def:"a person who takes things that do not belong to him or her"},
+ {en:"victim",de:"Opfer",ex:"The victim of the scam lost a lot of money.",def:"a person who is hurt or harmed by a crime"},
+ {en:"to commit",de:"begehen (ein Verbrechen)",ex:"She studies how AI is used to commit crimes.",def:"to do something bad or illegal, for example a crime"},
+ {en:"to arrest",de:"verhaften, festnehmen",ex:"The police arrested the man at the airport.",def:"when the police take a person away because they think the person did a crime"},
+ {en:"to blackmail",de:"erpressen",ex:"He tried to blackmail her with secret photos.",def:"to say you will tell a person's secret if they don't give you money"},
+ {en:"scam",de:"Betrug, Schwindel",ex:"The email about the free phone was a scam.",def:"a dishonest trick to get people's money"},
+ {en:"personal data",de:"persönliche Daten",ex:"Never share your personal data with strangers online.",def:"information about you, like your name, your address or your birthday"},
+ {en:"fake",de:"gefälscht, unecht",ex:"This bag looks expensive, but it is fake.",def:"not real, but made to look real"},
+ // MORE Words and Phrases
+ {en:"AI",alt:["artificial intelligence","ai (artificial intelligence)"],de:"KI (künstliche Intelligenz)",ex:"She studies how AI is used to commit crimes.",def:"a computer program that can think and learn a bit like a human"},
+ {en:"data",de:"Daten",ex:"We regularly warn people about phishing mails and data theft.",def:"facts and information, often stored on a computer"},
+ {en:"in recent years",de:"in den letzten Jahren",ex:"In recent years, cyber scams have increased.",def:"during the last few years until now"},
+ {en:"to increase",de:"ansteigen, zunehmen",ex:"As technology gets better, cybercrime is increasing.",def:"to become bigger or more"},
+ {en:"particular",de:"bestimmt; speziell; besonders",ex:"We are looking for a person who was in a particular area of town on a particular day.",def:"one special thing and not any other"},
+ {en:"regularly",de:"regelmäßig",ex:"We regularly warn people about phishing attacks.",def:"again and again, often at the same times"},
+ // Wortliste
+ {en:"to break into",de:"einbrechen",ex:"Thieves break into houses and steal valuable things.",def:"to get into a building in an illegal way, for example through a window, to steal something"},
+ {en:"to confirm",de:"bestätigen",ex:"The police can confirm what I've told you.",def:"to say that something is really true"},
+ {en:"jewellery",near:["jewelry"],de:"Schmuck",ex:"All my money, all my jewellery is gone.",def:"things like rings, necklaces and earrings that people wear"},
+ {en:"suspicious",de:"verdächtig",ex:"The police didn't wear a uniform because they didn't want the criminals to become suspicious.",def:"when you think that someone did something wrong or is not honest"},
+ {en:"to confess",de:"gestehen, beichten",ex:"We arrested the thief but she didn't confess.",def:"to say that you did something wrong"},
+ {en:"purpose",de:"Absicht, Zweck, Ziel",ex:"Her main purpose in life is to help others.",def:"the reason why you do something"},
+ {en:"account",de:"Konto",ex:"Somebody hacked into my Facebook account.",def:"your own personal place on a website or at a bank, you often need a password for it"},
+ {en:"common",de:"häufig; gewöhnlich",ex:"One of the most common passwords people use is Password.",def:"something you find or see very often"},
+ {en:"to access",de:"einsteigen; zugreifen",ex:"A hacker needs your password to access your personal accounts.",def:"to get into something, like a computer or a website"},
+ {en:"to consist of",de:"sich aus etw. zusammensetzen",ex:"Most websites ask for a password that consists of eight characters.",def:"to be made of different parts"},
+ {en:"invisible",de:"unsichtbar",ex:"Cybercrimes are often invisible. Not many people can see them.",def:"something you cannot see"},
+ {en:"to keep in contact",de:"in Kontakt bleiben",ex:"A lot of people regularly use social media to keep in contact with friends.",def:"to still talk or write to people, even if you don't see them often"},
+ {en:"weapon",de:"Waffe",ex:"A hacker's weapon is the computer.",def:"a thing like a gun or a knife that people use to hurt others"},
+ {en:"witness",de:"Zeuge/Zeugin",ex:"There are often no witnesses to cybercrimes.",def:"a person who sees a crime or an accident happen"},
+ {en:"advantage",de:"Vorteil",ex:"AI has many advantages and it can help to solve crimes.",def:"something good that helps you"},
+ {en:"to look into",de:"nachforschen, ermitteln",ex:"The police said that they would look into the cybercrime case.",def:"to try to find out the facts about something"},
+ {en:"police department",de:"Polizeibehörde",ex:"The police department we work with uses AI to find out where crimes happened.",def:"the office or organisation of the police in a town or city"},
+ {en:"to predict",de:"voraussagen",ex:"AI can predict what criminals may do in the future.",def:"to say what will happen in the future"},
+ {en:"to reduce",de:"reduzieren, verringern",ex:"They are working together to reduce cybercrime incidents.",def:"to make something smaller or less"},
+ {en:"violence",de:"Gewalt",ex:"The police were able to reduce gun violence incidents by 47%.",def:"when people hurt other people with their body or with weapons"},
+ {en:"ID",de:"Ausweis",ex:"He used a fake ID to get into the club.",def:"a card with your name and photo that shows who you are"},
+ {en:"pattern",de:"Muster",ex:"The story follows a certain pattern.",def:"something that happens again and again in the same way"},
+ {en:"tiring",de:"ermüdend, anstrengend",ex:"It had been a tiring day, and he could finally sit down.",def:"something that makes you feel tired"},
+ {en:"imagination",de:"Vorstellungskraft, Einbildung",ex:"Use your imagination to write a story.",def:"the ability to make pictures and ideas in your head"},
+ {en:"complaint",de:"Beschwerde",ex:"She went back to the shop to make a complaint.",def:"when you say that you are not happy with something, for example in a shop"},
+ {en:"misunderstanding",de:"Missverständnis",ex:"I'm sorry for the misunderstanding. Here are your new headphones.",def:"when two people understand something in different ways"},
+ {en:"receipt",de:"Quittung, Kassenbon",ex:"Sorry, I can't take these back without a receipt.",def:"a piece of paper from a shop that shows what you paid"},
+ {en:"to regret",de:"bereuen",ex:"That man is going to regret not taking me seriously.",def:"to feel sorry or sad about something you did"}
+];
+const MASTER = 1, ROUND = 5, KEY = "konrad-vokabel-akte-v1";
+/* ---------- Eselsbrücken: shown when a word goes wrong, on the tip, and in "Knifflige Wörter" ---------- */
+const MN={
+ "diet":"Klingt fast wie „Diät“. Diet = was du isst, deine Ernährung.",
+ "to afford":"Einen FORD kann ich mir nicht leisten! → to af-FORD = sich leisten.",
+ "cause":"Steckt in be-CAUSE (weil) – die Ursache ist das Warum.",
+ "to face":"Face = Gesicht. Einem Problem ins Gesicht schauen = ihm gegenüberstehen.",
+ "to feed":"Dein Insta-FEED füttert dich mit Bildern → to feed = füttern.",
+ "intake":"IN + TAKE = hinein-nehmen → was du in dich aufnimmst.",
+ "poverty":"Darin steckt fast POOR (arm) → Armut.",
+ "to waste":"Wastebasket = Mistkübel. Was im Mist landet, ist verschwendet.",
+ "advert":"Wie die „Ads“ auf YouTube: Ad = Advert = Werbung.",
+ "to contain":"CONTAINer! Im Container ist etwas drin → beinhalten.",
+ "cookery":"COOK steckt drin → alles rund ums Kochen.",
+ "fortunately":"FORTUNA ist die Glücksgöttin → glücklicherweise.",
+ "health":"HEAL = heilen steckt drin. Geheilt sein = Gesundheit.",
+ "ingredient":"Was IN das Essen kommt → IN-gredient = Zutat.",
+ "nutrition":"NUT = Nuss. Nüsse sind gute Ernährung → NUTrition.",
+ "overweight":"OVER = über, WEIGHT = Gewicht → übergewichtig.",
+ "well-known":"WELL = gut, KNOWN = bekannt → wohlbekannt.",
+ "man-made":"Von Menschen (MAN) gemacht (MADE) → künstlich.",
+ "to dislike":"DIS = nicht, LIKE = mögen. Wie ein Daumen nach unten 👎.",
+ "to be in charge":"Wer das Handy-Ladekabel (CHARGEr) hat, hat das Sagen!",
+ "disgusting":"Auf Österreichisch: gar kein GUSTo mehr drauf → dis-GUST-ing = ekelhaft.",
+ "home-cooked":"HOME = zu Hause, COOKED = gekocht → selbstgekocht.",
+ "Let's get started":"START steckt drin → Lass uns starten!",
+ "to persuade":"Per-SUADE klingt wie „süß“: Mit Süßigkeiten kann man jeden überzeugen.",
+ "to wait and see":"Wörtlich: warten und schauen → abwarten.",
+ "to fold":"F…L…D wie F-a-L-ten: Fold = falten.",
+ "gently":"Ein GENTLEman ist sanft und behutsam → gently.",
+ "oil":"Oil und Öl – beide starten mit O-Laut und enden mit L.",
+ "pan":"P(f)AN(ne): Nimm „Pfanne“, streich das f und das ne → pan.",
+ "to pour":"Pour klingt wie „pur“: den Saft pur ins Glas gießen.",
+ "to stir":"Ein STIER rührt mit seinem Horn im Kochtopf um → to stir.",
+ "donation":"DO-NATION: Tu (do) was für die ganze Nation → Spende.",
+ "criminal":"KRIMI! Im Krimi gibt es immer einen Kriminellen.",
+ "thief":"thIEf und dIEb – beide haben ein IE in der Mitte.",
+ "victim":"Kein VICTory (Sieg) für das VICTim – das Opfer verliert.",
+ "to commit":"„KOMM MIT!“, sagt der Gauner, „wir begehen ein Verbrechen.“",
+ "to arrest":"Die Polizei sagt: „Jetzt ist REST (Pause) für dich!“ → verhaften.",
+ "to blackmail":"BLACK MAIL = schwarzer Brief, ein Drohbrief → erpressen.",
+ "scam":"Scam klingt wie „Schaum“ – nur Schaum, nichts dahinter → Betrug.",
+ "personal data":"Fast wie Deutsch: persönliche Daten.",
+ "fake":"Wie FAKE News → gefälscht.",
+ "AI":"Artificial Intelligence = KI, nur auf Englisch.",
+ "data":"Data = Daten, fast gleich.",
+ "in recent years":"RECENTly = kürzlich → in den letzten Jahren.",
+ "to increase":"IN-crease geht rauf ↗, DE-crease geht runter ↘.",
+ "particular":"Ein PARTIKEL ist ein ganz bestimmtes Teilchen → particular = bestimmt.",
+ "regularly":"Nach der REGEL → regelmäßig.",
+ "to break into":"BREAK = brechen, INTO = hinein → einbrechen.",
+ "to confirm":"FIRM = fest. Etwas festmachen = bestätigen.",
+ "jewellery":"JUWELEN → Schmuck. (Viele e und l: jew-ELL-ery)",
+ "suspicious":"Klingt wie SUSPEKT → verdächtig.",
+ "to confess":"CONFESSion = Beichte → gestehen.",
+ "purpose":"Wozu machst du diese POSE? → pur-POSE = Zweck.",
+ "account":"COUNT = zählen. Auf dem Konto wird dein Geld gezählt.",
+ "common":"COMMt ON oft vor → häufig.",
+ "to access":"Der WLAN-ACCESS Point gibt dir Zugang → zugreifen.",
+ "to consist of":"KONSISTENZ: woraus etwas besteht.",
+ "invisible":"IN = nicht, VISIBLE = sichtbar (wie Vision, Video) → unsichtbar.",
+ "to keep in contact":"KEEP = behalten, CONTACT = Kontakt → in Kontakt bleiben.",
+ "weapon":"W-ea-P-on und W-a-F-fe: Beide starten mit W.",
+ "witness":"WIT-ness klingt wie „wissen“: Der Zeuge weiß, was passiert ist.",
+ "advantage":"Im ADVENT hast du einen Vorteil: jeden Tag Schokolade!",
+ "to look into":"LOOK INTO = hineinschauen → nachforschen.",
+ "police department":"DEPARTMENT Store = Kaufhaus mit Abteilungen → Polizeibehörde.",
+ "to predict":"PRE = vorher, DICT = sagen (wie Diktat) → voraussagen.",
+ "to reduce":"Reduce = reduzieren, fast gleich.",
+ "violence":"VIOLEtt wie ein blauer Fleck nach Gewalt → violence.",
+ "ID":"ID wie IDentität → Ausweis.",
+ "pattern":"PATTERN Lock am Handy = Entsperr-Muster.",
+ "tiring":"TIRED = müde → tiring = ermüdend.",
+ "imagination":"IMAGE = Bild. Bilder im Kopf = Vorstellungskraft.",
+ "complaint":"COMPLAIN = jammern. Wer jammert, macht eine Beschwerde.",
+ "misunderstanding":"MIS = falsch, UNDERSTANDING = verstehen → Missverständnis.",
+ "receipt":"Sieht aus wie REZEPT: das Rezept von deinem Einkauf. Das p ist stumm!",
+ "to regret":"GRETel bereut, dass sie ins Hexenhaus gegangen ist → re-GRET."
+};
+const bridge=w=>S.mn[w.en]||MN[w.en]||"";
+const bridgeHTML=w=>bridge(w)?`<div class="bridge"><b>🧠 Eselsbrücke:</b> ${esc(bridge(w))}</div>`:"";
+
+
+/* ---------- state ---------- */
+function freshState(){return {w:{},hist:[],paraDone:0,guessOk:0,gramOk:0,unit:"food",ex:{},pp:{},mn:{}}} // ex: words explained well, pp: grammar sentences solved
+let S = freshState();
+try{const raw=localStorage.getItem(KEY); if(raw) S=Object.assign(freshState(),JSON.parse(raw));}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function ws(en){return S.w[en]||(S.w[en]={box:0,ok:0,bad:0})}
+const today=()=>new Date().toISOString().slice(0,10);
+const masteredCount=()=>WORDS.filter(w=>ws(w.en).box>=MASTER).length;
+
+/* ---------- units ---------- */
+// order as on the photos: Crime photo 1 = list, photo 2 = Word File + MORE Words and Phrases
+const UNITS={
+  food:{label:"Food",eyebrow:"Neue Unit · Wortliste",words:FOOD,groups:[{name:"Wortliste Food",from:0,to:FOOD.length}]},
+  crime:{label:"Crime",eyebrow:"Unit 2 · Word File",words:CRIME,groups:[{name:"Bild 1 · Wortliste",from:15,to:43},{name:"Bild 2 · Word File Crime",from:0,to:9},{name:"Bild 2 · More Words and Phrases",from:9,to:15}]}
+};
+if(!UNITS[S.unit]) S.unit="food";
+let WORDS=UNITS[S.unit].words, GROUPS=UNITS[S.unit].groups;
+function setUnit(u){S.unit=u;save();WORDS=UNITS[u].words;GROUPS=UNITS[u].groups;home();scrollTo(0,0)}
+let FLOW=null; // daily training: several modules in a row
+
+/* ---------- text helpers ---------- */
+const norm=s=>s.toLowerCase().replace(/[’`´]/g,"'").replace(/\s+/g," ").replace(/[.!?]+$/,"").trim();
+const noTo=s=>s.replace(/^to /,"");
+function lev(a,b){const d=[...Array(b.length+1).keys()];for(let i=1;i<=a.length;i++){let p=d[0];d[0]=i;for(let j=1;j<=b.length;j++){const t=d[j];d[j]=Math.min(d[j]+1,d[j-1]+1,p+(a[i-1]===b[j-1]?0:1));p=t}}return d[b.length]}
+function check(w,input){
+  const a=norm(input), targets=[w.en,...(w.alt||[])].map(norm);
+  if(!a) return {r:"empty"};
+  if(targets.includes(a)) return {r:"ok"};
+  if(targets.some(t=>t.startsWith("to ")&&noTo(t)===a)) return {r:"ok",note:"Merk dir das „to“ davor: "+w.en};
+  if((w.near||[]).map(norm).includes(a)) return {r:"near",note:"Das ist amerikanisch. In deinem Buch steht die britische Schreibweise."};
+  const dist=Math.min(...targets.map(t=>Math.min(lev(a,t),lev(a,noTo(t)))));
+  if(dist<=2 && norm(w.en).length>3) return {r:"near"};
+  return {r:"bad"};
+}
+// English -> German: any one of the listed meanings counts, articles and small typos are forgiven
+const deN=s=>s.toLowerCase().replace(/ä/g,"ae").replace(/ö/g,"oe").replace(/ü/g,"ue").replace(/ß/g,"ss").replace(/[.!?,;]/g," ")
+  .replace(/\b(der|die|das|den|dem|ein|eine|einen|sich|etw|etwas)\b/g," ").replace(/\s+/g," ").trim();
+function deOptions(w){
+  const out=new Set();
+  w.de.split(/[,;]/).forEach(part=>{
+    part=part.trim(); const inner=(part.match(/\(([^)]*)\)/)||[])[1]; const bare=part.replace(/\s*\([^)]*\)/,"").trim();
+    [part,bare,inner].filter(Boolean).forEach(x=>{
+      out.add(x);
+      const m=x.match(/^(.*?)(\S+)\/(\S+)$/);
+      if(m){ const [_,pre,a,b]=m; if(b.length<=2){out.add(pre+a);out.add(pre+a+b)} else {out.add(pre+a);out.add(pre+b)} }
+    });
+  });
+  return [...out].map(deN).filter(Boolean);
+}
+function checkDe(w,input){
+  const a=deN(input); if(!input.trim()) return {r:"empty"};
+  const opts=deOptions(w);
+  if(opts.includes(a)||opts.some(o=>!o.includes(" ")&&o.length>3&&a.split(" ").includes(o))) return {r:"ok"};
+  if(a.length>4&&opts.some(o=>lev(a,o)<=1)) return {r:"ok",note:"Kleiner Tippfehler. Gemeint ist: "+w.de};
+  return {r:"bad"};
+}
+// mark the letters of the right answer that the attempt missed (LCS)
+function diffHTML(right,attempt){
+  const a=right, b=norm(attempt), A=a.toLowerCase();
+  const L=[...Array(A.length+1)].map(()=>Array(b.length+1).fill(0));
+  for(let i=A.length-1;i>=0;i--)for(let j=b.length-1;j>=0;j--)L[i][j]=A[i]===b[j]?L[i+1][j+1]+1:Math.max(L[i+1][j],L[i][j+1]);
+  let i=0,j=0,out="";
+  while(i<A.length){ if(j<b.length&&A[i]===b[j]){out+=esc(a[i]);i++;j++} else if(j<b.length&&L[i][j+1]>=L[i+1][j]){j++} else {out+='<span class="miss">'+esc(a[i])+'</span>';i++} }
+  return out;
+}
+function gap(w){
+  const core=noTo(w.en).replace(/\s*\(.*\)/,""); const parts=core.split(" ");
+  const first=parts[0].replace(/e$/,"").replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
+  const re=new RegExp("\\b"+first+"\\w*"+(parts.length>1?"\\s+"+parts.slice(1).join("\\s+"):"")+"\\b","i");
+  return re.test(w.ex)? w.ex.replace(re,"_____") : null;
+}
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const $=id=>document.getElementById(id);
+const app=$("app");
+
+/* ---------- streak ---------- */
+function streak(){
+  const days=new Set(S.hist.map(h=>h.d)); let n=0; const d=new Date();
+  if(!days.has(today())) d.setDate(d.getDate()-1);
+  while(days.has(d.toISOString().slice(0,10))){n++;d.setDate(d.getDate()-1)}
+  return n;
+}
+
+/* ---------- home ---------- */
+function home(){
+  FLOW=null;
+  const m=masteredCount(), counts=[0,0], U=UNITS[S.unit];
+  WORDS.forEach(w=>counts[Math.min(ws(w.en).box,MASTER)]++);
+  const tot=WORDS.length, asked=S.hist.filter(h=>h.t==="v").reduce((s,h)=>s+h.n,0), okk=S.hist.filter(h=>h.t==="v").reduce((s,h)=>s+h.ok,0);
+  const rate=asked?Math.round(okk/asked*100)+" %":"–";
+  const lastTest=S.hist.filter(h=>h.t==="t"&&h.u===S.unit).pop();
+  app.innerHTML=`
+  <header class="top">
+    <div><div class="eyebrow">${U.eyebrow}</div><h1>Konrads <span class="mark">Vokabel-Akte</span></h1></div>
+    <div class="unit display">${U.label}</div>
+  </header>
+
+  <div class="lesson" role="group" aria-label="Lektion wählen"><span class="eyebrow">Vokabeln aus</span>${Object.entries(UNITS).map(([k,u])=>`<button id="u-${k}" class="${k===S.unit?"on":""}" aria-pressed="${k===S.unit}">${u.label}${k===S.unit?"":" <span class='small'>(alt)</span>"}</button>`).join("")}</div>
+
+  <section class="card" style="display:grid;gap:12px;border:2px solid var(--blue)">
+    <div><div class="eyebrow">Heute · ca. 20 Minuten</div><h3 style="margin-top:4px">Tagestraining</h3></div>
+    <div class="small muted">10 Vokabeln · 3 Wörter auf Englisch erklären · 10 Sätze in den drei Zeiten. Einmal am Tag, dann bist du fit für den Test.</div>
+    <button class="btn-main" id="daily">Tagestraining starten</button>
+  </section>
+
+  <section class="card" style="display:grid;gap:10px;border:2px solid var(--hi)">
+    <div class="eyebrow">Neu · Zeiten-Test üben</div><h3>Lückentext-Treppe</h3>
+    <div class="muted small">Stufe 1 Zeit erkennen · Stufe 2 Form wählen · Stufe 3 selbst schreiben</div>
+    <button class="btn-main" id="stairs">Weiter mit ${TG_LV[tgNext()].split(" · ")[0]}</button>
+    <button class="btn-ghost" id="stairsAll">Alle Stufen ansehen</button>
+  </section>
+
+  <section class="card" style="display:grid;gap:10px;border:2px solid var(--blue)">
+    <div class="eyebrow">Neu · Schularbeit Zeiten</div><h3>🔍 Zeiten-Detektiv</h3>
+    <div class="muted small">7 Zeiten inkl. going to + Signalwörter: Zeitstrahl, Baupläne, will oder going to?, Signalwort-Blitz, Satz-Treppe, Fehler-Detektiv, Verben-Rhythmus, Probe-Test · Irregular Verbs: Überblick + Quiz</div>
+    <a class="btn-main" href="zeiten.html" style="display:block;text-align:center;text-decoration:none;border-radius:12px;padding:14px 18px;font-weight:700">Zeiten-Detektiv öffnen</a>
+  </section>
+
+  <section class="card" style="display:grid;gap:14px">
+    <div class="eyebrow">Das kannst du schon</div>
+    ${[["Vokabeln","sitzen",m,tot,"var(--ok)"],
+       ["Erklären","gut erklärt",WORDS.filter(w=>S.ex[w.en]).length,tot,"var(--blue)"],
+       ["Past Simple","Sätze geschafft",solved(PS_BUILD),PS_BUILD.length,"var(--hi)"],
+       ["Past Progressive","Sätze geschafft",solved(PC_BUILD),PC_BUILD.length,"var(--hi)"],
+       ["Past Perfect","Sätze geschafft",solved([...PP_BUILD,...PP_GAP]),PP_BUILD.length+PP_GAP.length,"var(--hi)"]]
+      .map(([l,u,n,t,c])=>`<div class="sk"><div class="row" style="justify-content:space-between"><b>${l}</b><span class="tnum small muted"><b style="color:var(--ink);font-size:17px">${n}</b> / ${t} ${u}</span></div><div class="meter" style="height:10px"><i style="width:${n/t*100}%;background:${c}"></i></div></div>`).join("")}
+  </section>
+
+  <section class="card" style="display:grid;gap:14px">
+    <div class="row" style="justify-content:space-between;align-items:flex-end">
+      <div><div class="eyebrow">Fälle gelöst</div><div class="big tnum">${m}<span class="muted" style="font-size:24px"> / ${tot}</span></div></div>
+      <div class="muted small" style="text-align:right">Ein Wort sitzt, sobald du<br>es einmal richtig schreibst.</div>
+    </div>
+    <div class="meter" aria-label="Fortschritt">
+      <i style="width:${counts[1]/tot*100}%;background:var(--ok)"></i>
+    </div>
+    <div class="legend">
+      <span><i class="dot" style="background:var(--ok)"></i>sitzt ${counts[1]}</span>
+      <span><i class="dot" style="background:var(--line)"></i>neu ${counts[0]}</span>
+    </div>
+    <div class="stats tnum">
+      <div class="stat"><b>${streak()}</b><span>Tage in Folge</span></div>
+      <div class="stat"><b>${S.hist.length}</b><span>Runden gespielt</span></div>
+      <div class="stat"><b>${rate}</b><span>beim 1. Versuch</span></div>
+    </div>
+    <button class="btn-main" id="go">${m===tot?"Wiederholungs-Verhör (5 Wörter)":"Verhör starten · 5 Wörter"}</button>
+  </section>
+
+  <section class="card lock">
+    <div class="pad" aria-hidden="true">💬</div>
+    <div style="flex:1;min-width:0">
+      <div class="eyebrow">Test-Teil 2</div>
+      <h3>Explain it in English</h3>
+      <div class="muted small">Erklär Wörter mit eigenen Worten, so wie im Test.</div>
+    </div>
+    <button id="lvl2">Los</button>
+  </section>
+
+  <section class="card lock">
+    <div class="pad" aria-hidden="true">⏪</div>
+    <div style="flex:1;min-width:0">
+      <div class="eyebrow">Test-Teil 3 · Grammatik</div>
+      <h3>Die Zeiten</h3>
+      <div class="muted small">Past Simple, Past Progressive, Past Perfect · neu: Lückentext mit allen Zeiten.</div>
+    </div>
+    <button id="gram">Los</button>
+  </section>
+
+  <section class="card lock">
+    <div class="pad" aria-hidden="true">📝</div>
+    <div style="flex:1;min-width:0">
+      <div class="eyebrow">Generalprobe</div>
+      <h3>Probe-Test</h3>
+      <div class="muted small">Aufgebaut wie der echte Test, mit Ampel am Ende.${lastTest?` Zuletzt: <b class="tnum">${lastTest.ok} / ${lastTest.n} Punkte</b> (${fmt(lastTest.d)})`:""}</div>
+    </div>
+    <button id="test">Los</button>
+  </section>
+
+  <section class="card lock">
+    <div class="pad" aria-hidden="true">🎙</div>
+    <div style="flex:1;min-width:0">
+      <div class="eyebrow">Extra</div>
+      <h3>Sprech-Training</h3>
+      <div class="muted small">Du siehst das deutsche Wort und sagst es laut auf Englisch.</div>
+    </div>
+    <button id="spk">Los</button>
+  </section>
+
+  ${trickyHTML()}
+
+  <section class="card">
+    <div class="eyebrow">Lernverlauf</div>
+    ${histHTML()}
+  </section>
+
+  <details class="card">
+    <summary>Alle ${tot} Wörter ansehen</summary>
+    ${GROUPS.map(g=>`<div class="eyebrow" style="margin-top:18px">${g.name}</div><div class="words">${WORDS.slice(g.from,g.to).map(wordRow).join("")}</div>`).join("")}
+    <div class="eyebrow" style="margin-top:26px;padding-top:14px;border-top:2px solid var(--line)">Alle Wörter nach ABC</div>
+    <div class="words">${[...WORDS].sort((a,b)=>noTo(a.en).localeCompare(noTo(b.en),"en",{sensitivity:"base"})).map(wordRow).join("")}</div>
+  </details>
+
+  <section class="card" style="display:grid;gap:10px">
+    <div class="eyebrow">Für Mama</div>
+    <div class="small muted">Kopiert eine kurze Zusammenfassung, die du per WhatsApp schicken kannst.</div>
+    <div class="row"><button id="copy">Bericht kopieren</button><button class="btn-ghost" id="reset">Neu anfangen</button></div>
+    <pre id="report" class="small" style="white-space:pre-wrap;margin:0" hidden></pre>
+    <div id="confirmBox" hidden></div>
+  </section>`;
+  $("go").onclick=startRound;
+  $("daily").onclick=dailyStart; $("stairs").onclick=tgStart; $("stairsAll").onclick=()=>{gramHome();setTimeout(()=>$("tg1").scrollIntoView({block:"center"}),0)};
+  $("lvl2").onclick=()=>paraHome();
+  document.querySelectorAll(".own").forEach(i=>i.onchange=()=>{const v=i.value.trim(); if(v) S.mn[i.dataset.en]=v; else delete S.mn[i.dataset.en]; save(); i.previousElementSibling.innerHTML="<b>🧠</b> "+esc(v||MN[i.dataset.en]||"")});
+  $("gram").onclick=gramHome;
+  $("test").onclick=testStart;
+  Object.keys(UNITS).forEach(k=>{$("u-"+k).onclick=()=>{if(k!==S.unit)setUnit(k)}});
+  $("spk").onclick=speakRound;
+  $("copy").onclick=()=>{const t=report();const p=$("report");p.textContent=t;p.hidden=false;
+    if(navigator.clipboard) navigator.clipboard.writeText(t).then(()=>$("copy").textContent="Kopiert ✓").catch(()=>selectText(p)); else selectText(p)};
+  $("reset").onclick=()=>{const c=$("confirmBox");c.hidden=false;c.innerHTML=`<div class="confirm"><div style="margin-bottom:10px">Wirklich alles löschen? Der ganze Fortschritt ist dann weg.</div><div class="row"><button id="yes" style="background:var(--bad);color:var(--card)">Ja, löschen</button><button id="no" class="btn-ghost">Abbrechen</button></div></div>`;
+    $("yes").onclick=()=>{S=freshState();save();home()}; $("no").onclick=()=>{c.hidden=true}};
+}
+function wordRow(w){const b=ws(w.en).box;return `<div class="w"><span><span class="boxes">${[1].map(k=>`<i class="${b>=k?"on":""}"></i>`).join("")}</span>${esc(w.en)}</span><span class="de">${esc(w.de)}</span></div>`}
+function selectText(el){const r=document.createRange();r.selectNodeContents(el);const s=getSelection();s.removeAllRanges();s.addRange(r)}
+function histHTML(){
+  if(!S.hist.length) return `<p class="muted small" style="margin:8px 0 0">Noch keine Runde gespielt. Nach jeder Runde siehst du hier, wie viele Wörter du geschafft hast.</p>`;
+  const days=[];for(let i=13;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);days.push(d.toISOString().slice(0,10))}
+  const per=days.map(d=>S.hist.filter(h=>h.d===d).reduce((s,h)=>s+h.n,0)); const max=Math.max(...per,1);
+  const bars=days.map((d,i)=>`<div class="b" title="${d}: ${per[i]} Wörter"><i style="height:${per[i]/max*52}px;${per[i]?"":"background:var(--line);height:2px"}"></i><span>${+d.slice(8)}</span></div>`).join("");
+  const last=S.hist.slice(-5).reverse().map(h=>`<div><span>${fmt(h.d)} · ${HLABEL[h.t]||h.t}</span><span class="tnum">${h.t==="p"?h.n+" geschrieben":h.t==="t"?h.ok+" / "+h.n+" Punkte":h.ok+" / "+h.n+" richtig"}</span></div>`).join("");
+  return `<div class="small muted" style="margin-top:6px">Geübte Aufgaben pro Tag, letzte 14 Tage</div><div class="hist">${bars}</div><div class="log">${last}</div>`;
+}
+
+// words that went wrong at least once, with the bridge and a field for Konrad's own one
+function trickyHTML(){
+  const list=WORDS.filter(w=>ws(w.en).bad>0).sort((a,b)=>ws(b.en).bad-ws(a.en).bad).slice(0,10);
+  if(!list.length) return "";
+  return `<details class="card"><summary><div class="eyebrow">Eselsbrücken</div><div class="row" style="justify-content:space-between;margin-top:4px"><h3>Knifflige Wörter</h3><span class="small muted">${list.length} ▾</span></div></summary>
+    <div class="small muted" style="margin:8px 0 4px">Wörter, die schon mal danebengingen. Eine eigene Eselsbrücke merkst du dir am besten!</div>
+    ${list.map(w=>`<div class="tricky"><div class="row" style="justify-content:space-between"><b>${esc(w.en)}</b><span class="small muted">${esc(w.de)}</span></div>
+      <div class="small"><b>🧠</b> ${esc(bridge(w))}</div>
+      <input class="own" data-en="${esc(w.en)}" value="${esc(S.mn[w.en]||"")}" placeholder="Deine eigene Eselsbrücke …" autocapitalize="sentences"></div>`).join("")}
+  </details>`;
+}
+const HLABEL={v:"Vokabeln",g:"Wort raten",s:"Sprechen",p:"Erklären",gr:"Past Perfect",t:"Probe-Test"};
+const fmt=d=>{const [y,m,dd]=d.split("-");return `${+dd}.${+m}.`};
+function report(){
+  const m=masteredCount(), v=S.hist.filter(h=>h.t==="v"), asked=v.reduce((s,h)=>s+h.n,0), ok=v.reduce((s,h)=>s+h.ok,0);
+  const hard=WORDS.filter(w=>ws(w.en).bad>0).sort((a,b)=>ws(b.en).bad-ws(a.en).bad).slice(0,5).map(w=>w.en);
+  const days=new Set(S.hist.map(h=>h.d)).size;
+  const gr=S.hist.filter(h=>h.t==="gr"), grN=gr.reduce((s,h)=>s+h.n,0), grOk=gr.reduce((s,h)=>s+h.ok,0);
+  const tests=S.hist.filter(h=>h.t==="t"&&h.u===S.unit);
+  return `Konrad · Englisch ${UNITS[S.unit].label}\nStand ${fmt(today())}${today().slice(0,4)}: ${m} von ${WORDS.length} Wörtern sitzen.\nGeübt an ${days} ${days===1?"Tag":"Tagen"}, ${S.hist.length} Runden, ${asked?Math.round(ok/asked*100):0} % beim 1. Versuch richtig.`
+   +(hard.length?`\nNoch knifflig: ${hard.join(", ")}`:"")
+   +`\nErklären: ${WORDS.filter(w=>S.ex[w.en]).length} von ${WORDS.length} Wörtern gut erklärt (${S.paraDone} Erklärungen geschrieben).`
+   +`\nZeiten (Sätze geschafft): Past Simple ${solved(PS_BUILD)}/${PS_BUILD.length}, Past Progressive ${solved(PC_BUILD)}/${PC_BUILD.length}, Past Perfect ${solved([...PP_BUILD,...PP_GAP])}/${PP_BUILD.length+PP_GAP.length}.`
+   +(grN?`\nPast Perfect: ${grOk} von ${grN} Sätzen beim 1. Versuch richtig.`:"")
+   +(tests.length?`\nProbe-Tests: ${tests.map(t=>`${fmt(t.d)} ${t.ok}/${t.n}`).join(", ")}`:"");
+}
+
+/* ---------- vocabulary round ---------- */
+let R=null;
+function pickRound(ROUND){
+  const open=WORDS.filter(w=>ws(w.en).box<MASTER), done=WORDS.filter(w=>ws(w.en).box>=MASTER);
+  // started words first (lowest box), then new ones, then 1–2 review words
+  const started=shuffle(open.filter(w=>ws(w.en).box>0)).sort((a,b)=>ws(a.en).box-ws(b.en).box);
+  const fresh=shuffle(open.filter(w=>ws(w.en).box===0));
+  let pick=[...started.slice(0,6),...fresh].slice(0,ROUND-Math.min(2,done.length));
+  if(pick.length<ROUND-2) pick=[...started,...fresh].slice(0,ROUND-2);
+  pick=[...pick,...shuffle(done).slice(0,ROUND-pick.length)];
+  return shuffle(pick.slice(0,ROUND));
+}
+function startRound(n){
+  const q=pickRound(typeof n==="number"?n:5); R={q, i:0, total:q.length, first:new Map(), up:[], hinted:new Set(), retype:false, wrongs:0,
+    rev:new Map(q.map(w=>[w.en,Math.random()<.5]))}; // about half the words are asked English -> German
+  ask();
+}
+function ask(){
+  if(R.i>=R.q.length) return finish();
+  const w=R.q[R.i], done=Math.min(R.first.size,R.total);
+  const g=gap(w), rev=R.rev.get(w.en);
+  app.innerHTML=`
+  <div class="qhead"><button class="btn-ghost" id="quit" aria-label="Runde beenden">✕</button><div class="qbar"><i style="width:${done/R.total*100}%"></i></div><span class="tnum muted small">${done}/${R.total}</span></div>
+  <section class="card prompt">
+    <span class="stamp" id="stamp">GELÖST</span>
+    <div class="eyebrow">Wie heißt das auf ${rev?"Deutsch":"Englisch"}?</div>
+    <div class="de-word">${rev?`<span class="mark">${esc(w.en)}</span>`:esc(w.de)}</div>
+    <div class="hint" id="hint" hidden></div>
+    ${R.retype?bridgeHTML(w):""}
+  </section>
+  <form id="f" style="display:grid;gap:12px" autocomplete="off">
+    <input class="answer" id="ans" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="go" placeholder="${R.retype?"Schreib es richtig ab":rev?"auf Deutsch tippen":"auf Englisch tippen"}">
+    <div id="fb"></div>
+    <div class="row" id="btns"><button class="btn-main" style="flex:1" id="send">Prüfen</button>${R.retype?"":'<button type="button" id="tip" class="btn-ghost">Tipp</button>'}</div>
+  </form>`;
+  const inp=$("ans"); inp.focus();
+  $("quit").onclick=()=>{ FLOW=null; if(R.first.size) finish(); else home() };
+  if($("tip")) $("tip").onclick=()=>{R.hinted.add(w.en);const h=$("hint");h.hidden=false;
+    h.innerHTML=rev? "„"+esc(w.ex)+"“<br>Fängt an mit <b>"+esc(w.de[0])+"</b>"
+      : (g?"„"+esc(g)+"“<br>":"")+"Fängt an mit <b>"+esc(noTo(w.en)[0])+"</b>, "+noTo(w.en).length+" Zeichen";
+    if(!rev&&bridge(w)) h.innerHTML+=`<div class="small" style="margin-top:8px;font-style:normal">🧠 ${esc(bridge(w))}</div>`;
+    const t=$("tip");t.textContent="Lösung zeigen";t.onclick=()=>evaluate(w,inp.value,true);inp.focus()};
+  $("f").onsubmit=e=>{e.preventDefault(); evaluate(w,inp.value)};
+}
+function evaluate(w,val,giveUp){
+  const rev=R.rev.get(w.en), sol=rev?w.de:w.en;
+  const res=giveUp?{r:"giveup"}:rev?checkDe(w,val):check(w,val), inp=$("ans"), fb=$("fb");
+  if(res.r==="empty"){inp.focus();return}
+  if(R.retype){ // must type the right answer once after a mistake
+    if(res.r==="ok"){R.retype=false;R.i++;ask()} else {inp.classList.add("bad");inp.value="";fb.innerHTML=`<div class="fb bad">Noch nicht ganz. Richtig: <b>${esc(sol)}</b></div>`;inp.focus()}
+    return;
+  }
+  const firstTry=!R.first.has(w.en); const s=ws(w.en);
+  if(res.r==="ok"){
+    if(firstTry){R.first.set(w.en,true); s.ok++}
+    // easy mode: any correct answer (also with tip, also on the repeat at the end) solves the word
+    if(s.box<MASTER){s.box=MASTER; R.up.push(w.en)}
+    save();
+    inp.classList.add("ok"); inp.readOnly=true;
+    $("stamp").classList.add("show");
+    fb.innerHTML=`<div class="fb ok"><b>${pick(["Richtig!","Volltreffer!","Fall gelöst!","Sauber!","Genau so!"])}</b>${rev?` ${esc(w.en)} = ${esc(w.de)}`:""}${res.note?`<div class="small" style="margin-top:4px">${esc(res.note)}</div>`:""}<div class="small tnum" style="margin-top:4px">${masteredCount()} von ${WORDS.length} Wörtern sitzen</div></div>`;
+    $("btns").innerHTML='<button class="btn-main" style="flex:1" id="next">Weiter</button>';
+    const n=$("next"); n.focus(); n.onclick=e=>{e.preventDefault();R.i++;ask()};
+  } else {
+    if(firstTry){R.first.set(w.en,false); s.bad++; s.box=0; save()}
+    R.wrongs++;
+    R.q.push(w); // comes back at the end of the round
+    inp.classList.add("bad");
+    fb.innerHTML=`<div class="fb bad"><div class="small">${res.r==="near"?"Knapp daneben!":res.r==="giveup"?"Kein Problem, jetzt weißt du es.":"Leider falsch."} ${rev?"Auf Deutsch heißt es:":"So schreibt man es:"}</div><div class="right">${res.r==="giveup"||rev?esc(sol):diffHTML(w.en,val)}</div>${res.note?`<div class="small" style="margin-top:4px">${esc(res.note)}</div>`:""}<div class="small muted" style="margin-top:6px">${esc(w.ex)}</div>${bridgeHTML(w)}</div>`;
+    $("btns").innerHTML='<button class="btn-main" style="flex:1" id="next">Einmal richtig abschreiben</button>';
+    const n=$("next"); n.focus(); n.onclick=e=>{e.preventDefault();R.retype=true;R.q.splice(R.i+1,0);ask()};
+  }
+}
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+function finish(){
+  const n=R.first.size, ok=[...R.first.values()].filter(Boolean).length;
+  if(n){S.hist.push({d:today(),t:"v",n,ok,m:masteredCount(),u:S.unit});save()}
+  if(FLOW) return flowNext({name:"Vokabeln",ok,n});
+  const m=masteredCount(), pct=n?ok/n:0;
+  const msg=pct===1?"Perfekte Runde!":pct>=.7?"Starke Runde!":pct>=.4?"Gut dran geblieben!":"Jede Runde zählt. Gleich nochmal?";
+  app.innerHTML=`
+  <section class="card result">
+    <div class="eyebrow">Runde abgeschlossen</div>
+    <div class="score tnum">${ok}/${n}</div>
+    <div class="muted">beim ersten Versuch richtig</div>
+    <h2 class="display" style="font-size:24px">${msg}</h2>
+    ${R.up.length?`<div><div class="small muted" style="margin-bottom:6px">Neu gelöste Fälle</div><div class="chips">${R.up.map(e=>`<span class="chip up">✓ ${esc(e)}</span>`).join("")}</div></div>`:""}
+    <div class="small">Jetzt sitzen <b class="tnum">${m} von ${WORDS.length}</b> Wörtern.</div>
+    <div class="row" style="width:100%"><button class="btn-main" id="again" style="flex:1">Noch eine Runde</button><button id="back" class="btn-ghost">Übersicht</button></div>
+  </section>`;
+  $("again").onclick=startRound; $("back").onclick=home;
+  if(pct>=.7||R.up.length) confetti();
+}
+
+/* ---------- level 2: describe words ---------- */
+function paraHome(){
+  FLOW=null;
+  app.innerHTML=`
+  <div class="qhead"><button class="btn-ghost" id="back">← Übersicht</button></div>
+  <header><div class="eyebrow">Test-Teil 2</div><h1 class="display" style="font-size:28px">Explain it in English</h1>
+  <p class="muted" style="margin:6px 0 0">Im Test sollst du ein Wort auf Englisch erklären, ohne das Wort selbst zu benutzen.</p></header>
+  <section class="card" style="display:grid;gap:10px">
+    <h3>1 · Wort erraten</h3><p class="muted small" style="margin:0">Du liest eine Erklärung und tippst das Wort. So lernst du, wie gute Umschreibungen klingen.</p>
+    <button class="btn-main" id="g">Erraten · 5 Wörter</button>
+  </section>
+  <section class="card" style="display:grid;gap:10px">
+    <h3>2 · Selbst umschreiben</h3><p class="muted small" style="margin:0">Du bekommst ein Wort und schreibst eine Erklärung. Dann vergleichst du mit einem Beispiel.</p>
+    <button class="btn-main" id="p">Umschreiben · 2 Wörter</button>
+    <div class="small muted tnum">Bisher geschrieben: ${S.paraDone}</div>
+  </section>`;
+  $("back").onclick=home; $("g").onclick=guessRound; $("p").onclick=()=>paraRound(shuffle([...WORDS]).slice(0,2),0,0);
+}
+function guessRound(){
+  const q=shuffle([...WORDS]).slice(0,5); let i=0, ok=0;
+  const step=()=>{
+    if(i>=q.length){S.guessOk+=ok;S.hist.push({d:today(),t:"g",n:q.length,ok});save();
+      app.innerHTML=`<section class="card result"><div class="eyebrow">Fertig</div><div class="score tnum">${ok}/${q.length}</div><div class="row" style="width:100%"><button class="btn-main" style="flex:1" id="a">Nochmal</button><button class="btn-ghost" id="b">Zurück</button></div></section>`;
+      $("a").onclick=guessRound;$("b").onclick=paraHome; if(ok>=4) confetti(); return}
+    const w=q[i];
+    app.innerHTML=`<div class="qhead"><button class="btn-ghost" id="x">✕</button><div class="qbar"><i style="width:${i/q.length*100}%"></i></div><span class="muted small tnum">${i}/${q.length}</span></div>
+    <section class="card prompt"><span class="stamp" id="stamp">GELÖST</span><div class="eyebrow">Welches Wort ist das?</div><div style="font-size:21px;margin-top:10px;font-style:italic">“${esc(cap(w.def))}.”</div></section>
+    <form id="f" style="display:grid;gap:12px" autocomplete="off"><input class="answer" id="ans" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Wort auf Englisch"><div id="fb"></div><div id="btns"><button class="btn-main">Prüfen</button></div></form>`;
+    $("x").onclick=paraHome; const inp=$("ans"); inp.focus();
+    $("f").onsubmit=e=>{e.preventDefault(); const r=check(w,inp.value); if(r.r==="empty")return;
+      if(r.r==="ok"){ok++;inp.classList.add("ok");$("stamp").classList.add("show");$("fb").innerHTML=`<div class="fb ok"><b>Richtig!</b> ${esc(w.en)} = ${esc(w.de)}</div>`}
+      else{inp.classList.add("bad");$("fb").innerHTML=`<div class="fb bad">Gesucht war: <b>${esc(w.en)}</b> (${esc(w.de)})</div>`}
+      inp.readOnly=true; $("btns").innerHTML='<button class="btn-main" id="n">Weiter</button>'; const n=$("n");n.focus();n.onclick=ev=>{ev.preventDefault();i++;step()}};
+  };
+  step();
+}
+const cap=s=>s[0].toUpperCase()+s.slice(1);
+const STARTERS=[["It's a person who …","Das ist eine Person, die …"],["It's a thing that …","Das ist ein Ding, das …"],["It's a place where …","Das ist ein Ort, wo …"],["It's when …","Es ist, wenn …"],["It means to …","Es bedeutet, … zu …"],["You use it to …","Man benutzt es, um … zu …"],["It describes something that …","Es beschreibt etwas, das …"],["It's the opposite of …","Es ist das Gegenteil von …"]];
+function paraRound(list,i,written){
+  if(i>=list.length){S.hist.push({d:today(),t:"p",n:written,ok:written,u:S.unit});save();
+    if(FLOW) return flowNext({name:"Erklären",ok:written,n:list.length});
+    app.innerHTML=`<section class="card result"><div class="eyebrow">Fertig</div><h2 class="display" style="font-size:26px">${written} Umschreibungen geschrieben</h2><p class="muted" style="margin:0">Genau so kommt es im Test dran.</p><div class="row" style="width:100%"><button class="btn-main" style="flex:1" id="a">Noch 2 Wörter</button><button class="btn-ghost" id="b">Zurück</button></div></section>`;
+    $("a").onclick=()=>paraRound(shuffle([...WORDS]).slice(0,2),0,0);$("b").onclick=paraHome; if(written) confetti(); return}
+  const w=list[i];
+  app.innerHTML=`<div class="qhead"><button class="btn-ghost" id="x">✕</button><span class="muted small">Wort ${i+1} von ${list.length}</span></div>
+  <section class="card prompt"><div class="eyebrow">Erklär dieses Wort auf Englisch</div><div class="de-word"><span class="mark">${esc(w.en)}</span></div><div class="muted small">${esc(w.de)}</div></section>
+  <div class="starters">${STARTERS.map(([en,de])=>`<button type="button" class="btn-ghost" data-en="${esc(en)}"><span>${esc(en)}</span><small>${esc(de)}</small></button>`).join("")}</div>
+  <textarea class="para" id="txt" autocapitalize="sentences" spellcheck="false" placeholder="It's …"></textarea>
+  <div class="checks card" id="checks"></div>
+  <div id="out"></div>
+  <div id="btns"><button class="btn-main" id="done">Fertig, vergleichen</button></div>`;
+  $("x").onclick=paraHome;
+  const t=$("txt");
+  document.querySelectorAll(".starters button").forEach(b=>b.onclick=()=>{t.value=b.dataset.en.replace(" …"," ");t.focus();upd()});
+  const core=noTo(w.en).toLowerCase().replace(/\s*\(.*\)/,"");
+  const stem=core.split(/[ -]/).sort((a,b)=>b.length-a.length)[0].replace(/e$/,""); // longest word, so "be in charge" checks "charge"
+  const upd=()=>{const v=t.value.trim(), words=v.split(/\s+/).filter(Boolean).length;
+    const c1=!v?"":v.toLowerCase().includes(stem)?"n":"y", c2=!v?"":words>=6?"y":"n", c3=!v?"":/[.!?]$/.test(v)&&/^[A-Z]/.test(v)?"y":"n";
+    $("checks").innerHTML=`<div class="${c1}">Das Wort selbst kommt nicht vor</div><div class="${c2}">Mindestens 6 Wörter (${words})</div><div class="${c3}">Ganzer Satz: groß anfangen, Punkt am Ende</div>`;
+    return c1==="y"&&c2==="y"};
+  t.oninput=upd; upd();
+  $("done").onclick=()=>{ if(!t.value.trim()){t.focus();return}
+    const good=upd(); t.readOnly=true;
+    $("out").innerHTML=`<div class="card" style="display:grid;gap:8px"><div class="eyebrow">So könnte man es sagen</div><div class="model">${esc(cap(w.def))}.</div><div class="small muted">Deine Erklärung muss nicht gleich sein. Wichtig ist: Versteht jemand das Wort, ohne es zu hören?</div>${good?"":'<div class="small" style="color:var(--bad)">Schau dir die Liste oben nochmal an.</div>'}</div>`;
+    $("btns").innerHTML='<button class="btn-main" id="n">Weiter</button>';
+    S.paraDone++; if(good) S.ex[w.en]=1; save();
+    $("n").onclick=()=>paraRound(list,i+1,written+1);
+  };
+}
+
+/* ---------- grammar: past perfect ---------- */
+// build = cue like in the test, whole sentence; gap = one verb, past perfect (pp) or past simple (ps)
+const PP_BUILD=[
+ {c:"Mum / (to) cook / dinner",a:"Mum had cooked dinner.",v:"cook",pp:"cooked"},
+ {c:"Tom / (to) eat / all the biscuits",a:"Tom had eaten all the biscuits.",v:"eat",pp:"eaten"},
+ {c:"we / (to) buy / the ingredients",a:"We had bought the ingredients.",v:"buy",pp:"bought"},
+ {c:"Sarah / (to) pour / the milk into the pan",a:"Sarah had poured the milk into the pan.",v:"pour",pp:"poured"},
+ {c:"the chef / (to) stir / the soup",a:"The chef had stirred the soup.",v:"stir",pp:"stirred"},
+ {c:"they / (to) waste / a lot of food",a:"They had wasted a lot of food.",v:"waste",pp:"wasted"},
+ {c:"I / (to) see / the advert",a:"I had seen the advert.",v:"see",pp:"seen"},
+ {c:"Ben / (to) drink / all the juice",a:"Ben had drunk all the juice.",v:"drink",pp:"drunk"},
+ {c:"she / (to) make / a donation",a:"She had made a donation.",v:"make",pp:"made"},
+ {c:"the kids / (to) forget / the oil",a:"The kids had forgotten the oil.",v:"forget",pp:"forgotten"},
+ {c:"Jamie Oliver / (to) write / a new cookbook",a:"Jamie Oliver had written a new cookbook.",v:"write",pp:"written"},
+ {c:"we / (to) take / the pan off the stove",a:"We had taken the pan off the stove.",v:"take",pp:"taken"},
+ {c:"Lisa / (to) give / the dog its food",a:"Lisa had given the dog its food.",v:"give",pp:"given"},
+ {c:"the soup / (to) get / cold",a:"The soup had got cold.",alt:["The soup had gotten cold."],v:"get",pp:"got"},
+ {c:"he / not / (to) wash / his hands",a:"He hadn't washed his hands.",v:"wash",pp:"washed"},
+ {c:"they / not / (to) find / a recipe",a:"They hadn't found a recipe.",v:"find",pp:"found"},
+ {c:"Konrad / not / (to) have / breakfast",a:"Konrad hadn't had breakfast.",v:"have",pp:"had"},
+ {c:"Frage: you / (to) try / sushi / before",a:"Had you tried sushi before?",v:"try",pp:"tried"},
+ {c:"Frage: she / (to) finish / her homework",a:"Had she finished her homework?",v:"finish",pp:"finished"}
+];
+const PP_GAP=[
+ {s:"When we arrived at the party, the guests ___ (to eat) all the pizza.",a:"had eaten",v:"eat",pp:"eaten",why:"Zuerst haben die Gäste gegessen, danach sind wir gekommen."},
+ {s:"After Tom ___ (to fold) the omelette, he put it on a plate.",a:"had folded",v:"fold",pp:"folded",why:"Zuerst falten, dann auf den Teller. Das Frühere bekommt had."},
+ {s:"After Tom had folded the omelette, he ___ (to put) it on a plate.",a:"put",v:"put",ps:"put",why:"Das Falten war zuerst (had folded). Was danach kommt, steht im Past Simple."},
+ {s:"I wasn't hungry because I ___ (to have) a big lunch.",a:"had had",v:"have",pp:"had",why:"Das Mittagessen war vorher. Ja, „had had“ ist richtig!"},
+ {s:"The cake was disgusting because Mia ___ (to forget) the sugar.",a:"had forgotten",v:"forget",pp:"forgotten",why:"Den Zucker hat sie vorher vergessen, darum war der Kuchen später eklig."},
+ {s:"By the time Mum came home, we ___ (to clean) the kitchen.",a:"had cleaned",v:"clean",pp:"cleaned",why:"„By the time“ = bis dahin. Das Putzen war schon fertig."},
+ {s:"When I opened the fridge, somebody ___ (to drink) all the milk.",a:"had drunk",v:"drink",pp:"drunk",why:"Die Milch wurde vorher getrunken, dann habe ich den Kühlschrank geöffnet."},
+ {s:"When the teacher came in, the students ___ (already / to start) cooking.",a:"had already started",v:"start",pp:"started",why:"already steht zwischen had und der 3. Form."},
+ {s:"We ___ (to go) home after we had eaten.",a:"went",v:"go",ps:"went",why:"Zuerst essen (had eaten), danach nach Hause gehen: Past Simple."},
+ {s:"The shop was closed because the owner ___ (to go) home.",a:"had gone",v:"go",pp:"gone",why:"Der Besitzer ist vorher gegangen, darum war zu."},
+ {s:"Konrad ___ (never / to taste) sushi before his trip to Japan.",a:"had never tasted",v:"taste",pp:"tasted",why:"never steht zwischen had und der 3. Form."},
+ {s:"After they had washed the vegetables, they ___ (to cut) them.",a:"cut",v:"cut",ps:"cut",why:"Waschen war zuerst. Schneiden kommt danach: Past Simple."},
+ {s:"She felt sick because she ___ (to eat) too many sweets.",a:"had eaten",v:"eat",pp:"eaten",why:"Zuerst die Süßigkeiten, danach war ihr schlecht."}
+];
+// the tenses from the last test (cues taken from the test sheet first)
+const PS_BUILD=[
+ {c:"yesterday / we / to the cinema / (to) go",a:"Yesterday we went to the cinema.",alt:["We went to the cinema yesterday."],v:"go",ps:"went",ten:"ps"},
+ {c:"Sarah / her best friend / on Saturday / (to) see",a:"Sarah saw her best friend on Saturday.",alt:["On Saturday Sarah saw her best friend."],v:"see",ps:"saw",ten:"ps"},
+ {c:"Tom and Ben / football / after school / (to) play",a:"Tom and Ben played football after school.",alt:["After school Tom and Ben played football."],v:"play",ps:"played",ten:"ps"},
+ {c:"Mum / a cake / last weekend / (to) bake",a:"Mum baked a cake last weekend.",alt:["Last weekend Mum baked a cake."],v:"bake",ps:"baked",ten:"ps"},
+ {c:"we / pizza / yesterday / (to) eat",a:"We ate pizza yesterday.",alt:["Yesterday we ate pizza."],v:"eat",ps:"ate",ten:"ps"},
+ {c:"the chef / oil into the pan / (to) pour",a:"The chef poured oil into the pan.",v:"pour",ps:"poured",ten:"ps"},
+ {c:"Konrad / his homework / (to) forget",a:"Konrad forgot his homework.",v:"forget",ps:"forgot",ten:"ps"},
+ {c:"they / a donation / last year / (to) make",a:"They made a donation last year.",alt:["Last year they made a donation."],v:"make",ps:"made",ten:"ps"},
+ {c:"Ben / two glasses of milk / (to) drink",a:"Ben drank two glasses of milk.",v:"drink",ps:"drank",ten:"ps"},
+ {c:"I / the soup / gently / (to) stir",a:"I stirred the soup gently.",alt:["I gently stirred the soup."],v:"stir",ps:"stirred",ten:"ps"},
+ {c:"she / not / spinach / (to) like",a:"She didn't like spinach.",v:"like",ps:"didn't like",ten:"ps",x:"Verneinung: <b>didn't + Grundform</b> (nicht liked!)"},
+ {c:"Frage: you / the advert / (to) see",a:"Did you see the advert?",v:"see",ps:"see",ten:"ps",x:"Frage: <b>Did + Person + Grundform</b> …? (nicht saw!)"}
+];
+const PC_BUILD=[
+ {c:"Tom / in the park / (to) run",a:"Tom was running in the park.",v:"run",ing:"running",aux:"was",ten:"pc"},
+ {c:"they / in the kitchen / (to) talk",a:"They were talking in the kitchen.",v:"talk",ing:"talking",aux:"were",ten:"pc"},
+ {c:"George / the guitar / (to) play",a:"George was playing the guitar.",v:"play",ing:"playing",aux:"was",ten:"pc"},
+ {c:"Mum / dinner / (to) cook",a:"Mum was cooking dinner.",v:"cook",ing:"cooking",aux:"was",ten:"pc"},
+ {c:"we / for the bus / (to) wait",a:"We were waiting for the bus.",v:"wait",ing:"waiting",aux:"were",ten:"pc"},
+ {c:"I / the soup / (to) stir",a:"I was stirring the soup.",v:"stir",ing:"stirring",aux:"was",ten:"pc"},
+ {c:"the kids / a cookery programme / (to) watch",a:"The kids were watching a cookery programme.",v:"watch",ing:"watching",aux:"were",ten:"pc"},
+ {c:"Lisa / an omelette / (to) make",a:"Lisa was making an omelette.",v:"make",ing:"making",aux:"was",ten:"pc"},
+ {c:"you / in the garden / (to) sit",a:"You were sitting in the garden.",v:"sit",ing:"sitting",aux:"were",ten:"pc"},
+ {c:"the sun / (to) shine",a:"The sun was shining.",v:"shine",ing:"shining",aux:"was",ten:"pc"},
+ {c:"he / not / (to) listen",a:"He wasn't listening.",v:"listen",ing:"listening",aux:"was",ten:"pc"},
+ {c:"Frage: they / lunch / (to) eat",a:"Were they eating lunch?",v:"eat",ing:"eating",aux:"were",ten:"pc"}
+];
+const TNAME={ps:"Past Simple",pc:"Past Progressive",pp:"Past Perfect"};
+const tenOf=it=>it.ten||(it.pp?"pp":"ps");
+const IRREG=[["be","was / were","been","sein"],["buy","bought","bought","kaufen"],["come","came","come","kommen"],["cut","cut","cut","schneiden"],["do","did","done","tun"],["drink","drank","drunk","trinken"],["eat","ate","eaten","essen"],["feed","fed","fed","füttern"],["find","found","found","finden"],["forget","forgot","forgotten","vergessen"],["get","got","got","bekommen"],["give","gave","given","geben"],["go","went","gone","gehen"],["have","had","had","haben"],["know","knew","known","wissen"],["leave","left","left","verlassen"],["make","made","made","machen"],["put","put","put","legen"],["run","ran","run","laufen"],["see","saw","seen","sehen"],["sell","sold","sold","verkaufen"],["sit","sat","sat","sitzen"],["take","took","taken","nehmen"],["think","thought","thought","denken"],["write","wrote","written","schreiben"]];
+
+const ppN=s=>norm(s).replace(/\b(had|did|was|were) not\b/g,"$1n't").replace(/,/g,"");
+function ppTip(it,a){
+  const ten=tenOf(it);
+  if(ten==="pp"){
+    if(/\b(has|have)\b/.test(a)&&!/\bhad/.test(a)) return "has / have ist Present Perfect. Im Past Perfect heißt es immer <b>had</b>, für alle Personen.";
+    if(/\b(was|were)\b/.test(a)&&!/\bhad/.test(a)) return "was / were ist hier falsch. Bauplan: <b>had + 3. Form</b>.";
+    if(!/\bhad(n't)?\b/.test(a)) return "Da fehlt <b>had</b>. Bauplan: <b>had + 3. Form</b>.";
+    if(!new RegExp("\\bhad(n't)?\\s+(\\w+\\s+){0,2}"+it.pp+"\\b").test(a)) return `Nach had kommt die <b>3. Form</b>: ${esc(it.v)} → <b>${esc(it.pp)}</b>`;
+    return "";
+  }
+  if(ten==="pc"){
+    if(/\b(is|are|am)\b/.test(a)&&!/\b(was|were)/.test(a)) return "is / are ist Gegenwart. In der Vergangenheit heißt es <b>was</b> oder <b>were</b>.";
+    if(!/\b(was|were)(n't)?\b/.test(a)) return "Da fehlt <b>was</b> oder <b>were</b>. Bauplan: <b>was / were + -ing</b>.";
+    if(it.aux==="were"&&/\bwas(n't)?\b/.test(a)) return "Bei we, you, they (mehrere) heißt es <b>were</b>.";
+    if(it.aux==="was"&&/\bwere(n't)?\b/.test(a)) return "Bei I, he, she, it (eine Person) heißt es <b>was</b>.";
+    if(!new RegExp("\\b"+it.ing+"\\b").test(a)) return `Nach was / were kommt die <b>-ing-Form</b>: ${esc(it.v)} → <b>${esc(it.ing)}</b>`;
+    return "";
+  }
+  if(it.s&&/\bhad\b/.test(a)) return "Das passiert <b>danach</b>. Dafür reicht Past Simple, ohne had.";
+  if(/\b(was|were)\s+\w+ing\b/.test(a)) return `Das ist Past Progressive. Hier gehört Past Simple hin: <b>${esc(it.ps)}</b>`;
+  if(!new RegExp("\\b"+it.ps+"\\b").test(a)){
+    if(it.x) return it.x;
+    if(new RegExp("\\b"+it.v+"e?s\\b").test(a)) return `„${esc(it.v)}s“ ist Gegenwart. Past Simple: <b>${esc(it.ps)}</b>`;
+    return `Past Simple von ${esc(it.v)}: <b>${esc(it.ps)}</b>`;
+  }
+  return "";
+}
+function ppCheck(it,input){
+  const a=ppN(input), targets=[it.a,...(it.alt||[])].map(ppN);
+  if(!a) return {r:"empty"};
+  if(targets.includes(a)) return {r:"ok"};
+  const tip=ppTip(it,a);
+  if(!tip&&Math.min(...targets.map(t=>lev(a,t)))<=2) return {r:"near",tip:"Fast! Schau genau auf die Schreibweise."};
+  if(!tip) return {r:"bad",tip:"Vergleich deinen Satz genau mit der Lösung: Reihenfolge und Wörter."};
+  return {r:"bad",tip};
+}
+const POOL={ps:PS_BUILD,pc:PC_BUILD,b:PP_BUILD,g:PP_GAP};
+const solved=list=>list.filter(x=>S.pp[x.a]).length;
+// overview of all school tenses, explained in simple English (German in small print)
+const ALL_TENSES=[
+ {n:"Present Simple",de:"einfache Gegenwart",f:"I cook · he/she/it cook<b>s</b>",ex:"I <b>eat</b> breakfast every day. She <b>cooks</b> on Sundays.",en:"Things that happen again and again, or that are always true.",hint:"Gewohnheiten, Fakten · every day, always, often, never",neg:"I <b>don't</b> eat · she <b>doesn't</b> eat"},
+ {n:"Present Progressive",de:"Verlaufsform der Gegenwart",f:"am / is / are + verb<b>-ing</b>",ex:"Look! Mum <b>is cooking</b> dinner right now.",en:"Things that are happening at the moment.",hint:"gerade jetzt · now, right now, at the moment, look!",neg:"she <b>isn't</b> cooking"},
+ {n:"Past Simple",de:"einfache Vergangenheit",f:"verb<b>-ed</b> or 2nd form (went, saw, ate)",ex:"Yesterday we <b>went</b> to the cinema.",en:"Things that happened and finished in the past.",hint:"abgeschlossen in der Vergangenheit · yesterday, last week, ago, in 2020",neg:"we <b>didn't</b> go · <b>Did</b> you go?"},
+ {n:"Past Progressive",de:"Verlaufsform der Vergangenheit",f:"was / were + verb<b>-ing</b>",ex:"Tom <b>was running</b> in the park when it started to rain.",en:"Things that were going on at a moment in the past.",hint:"war gerade im Gange · while, when, at 5 o'clock yesterday",neg:"he <b>wasn't</b> running · <b>Were</b> they talking?"},
+ {n:"Present Perfect",de:"Perfekt / vollendete Gegenwart",f:"have / has + 3rd form",ex:"I <b>have</b> already <b>eaten</b> my lunch.",en:"Things that happened in the past, but are important now. We don't say when.",hint:"Ergebnis zählt jetzt · already, just, ever, never, yet, since, for",neg:"I <b>haven't</b> eaten · <b>Have</b> you ever tried sushi?"},
+ {n:"Past Perfect",de:"Vorvergangenheit",f:"had + 3rd form",ex:"When we arrived, the guests <b>had eaten</b> all the pizza.",en:"Things that happened before another thing in the past.",hint:"noch früher als die Vergangenheit · after, before, by the time",neg:"he <b>hadn't</b> washed · <b>Had</b> you tried it?",isNew:1},
+ {n:"Present Perfect Progressive",de:"Verlaufsform des Perfekts",f:"have / has been + verb<b>-ing</b>",ex:"I <b>have been waiting</b> for half an hour.",en:"Things that started in the past and are still going on now.",hint:"wie lange schon · for, since, how long",neg:"I <b>haven't been</b> waiting",isNew:1},
+ {n:"will-Future",de:"Zukunft mit will",f:"will + verb",ex:"I think it <b>will</b> rain tomorrow.",en:"Things you think or guess about the future, and quick decisions.",hint:"Vermutung, spontane Entscheidung · I think, maybe, probably",neg:"it <b>won't</b> rain"},
+ {n:"going to-Future",de:"Zukunft mit going to",f:"am / is / are + going to + verb",ex:"We <b>are going to</b> bake a cake on Saturday.",en:"Plans for the future.",hint:"Pläne, Absichten · tomorrow, next week",neg:"we <b>aren't going to</b> bake"}
+];
+const tensesHTML=()=>`<section class="card" style="display:grid;gap:4px">
+    <div class="eyebrow">All tenses · simply explained</div><h3>Alle Zeiten auf einen Blick</h3>
+    <div class="small muted">Name · how to build it · when we use it. Deutsch steht klein darunter.</div>
+    ${ALL_TENSES.map(t=>`<div class="tense"><div class="row" style="justify-content:space-between"><b>${t.n}</b>${t.isNew?'<span class="chip up">neu</span>':""}</div>
+      <div class="small muted">${t.de}</div>
+      <div class="tform">${t.f}</div>
+      <div class="small">${t.en}<div class="muted">${t.hint}</div></div>
+      <div class="model" style="font-style:normal;font-size:15px">${t.ex}</div>
+      <div class="small muted">Not / question: ${t.neg}</div></div>`).join("")}
+  </section>`;
+function gramHome(){
+  FLOW=null;
+  const tcard=(id,eyebrow,title,body,btns)=>`<details class="card"><summary><div class="eyebrow">${eyebrow}</div><div class="row" style="justify-content:space-between;margin-top:4px"><h3>${title}</h3><span class="small muted">Erklärung ▾</span></div></summary><div style="display:grid;gap:12px;margin-top:14px">${body}</div></details>
+    <div class="row" style="margin-top:-8px">${btns}</div>`;
+  app.innerHTML=`
+  <div class="qhead"><button class="btn-ghost" id="back">← Übersicht</button></div>
+  <header><div class="eyebrow">Test-Teil 3 · Grammatik</div><h1 class="display" style="font-size:28px">Die Zeiten</h1>
+  <p class="muted" style="margin:6px 0 0">Past Simple, Past Progressive und Past Perfect. Im Test baust du Sätze aus Bausteinen in der richtigen Zeit.</p></header>
+  <section class="card" style="display:grid;gap:10px;border:2px solid var(--blue)">
+    <h3>Alle Zeiten gemischt</h3><p class="muted small" style="margin:0">Wie im Test: Oben steht die Zeit, du baust den Satz.</p>
+    <button class="btn-main" id="m">Gemischt üben · 6 Sätze</button>
+  </section>
+  <section class="card" style="display:grid;gap:10px;border:2px solid var(--hi)">
+    <div class="eyebrow">Neu · Sätze vom Übungsblatt</div><h3>Lückentext-Treppe · alle Zeiten</h3>
+    <p class="muted small" style="margin:0">Schritt für Schritt: erst die Zeit erkennen, dann die Form auswählen, dann selbst schreiben wie im Test. Ab 6 von 8 richtig geht's eine Stufe höher. Springen darfst du immer.</p>
+    ${[1,2,3].map(lv=>`<div class="stair"><button id="tg${lv}" ${tgNext()===lv?'class="btn-main"':""}>${TG_LV[lv]}</button>${lv<3?(tgBest(lv)>=6?'<span class="chip up">✓ geschafft</span>':`<span class="small muted tnum">Rekord ${tgBest(lv)}/8</span>`):`<span class="small muted tnum">${TGAP.filter((x,k)=>S.pp["tg"+k]).length}/${TGAP.length}</span>`}</div>`).join("")}
+  </section>
+  ${tcard("ps","Zeit 1 · Was ist passiert?","Past Simple",`
+    <div class="formula">Verb + <span class="mark">-ed</span> <span class="small muted" style="font-weight:400">oder 2. Form</span></div>
+    <div class="small">play → <b>played</b>, cook → <b>cooked</b>, stir → <b>stirred</b>. Unregelmäßig: go → <b>went</b>, see → <b>saw</b>, eat → <b>ate</b> (Liste unten).</div>
+    <div class="model" style="font-style:normal">Yesterday we <b class="ppw">went</b> to the cinema.</div>
+    <div class="small"><b>Achtung:</b> Kein -s! „Tom and Ben <s>plays</s>“ ist Gegenwart. Richtig: Tom and Ben <b>played</b>.</div>
+    <div class="small"><b>Verneinung:</b> didn't + Grundform: She <b>didn't like</b> spinach.<br><b>Frage:</b> Did + Person + Grundform: <b>Did</b> you <b>see</b> the advert?</div>
+    <div class="small"><b>Signalwörter:</b> yesterday, last week, on Saturday, ago, in 2020</div>`,
+    `<button id="ps" style="flex:1">Past Simple üben · 5</button><span class="small muted tnum">${solved(PS_BUILD)} / ${PS_BUILD.length}</span>`)}
+  ${tcard("pc","Zeit 2 · Was war gerade im Gange?","Past Progressive",`
+    <div class="formula"><span class="mark">was / were</span> + -ing</div>
+    <div class="small"><b>was</b> bei I, he, she, it (eine Person)<br><b>were</b> bei we, you, they (mehrere)</div>
+    <div class="model" style="font-style:normal">Tom <b class="ppw">was running</b> in the park.<br>They <b class="ppw">were talking</b> in the kitchen.</div>
+    <div class="small"><b>Achtung:</b> „Tom <s>is</s> running“ ist Gegenwart. „They <s>was</s>“ geht nicht, es heißt <b>they were</b>.</div>
+    <div class="small"><b>Schreibweise:</b> run → runn<b>ing</b>, sit → sitt<b>ing</b>, make → mak<b>ing</b> (e fällt weg).</div>
+    <div class="small"><b>Signalwörter:</b> while, when, at 5 o'clock yesterday, all evening</div>`,
+    `<button id="pc" style="flex:1">Past Progressive üben · 5</button><span class="small muted tnum">${solved(PC_BUILD)} / ${PC_BUILD.length}</span>`)}
+  ${tcard("pp","Zeit 3 · Neu · Was war noch früher?","Past Perfect",`
+    <div class="formula"><span class="mark">had</span> + 3. Form</div>
+    <div class="small">Für <b>alle</b> Personen gleich: I had eaten, you had eaten, he had eaten, we had eaten, they had eaten.</div>
+    <div class="tl" aria-hidden="true"><div class="tl-line"></div>
+      <div class="tl-pt first" style="left:4%"><i></i><b>zuerst</b><span>had eaten</span></div>
+      <div class="tl-pt" style="left:44%"><i></i><b>danach</b><span>arrived</span></div>
+      <div class="tl-now">jetzt</div></div>
+    <div class="model" style="font-style:normal">When we <b>arrived</b>, the guests <b class="ppw">had eaten</b> all the pizza.</div>
+    <div class="small">Zwei Dinge in der Vergangenheit: Das <b>frühere</b> bekommt <b>had + 3. Form</b>, das spätere steht im Past Simple.</div>
+    <div class="small"><b>Verneinung:</b> hadn't (had not) + 3. Form: He <b>hadn't washed</b> his hands.<br><b>Frage:</b> Had + Person + 3. Form: <b>Had</b> you <b>tried</b> sushi before?</div>
+    <div class="small"><b>Signalwörter:</b> after, before, when, because, by the time, already, never … before</div>`,
+    `<button id="b" style="flex:1">Sätze bauen · 5</button><button id="g" style="flex:1">Was war zuerst? · 5</button><span class="small muted tnum" style="width:100%">${solved([...PP_BUILD,...PP_GAP])} / ${PP_BUILD.length+PP_GAP.length} geschafft</span>`)}
+  <details class="card"><summary>Unregelmäßige Verben</summary>
+    <div class="small muted" style="margin-top:8px">Regelmäßige Verben: einfach <b>-ed</b> anhängen (cook → cooked, stir → stirred, try → tried).</div>
+    <table class="irr"><thead><tr><th>Grundform</th><th>Past Simple</th><th>3. Form</th></tr></thead><tbody>${IRREG.map(r=>`<tr><td>${r[0]}<div class="muted small">${r[3]}</div></td><td>${r[1]}</td><td><b>${r[2]}</b></td></tr>`).join("")}</tbody></table>
+  </details>
+  ${tensesHTML()}`;
+  $("back").onclick=home; $("m").onclick=()=>gramRound("m",6); $("tg1").onclick=()=>tgLevel(1,8); $("tg2").onclick=()=>tgLevel(2,8); $("tg3").onclick=()=>tgRound(5);
+  ["ps","pc","b","g"].forEach(k=>$(k).onclick=()=>gramRound(k,5));
+}
+function gramItems(kind,n){
+  const take=(k,c)=>shuffle([...POOL[k]]).slice(0,c).map(x=>({...x,k:k==="g"?"g":"b"}));
+  if(POOL[kind]) return take(kind,n);
+  // mix: every tense once, the new Past Perfect a bit more often; sorted like the test sheet
+  const ps=Math.max(1,Math.floor(n/4)), pc=ps, g=Math.floor((n-ps-pc)/2), b=n-ps-pc-g;
+  return [...take("ps",ps),...take("pc",pc),...shuffle([...take("b",b),...take("g",g)])];
+}
+function gramRound(kind,n){
+  const q=gramItems(kind,n), total=q.length, again=new Set(); let i=0, ok=0;
+  const back=()=>{ if(FLOW){FLOW=null;home()} else gramHome() }, title=kind==="m"?"Alle Zeiten":TNAME[tenOf(POOL[kind][0])];
+  const step=()=>{
+    if(i>=q.length){ S.gramOk=(S.gramOk||0)+ok; S.hist.push({d:today(),t:"gr",n:total,ok,u:S.unit}); save();
+      if(FLOW) return flowNext({name:"Grammatik",ok,n:total});
+      app.innerHTML=`<section class="card result"><div class="eyebrow">${title}</div><div class="score tnum">${ok}/${total}</div><div class="muted">beim ersten Versuch richtig</div><div class="row" style="width:100%"><button class="btn-main" style="flex:1" id="a">Nochmal</button><button class="btn-ghost" id="z">Zurück</button></div></section>`;
+      $("a").onclick=()=>gramRound(kind,n); $("z").onclick=gramHome; if(ok>=total*.7) confetti(); return}
+    const it=q[i], first=!again.has(it.a);
+    app.innerHTML=`<div class="qhead"><button class="btn-ghost" id="x" aria-label="Beenden">✕</button><div class="qbar"><i style="width:${Math.min(i,total)/total*100}%"></i></div><span class="muted small tnum">${Math.min(i,total)}/${total}</span></div>
+    <section class="card prompt"><span class="stamp" id="stamp">RICHTIG</span>
+      <div class="eyebrow">${it.k==="b"?"Bau den Satz im <b>"+TNAME[tenOf(it)]+"</b>":"Past Perfect oder Past Simple?"}</div>
+      <div class="cue">${it.k==="b"?esc(it.c):esc(it.s).replace("___",'<span class="blank">&nbsp;?&nbsp;</span>')}</div>
+      <div class="hint" id="hint" hidden></div></section>
+    <form id="f" style="display:grid;gap:12px" autocomplete="off">
+      <input class="answer long" id="ans" autocapitalize="${it.k==="b"?"sentences":"off"}" autocorrect="off" spellcheck="false" enterkeyhint="go" placeholder="${it.k==="b"?"ganzen Satz tippen":"nur die Lücke tippen"}">
+      <div id="fb"></div>
+      <div class="row" id="btns"><button class="btn-main" style="flex:1">Prüfen</button><button type="button" id="tip" class="btn-ghost">Tipp</button></div>
+    </form>`;
+    $("x").onclick=back;
+    const inp=$("ans"); inp.focus();
+    $("tip").onclick=()=>{const h=$("hint");h.hidden=false;
+      h.innerHTML=it.s&&!it.pp?"Was ist zuerst passiert, was danach?":tenOf(it)==="pp"?`had + 3. Form von „${esc(it.v)}“`:tenOf(it)==="pc"?`${it.aux} + -ing-Form von „${esc(it.v)}“`:`2. Form von „${esc(it.v)}“ (-ed oder unregelmäßig)`;inp.focus()};
+    $("f").onsubmit=e=>{e.preventDefault();
+      const r=ppCheck(it,inp.value); if(r.r==="empty"){inp.focus();return}
+      inp.readOnly=true;
+      if(r.r==="ok"){ if(first) ok++; S.pp[it.a]=1; save(); inp.classList.add("ok"); $("stamp").classList.add("show");
+        $("fb").innerHTML=`<div class="fb ok"><b>${pick(["Richtig!","Sauber!","Genau so!","Volltreffer!"])}</b>${it.why?`<div class="small" style="margin-top:4px">${esc(it.why)}</div>`:""}</div>`;
+      } else { inp.classList.add("bad"); if(first){again.add(it.a);q.push(it)}
+        $("fb").innerHTML=`<div class="fb bad"><div class="small">${r.r==="near"?"Knapp daneben!":"Noch nicht."} ${r.tip}</div><div class="right" style="font-size:19px;margin-top:6px">${esc(it.a)}</div>${it.why?`<div class="small muted" style="margin-top:6px">${esc(it.why)}</div>`:""}${first?'<div class="small muted" style="margin-top:4px">Der Satz kommt am Ende nochmal.</div>':""}</div>`;
+      }
+      $("btns").innerHTML='<button class="btn-main" style="flex:1" id="next">Weiter</button>';
+      const nx=$("next"); nx.focus(); nx.onclick=ev=>{ev.preventDefault();i++;step()};
+    };
+  };
+  step();
+}
+
+/* ---------- grammar: gap texts with all tenses, like the school test sheets ---------- */
+// [cue] = one gap; a = accepted answers per gap; t = tense per gap; why = short reason in German
+const TG_NAME={prs:"Present Simple",prp:"Present Progressive",ps:"Past Simple",pc:"Past Progressive",prf:"Present Perfect",prfp:"Present Perfect Progressive",pp:"Past Perfect",will:"will-Future",gt:"going to-Future",mod:"must / can / may in anderen Zeiten"};
+const TG_HOW={prs:"Grundform, bei he/she/it + s · Frage/Verneinung mit do / does",prp:"am / is / are + -ing",ps:"-ed oder 2. Form · Frage/Verneinung mit did",pc:"was / were + -ing",prf:"have / has + 3. Form",prfp:"have / has been + -ing",pp:"had + 3. Form",will:"will + Grundform",gt:"am / is / are going to + Grundform",mod:"must → had to / will have to · may → will be allowed to"};
+const TGAP=[
+ {s:"When we [arrive] at the party, some people [dance], some [talk], some [sit] at the bar and one young man [tell] jokes.",a:[["arrived"],["were dancing"],["were talking"],["were sitting"],["was telling"]],t:["ps","pc","pc","pc","pc"],why:"Ankommen ist ein kurzer Moment (Past Simple). Alles andere war da gerade im Gange (was / were + -ing)."},
+ {s:"Think of the place where you live. What [it / look] like in ten years' time? – There [be] a bank where the ice-cream shop [be] now.",a:[["will it look"],["will be"],["is"]],t:["will","will","prs"],why:"In ten years' time = Vermutung über die Zukunft → will. „now“ → Present Simple."},
+ {s:"When Susan [have] a bath, the telephone [ring].",a:[["was having","was taking"],["rang"]],t:["pc","ps"],why:"Das Baden war gerade im Gange, dann kam das Läuten dazwischen."},
+ {s:"I think Phil [wait] for Liz in the coffee shop.",a:[["is waiting","will wait"]],t:["prp"],why:"Er wartet gerade jetzt (oder: Vermutung → will wait)."},
+ {s:"Why [you / work] so hard these days? – Because I [buy] a car, so I [save] as much as I can.",a:[["are you working"],["am going to buy"],["am saving","am saving up"]],t:["prp","gt","prp"],why:"„these days“ = gerade in dieser Zeit → -ing. Den Autokauf hat er vor → going to."},
+ {s:"Mr Toucan, our neighbour, [wash] his car every week. He [just / wash] it again. It looks super now.",a:[["washes"],["has just washed"]],t:["prs","prf"],why:"every week → Present Simple (he → -es). just + Ergebnis jetzt → has + 3. Form."},
+ {s:"I [wait] for half an hour. But now I [go] home.",a:[["have been waiting","have waited"],["am going","am going to go"]],t:["prfp","prp"],why:"for half an hour bis jetzt → have been waiting. Jetzt gehe ich (Absicht) → am going."},
+ {s:"We [meet] our friends last week but this week we [not see] them yet.",a:[["met"],["have not seen"]],t:["ps","prf"],why:"last week → Past Simple. yet → Present Perfect."},
+ {s:"You [must / learn] the vocabulary when you come back.",a:[["will have to learn","will have to study"]],t:["mod"],why:"must gibt es nur in der Gegenwart. Zukunft: will have to."},
+ {s:"My mum normally [have] a cup of tea for breakfast but this morning she [have] a cup of coffee.",a:[["has"],["is having"]],t:["prs","prp"],why:"normally → Present Simple. this morning, gerade jetzt anders → is having."},
+ {s:"In the next few days we [probably / know] how much money we [need] for our projects. – [money / be] a problem? – I hope it [not be] a big problem. Maybe we [get] some local firms to help us.",a:[["will probably know"],["will need"],["will money be"],["will not be"],["will get"]],t:["will","will","will","will","will"],why:"Vermutungen über die Zukunft: probably, I hope, maybe → will."},
+ {s:"What [you / give] Jenny for her birthday? – A book about astrology. – But she [not like] reading. – Oh. Then I [buy] her a CD.",a:[["are you going to give"],["does not like"],["will buy"]],t:["gt","prs","will"],why:"Schon geplant → going to. Sie mag es grundsätzlich nicht → Present Simple. „Then I …“ = spontane Entscheidung → will."},
+ {s:"This is the BBC weather forecast for tomorrow: In the north of Scotland it [be] stormy. In the south-west of England there [be] sunny periods.",a:[["will be"],["will be"]],t:["will","will"],why:"Wettervorhersage = Vermutung über morgen → will."},
+ {s:"The roads are busy at 5 o'clock. – Then I [leave] earlier.",a:[["will leave"]],t:["will"],why:"„Then I …“ = spontane Entscheidung → will."},
+ {s:"When Mr Blake [drive] through the woods, a fox suddenly [cross] the road.",a:[["was driving"],["crossed"]],t:["pc","ps"],why:"Das Fahren war im Gange, suddenly kam der Fuchs dazwischen."},
+ {s:"Two hours ago I [must / clean] all the shoes, now I [must / practise] the trumpet, but later in the evening I [be allowed to / watch] TV.",a:[["had to clean"],["must practise","have to practise","must practice","have to practice"],["will be allowed to watch"]],t:["mod","prs","mod"],why:"ago → had to. now → must. later → will be allowed to."},
+ {s:"While Inspector Thackeray [speak] to Mr and Mrs Palmer, Sergeant Silver [take] a photo of the car.",a:[["was speaking"],["took","was taking"]],t:["pc","ps"],why:"while → das eine war gerade im Gange (was + -ing)."},
+ {s:"My dad [not speak] to me in the last two weeks.",a:[["has not spoken"]],t:["prf"],why:"in the last two weeks = bis jetzt → has + 3. Form."},
+ {s:"Last week somebody [steal] all his money. He [be] very unhappy then.",a:[["stole"],["was"]],t:["ps","ps"],why:"last week, then → Past Simple. steal → stole (unregelmäßig)."},
+ {s:"I hope that the weather [be] fine tomorrow.",a:[["will be","is"]],t:["will"],why:"tomorrow + I hope → will be."},
+ {s:"Whenever Mrs Franklin [meet] me, she [ask] how my mum and my dad [be].",a:[["meets","met"],["asks","asked"],["are","were"]],t:["prs","prs","prs"],why:"whenever = jedes Mal → Present Simple (he/she → -s)."},
+ {s:"Where [you / be] this morning? I [try] to phone you three times.",a:[["were you"],["tried","have tried"]],t:["ps","ps"],why:"this morning ist vorbei → Past Simple. try → tried (y wird i)."},
+ {s:"How much money [you / spend] on books every year?",a:[["do you spend"]],t:["prs"],why:"every year → Present Simple, Frage mit do."},
+ {s:"How much money [you / spend] in your last holidays?",a:[["did you spend"]],t:["ps"],why:"last holidays → Past Simple, Frage mit did + Grundform."},
+ {s:"She [begin] to cry when Fred [step] on her toes.",a:[["began"],["stepped"]],t:["ps","ps"],why:"Zwei kurze Dinge hintereinander → Past Simple. step → stepped (p verdoppelt)."},
+ {s:"How long [you / stay] in Rome next year?",a:[["will you stay","are you going to stay","are you staying"]],t:["will"],why:"next year → Zukunft."},
+ {s:"Our next English test [be] on November 5th.",a:[["is","will be"]],t:["prs"],why:"Fester Termin (Stundenplan) → Present Simple, will geht auch."},
+ {s:"I promise, I [never talk] back again.",a:[["will never talk"]],t:["will"],why:"Versprechen → will. never steht zwischen will und Verb."},
+ {s:"When the children [dig] a deep hole in the sand, they [find] a big shell yesterday.",a:[["were digging"],["found"]],t:["pc","ps"],why:"Das Graben war im Gange, dann haben sie die Muschel gefunden."},
+ {s:"I hope you [have] a nice time in Vienna.",a:[["will have","have"]],t:["will"],why:"I hope + Zukunft → will."},
+ {s:"The house [be] still empty, because the Fishers [not yet arrive].",a:[["is"],["have not arrived yet","have not yet arrived"]],t:["prs","prf"],why:"still → jetzt. not yet → Present Perfect."},
+ {s:"Ben [have] his car since 1997.",a:[["has had"]],t:["prf"],why:"since → has + 3. Form (have → had)."},
+ {s:"While we [eat] our lunch, a swarm of bees suddenly [attack] us last Sunday.",a:[["were eating"],["attacked"]],t:["pc","ps"],why:"while → im Gange. suddenly → Past Simple."},
+ {s:"The glass [break] when Sally [fill] it with hot tea three minutes ago.",a:[["broke"],["filled"]],t:["ps","ps"],why:"ago → Past Simple. break → broke."},
+ {s:"I [not understand] this sentence. What does it mean?",a:[["do not understand"]],t:["prs"],why:"understand gibt es nicht mit -ing → don't understand."},
+ {s:"They [never have] a worse storm in Florida.",a:[["have never had"]],t:["prf"],why:"never bis jetzt → have never had."},
+ {s:"All right then. I [pick you up] in half an hour.",a:[["will pick you up"]],t:["will"],why:"„All right then“ = spontane Zusage → will."},
+ {s:"[you / already hear] about Sue's accident? She [break] her arm when she [fall] down the stairs. Now she [be] in hospital with her arm in plaster.",a:[["have you already heard"],["broke"],["fell"],["is"]],t:["prf","ps","ps","prs"],why:"already → Present Perfect. Der Unfall selbst → Past Simple. Now → Present Simple."},
+ {s:"When Phil [ride] his bike, a dog suddenly [jump] onto the road and [bite] him.",a:[["was riding"],["jumped"],["bit"]],t:["pc","ps","ps"],why:"Das Radfahren war im Gange, suddenly → Past Simple. bite → bit."},
+ {s:"While Roger [pack] his suitcase, Linda [write] something into her diary.",a:[["was packing"],["was writing","wrote"]],t:["pc","pc"],why:"while → beides war gleichzeitig im Gange."},
+ {s:"What's that funny smell? – I think Lucy [fry] some sausages.",a:[["is frying"]],t:["prp"],why:"Es riecht jetzt → passiert gerade → is + -ing."},
+ {s:"Give me your binoculars! What [he / do]? He [get] off his car, he [take] a bunch of red roses and [hurry] to her door.",a:[["is he doing"],["is getting","gets"],["is taking","takes"],["is hurrying","hurries"]],t:["prp","prp","prp","prp"],why:"Wir schauen gerade zu → Present Progressive."}
+];
+// compare without caring about short forms: don't = do not, I'm = I am …
+const tgN=s=>norm(s).replace(/[.,!?]/g,"").replace(/\bwont\b/g,"will not").replace(/\b(do|does|did|have|has|had|was|were|is|are)nt\b/g,"$1 not").replace(/\bwon't\b/g,"will not").replace(/\bcan't\b/g,"cannot").replace(/n't\b/g," not").replace(/'m\b/g," am").replace(/'re\b/g," are").replace(/'ve\b/g," have").replace(/'ll\b/g," will").replace(/\s+/g," ").trim();
+const tgParts=it=>it.s.split(/\[([^\]]+)\]/); // even = text, odd = cue
+function tgHTML(it,inputs){
+  return tgParts(it).map((p,j)=>j%2?(inputs?`<span class="tg-gap"><input class="tg-in" data-g="${(j-1)/2}" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Lücke ${(j+1)/2}: ${esc(p)}"><span class="tg-cue">(${esc(p)})</span></span>`:`<span class="blank">&nbsp;?&nbsp;</span> <span class="tg-cue">(${esc(p)})</span>`):esc(p)).join("");
+}
+// what each tense is for + a mnemonic (Eselsbrücke), shown when Konrad picks the wrong tense
+const TG_MEAN={prs:"passiert immer wieder (Gewohnheit, Fakt)",prp:"passiert gerade jetzt",ps:"ist passiert und vorbei",pc:"war gerade im Gange",prf:"ist passiert und zählt jetzt noch",prfp:"läuft schon eine Weile bis jetzt",pp:"war noch früher als etwas anderes Vergangenes",will:"Vermutung oder spontane Entscheidung für die Zukunft",gt:"schon geplant für die Zukunft",mod:"must / may in einer anderen Zeit"};
+const TG_MN={
+ prs:"📅 <b>Stundenplan-Zeit:</b> Was immer wieder passiert (every day, normally, whenever). Und: <b>he, she, it – das S muss mit!</b>",
+ prp:"📹 <b>Live-Video:</b> Look! Now! Es passiert genau jetzt → <b>am / is / are + -ing</b>.",
+ ps:"📸 <b>Foto im Album:</b> passiert, fertig, vorbei. yesterday, last …, … ago → <b>-ed oder 2. Form</b>.",
+ pc:"🎬 <b>Film im Hintergrund:</b> Der Film läuft (was / were + -ing) – <b>suddenly</b> platzt etwas Kurzes rein (Past Simple). <b>while</b> = Film läuft.",
+ prf:"🌉 <b>Brücke von früher bis jetzt:</b> Das Ergebnis sieht man noch. just, already, yet, never, ever, since, for → <b>have / has + 3. Form</b>.",
+ prfp:"⏱️ <b>Stoppuhr läuft noch:</b> Wie lange schon? for / since → <b>have / has been + -ing</b>.",
+ pp:"⏪ <b>Vor-Vergangenheit:</b> Was noch FRÜHER war, bekommt <b>had</b>.",
+ will:"🔮 <b>Glaskugel-Zeit:</b> I think, I hope, maybe, probably, I promise, „Then I …“ (spontan) → <b>will</b>.",
+ gt:"🗓️ <b>Plan im Kalender:</b> Schon vorher beschlossen → <b>going to</b>.",
+ mod:"🔧 <b>must kann nur JETZT.</b> Vergangenheit: <b>had to</b>. Zukunft: <b>will have to</b>. Darf später: <b>will be allowed to</b>."
+};
+const TG_PAST2=new Set(IRREG.flatMap(r=>r[1].split(" / ")).concat(["began","stole","rang","fell","broke","bit","took","met","spent","dug","flew","rode","got"]));
+// guess which tense Konrad wrote (normalized answer)
+function tgTense(a){
+  if(!a) return "";
+  if(/\b(had to|have to|has to|be allowed|must)\b/.test(a)) return "mod";
+  if(/\bwill\b/.test(a)) return "will";
+  if(/\b(am|is|are|was|were)\b.*\bgoing to \w+/.test(a)) return "gt";
+  if(/\b(have|has)\b.*\bbeen \w+ing\b/.test(a)) return "prfp";
+  if(/\bhad\b(?! to)\s+\S+/.test(a)) return "pp";
+  if(/\b(was|were)\b.*\b\w{2,}ing\b/.test(a)) return "pc";
+  if(/\b(am|is|are)\b.*\b\w{2,}ing\b/.test(a)) return "prp";
+  if(/\b(have|has)\b\s+\S+/.test(a)) return "prf";
+  if(/\bdid\b/.test(a)) return "ps";
+  if(/\b(do|does)\b/.test(a)) return "prs";
+  if(/^(was|were)\b/.test(a)||/\b(was|were)$/.test(a)) return "ps";
+  if(/\b(am|is|are)\b/.test(a)) return "prs";
+  if(/\b\w+ed$/.test(a)||TG_PAST2.has(a.split(" ").pop())||a==="had") return "ps";
+  if(/^\w+s$/.test(a)||a==="has") return "prs";
+  return "";
+}
+function tgWhy(v,it,k){
+  const want=it.t[k], got=tgTense(v), accGot=it.a[k].map(x=>tgTense(tgN(x)));
+  if(!v) return `<div class="small" style="margin-top:4px">Die Lücke war leer. ${TG_MN[want]}</div>`;
+  if(got&&!accGot.includes(got)) return `<div class="small" style="margin-top:4px">Du hast <b>${TG_NAME[got]}</b> genommen – das heißt: ${TG_MEAN[got]}. Hier passt <b>${TG_NAME[want]}</b>: ${TG_MEAN[want]}.</div><div class="small mn-tip" style="margin-top:4px">${TG_MN[want]}</div>`;
+  if(got) return `<div class="small" style="margin-top:4px">👍 Die Zeit stimmt! Nur die Form ist noch nicht ganz richtig. Bauplan: <b>${esc(TG_HOW[want])}</b></div>`;
+  return `<div class="small mn-tip" style="margin-top:4px">${TG_MN[want]}</div>`;
+}
+function tgRound(n){
+  const q=shuffle(TGAP.map((x,idx)=>({...x,id:"tg"+idx}))).slice(0,n), total=q.length, again=new Set(); let i=0, ok=0;
+  const back=()=>{ if(FLOW){FLOW=null;home()} else gramHome() };
+  const step=()=>{
+    if(i>=q.length){ S.gramOk=(S.gramOk||0)+ok; S.hist.push({d:today(),t:"gr",n:total,ok,u:S.unit}); save();
+      if(FLOW) return flowNext({name:"Lückentext",ok,n:total});
+      app.innerHTML=`<section class="card result"><div class="eyebrow">Lückentext · alle Zeiten</div><div class="score tnum">${ok}/${total}</div><div class="muted">Sätze beim ersten Versuch ganz richtig</div><div class="row" style="width:100%"><button class="btn-main" style="flex:1" id="a">Nochmal</button><button class="btn-ghost" id="z">Zurück</button></div></section>`;
+      $("a").onclick=()=>tgRound(n); $("z").onclick=gramHome; if(ok>=total*.7) confetti(); return}
+    const it=q[i], first=!again.has(it.id);
+    app.innerHTML=`<div class="qhead"><button class="btn-ghost" id="x" aria-label="Beenden">✕</button><div class="qbar"><i style="width:${Math.min(i,total)/total*100}%"></i></div><span class="muted small tnum">${Math.min(i,total)}/${total}</span></div>
+    <section class="card prompt"><span class="stamp" id="stamp">RICHTIG</span>
+      <div class="eyebrow">Fill in the correct verb forms!</div>
+      <div class="tg-s">${tgHTML(it,true)}</div>
+      <div class="hint" id="hint" hidden></div></section>
+    <form id="f" style="display:grid;gap:12px" autocomplete="off">
+      <div id="fb"></div>
+      <div class="row" id="btns"><button class="btn-main" style="flex:1">Prüfen</button><button type="button" id="tip" class="btn-ghost">Tipp</button></div>
+    </form>`;
+    $("x").onclick=back;
+    const ins=[...document.querySelectorAll(".tg-in")]; ins[0].focus();
+    ins.forEach((el,k)=>el.onkeydown=e=>{ if(e.key==="Enter"&&k<ins.length-1){e.preventDefault();ins[k+1].focus()} });
+    $("tip").onclick=()=>{const h=$("hint");h.hidden=false;
+      h.innerHTML=it.t.map((t,k)=>`${it.t.length>1?(k+1)+". Lücke: ":""}<b>${TG_NAME[t]}</b> <span class="muted">· ${esc(TG_HOW[t])}</span>`).join("<br>")};
+    $("f").onsubmit=e=>{e.preventDefault();
+      if(ins.every(el=>!el.value.trim())){ins[0].focus();return}
+      let all=true; const lines=[];
+      ins.forEach((el,k)=>{ const v=tgN(el.value), acc=it.a[k].map(tgN), good=acc.includes(v);
+        el.readOnly=true; el.classList.add(good?"ok":"bad");
+        if(!good){ all=false; const near=v&&Math.min(...acc.map(x=>lev(v,x)))<=2;
+          lines.push(`<div class="tg-line"><div class="small">${it.a.length>1?(k+1)+". ":""}${v?`<s>${esc(el.value.trim())}</s> → `:""}<b>${esc(it.a[k][0])}</b> <span class="muted">· ${TG_NAME[it.t[k]]}${near?" · fast, schau auf die Schreibweise":""}</span></div>${near?"":tgWhy(v,it,k)}</div>`) } });
+      if(all){ if(first) ok++; S.pp[it.id]=1; save(); $("stamp").classList.add("show");
+        $("fb").innerHTML=`<div class="fb ok"><b>${pick(["Richtig!","Sauber!","Genau so!","Volltreffer!"])}</b><div class="small" style="margin-top:4px">${esc(it.why)}</div></div>`;
+      } else { if(first){again.add(it.id);q.push(it)}
+        $("fb").innerHTML=`<div class="fb bad"><b>Noch nicht ganz.</b>${lines.join("")}<div class="small muted" style="margin-top:8px">${esc(it.why)}</div>${first?'<div class="small muted" style="margin-top:4px">Der Satz kommt am Ende nochmal.</div>':""}</div>`;
+      }
+      $("btns").innerHTML='<button class="btn-main" style="flex:1" id="next">Weiter</button>';
+      const nx=$("next"); nx.focus(); nx.onclick=ev=>{ev.preventDefault();i++;step()};
+    };
+  };
+  step();
+}
+
+/* ---------- gap text stairs: step 1 pick the tense, step 2 pick the form, step 3 write (tgRound) ---------- */
+// two wrong forms per gap, same order as TGAP (gaps split by |)
+const TG_D=[
+ "were arriving,had arrived|danced,are dancing|talked,was talking|sat,are sitting|told,were telling",
+ "does it look,is it looking|is,was|was,has been",
+ "had,is having|was ringing,rings",
+ "waits,waited",
+ "do you work,did you work|bought,buy|saved,save",
+ "is washing,washed|just washed,is just washing",
+ "am waiting,waited|went,go",
+ "have met,meet|did not see,do not see",
+ "must learn,had to learn",
+ "is having,have|has,had",
+ "probably know,probably knew|need,needed|is money,was money|is not,was not|get,got",
+ "do you give,did you give|is not liking,did not like|buy,bought",
+ "is,was|are,were",
+ "leave,left",
+ "drove,is driving|was crossing,crosses",
+ "must clean,will have to clean|had to practise,will have to practise|may watch,was allowed to watch",
+ "spoke,is speaking|takes,has taken",
+ "did not speak,does not speak",
+ "had stolen,has stolen|is,has been",
+ "was,has been",
+ "is meeting,has met|is asking,has asked|is,have been",
+ "are you,will you be|try,was trying",
+ "did you spend,are you spending",
+ "do you spend,have you spent",
+ "begins,was beginning|steps,was stepping",
+ "did you stay,do you stay",
+ "was,has been",
+ "never talked,never talk",
+ "dug,are digging|were finding,find",
+ "had,have had",
+ "was,has been|did not arrive yet,are not arriving yet",
+ "has,had",
+ "ate,are eating|were attacking,attack",
+ "was breaking,breaks|was filling,fills",
+ "am not understanding,did not understand",
+ "never have,never had",
+ "picked you up,pick you up",
+ "did you already hear,do you already hear|was breaking,has broken|was falling,falls|was,has been",
+ "rode,is riding|was jumping,jumps|was biting,bites",
+ "packed,is packing|writes,is writing",
+ "fries,fried",
+ "does he do,did he do|got,has got|took,has taken|hurried,has hurried"
+].map(s=>s.split("|").map(g=>g.split(",")));
+const TG_G=TGAP.flatMap((it,i)=>it.a.map((acc,k)=>({it,k,id:"tg"+i+"-"+k,d:TG_D[i][k]})));
+const TG_SIG=/\b(yesterday|last (week|sunday|year|holidays)|\w+ ago|while|whenever|suddenly|normally|every (week|year|day)|now|these days|this morning|since \d+|for half an hour|in the last two weeks|already|yet|never|still|tomorrow|next (year|few days)|in ten years' time|in half an hour|later in the evening|i think|i hope|maybe|probably|i promise|then i|look)\b/gi;
+const tgSig=t=>t.replace(TG_SIG,m=>`<mark class="sig">${m}</mark>`);
+function tgOne(g,fill){
+  return tgParts(g.it).map((p,j)=>{ if(j%2===0) return tgSig(esc(p)); const k=(j-1)/2;
+    if(k!==g.k) return `<span class="tg-done">${esc(g.it.a[k][0])}</span>`;
+    return fill!=null?`<b class="tg-fill">${esc(fill)}</b>`:`<span class="blank">&nbsp;?&nbsp;</span> <span class="tg-cue">(${esc(p)})</span>`}).join("");
+}
+const tgOkTenses=g=>new Set([g.it.t[g.k],...g.it.a[g.k].map(x=>tgTense(tgN(x)))].filter(Boolean));
+function tgOptions(g,lv){
+  if(lv===2) return shuffle([{v:g.it.a[g.k][0],ok:1},...g.d.map(v=>({v}))]);
+  const good=tgOkTenses(g), o=[g.it.t[g.k]];
+  [...g.d.map(x=>tgTense(tgN(x))),"ps","pc","prs","prp","prf","will","pp"].forEach(t=>{ if(t&&!good.has(t)&&!o.includes(t)&&o.length<3) o.push(t) });
+  return shuffle(o.map((t,j)=>({v:t,ok:j===0?1:0})));
+}
+const TG_LV={1:"Stufe 1 · Welche Zeit passt?",2:"Stufe 2 · Welche Form passt?",3:"Stufe 3 · Selbst schreiben"};
+const tgBest=lv=>(S.tgs||{})[lv]||0;
+const tgNext=()=>tgBest(1)<6?1:tgBest(2)<6?2:3;
+function tgLevel(lv,n){
+  const q=shuffle([...TG_G]).slice(0,n), total=q.length, again=new Set(); let i=0, ok=0;
+  const back=()=>{ if(FLOW){FLOW=null;home()} else gramHome() };
+  const step=()=>{
+    if(i>=q.length){ S.tgs=S.tgs||{}; S.tgs[lv]=Math.max(tgBest(lv),ok); S.gramOk=(S.gramOk||0)+ok; S.hist.push({d:today(),t:"gr",n:total,ok,u:S.unit}); save();
+      const up=ok>=6;
+      app.innerHTML=`<section class="card result"><div class="eyebrow">${TG_LV[lv]}</div><div class="score tnum">${ok}/${total}</div><div class="muted">beim ersten Versuch richtig</div>
+        <p style="margin:0">${up?`Stark! Du bist bereit für <b>${TG_LV[lv+1]}</b>.`:"Ab 6 richtigen geht's auf die nächste Stufe. Nochmal?"}</p>
+        <div class="row" style="width:100%"><button class="btn-main" style="flex:1" id="a">${up?"Weiter zu Stufe "+(lv+1):"Nochmal"}</button><button class="btn-ghost" id="z">Zurück</button></div></section>`;
+      $("a").onclick=()=>up?(lv===2?tgRound(5):tgLevel(lv+1,8)):tgLevel(lv,8); $("z").onclick=gramHome; if(up) confetti(); return}
+    const g=q[i], first=!again.has(g.id), opts=tgOptions(g,lv);
+    app.innerHTML=`<div class="qhead"><button class="btn-ghost" id="x" aria-label="Beenden">✕</button><div class="qbar"><i style="width:${Math.min(i,total)/total*100}%"></i></div><span class="muted small tnum">${Math.min(i,total)}/${total}</span></div>
+    <section class="card prompt"><span class="stamp" id="stamp">RICHTIG</span>
+      <div class="eyebrow">${TG_LV[lv]}</div>
+      <div class="tg-s">${tgOne(g)}</div>
+      <div class="small muted" style="margin-top:6px">Gelb = Signalwort. Das verrät dir die Zeit.</div></section>
+    <div class="opts">${opts.map((o,j)=>`<button class="opt" data-j="${j}">${lv===1?`${TG_NAME[o.v]}<span class="small muted">${TG_MEAN[o.v]}</span>`:esc(o.v)}</button>`).join("")}</div>
+    <div id="fb"></div><div id="btns"></div>`;
+    $("x").onclick=back;
+    document.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{
+      const o=opts[+b.dataset.j], right=!!o.ok;
+      document.querySelectorAll(".opt").forEach((x,j)=>{x.disabled=true; if(opts[j].ok) x.classList.add("ok")});
+      const sol=`<div class="tg-s" style="margin-top:6px">${tgOne(g,g.it.a[g.k][0])}</div>`;
+      if(right){ if(first) ok++; save(); $("stamp").classList.add("show");
+        $("fb").innerHTML=`<div class="fb ok"><b>${pick(["Richtig!","Sauber!","Genau so!","Volltreffer!"])}</b> ${TG_NAME[g.it.t[g.k]]}${sol}<div class="small" style="margin-top:4px">${esc(g.it.why)}</div></div>`;
+      } else { b.classList.add("bad"); if(first){again.add(g.id);q.push(g)}
+        const got=lv===1?o.v:tgTense(tgN(o.v)), want=g.it.t[g.k];
+        const why=lv===2?tgWhy(tgN(o.v),g.it,g.k):`<div class="small" style="margin-top:4px">${TG_NAME[got]} heißt: ${TG_MEAN[got]}. Hier passt <b>${TG_NAME[want]}</b>: ${TG_MEAN[want]}.</div><div class="small mn-tip" style="margin-top:4px">${TG_MN[want]}</div>`;
+        $("fb").innerHTML=`<div class="fb bad"><b>Noch nicht.</b>${why}${sol}<div class="small muted" style="margin-top:6px">${esc(g.it.why)}</div>${first?'<div class="small muted" style="margin-top:4px">Kommt am Ende nochmal.</div>':""}</div>`;
+      }
+      $("btns").innerHTML='<button class="btn-main" id="next">Weiter</button>';
+      const nx=$("next"); nx.focus(); nx.onclick=()=>{i++;step()};
+    });
+  };
+  step();
+}
+function tgStart(){ const lv=tgNext(); lv===3?tgRound(5):tgLevel(lv,8) }
+
+/* ---------- probe test: same three parts as the school test ---------- */
+let T=null;
+function testStart(){
+  FLOW=null;
+  const pool=shuffle([...WORDS]);
+  T={tr:pool.slice(0,8).map((w,k)=>({w,rev:k%2===0})), ex:pool.slice(8,11), gr:gramItems("m",6), rate:[]};
+  const fld='autocapitalize="off" autocorrect="off" spellcheck="false" autocomplete="off"';
+  app.innerHTML=`
+  <div class="qhead"><button class="btn-ghost" id="back">← Übersicht</button></div>
+  <header><div class="eyebrow">Probe-Test · ${UNITS[S.unit].label}</div><h1 class="display" style="font-size:28px">Wie in der Schule</h1>
+  <p class="muted" style="margin:6px 0 0">Ohne Tipps. Kontrolliert wird erst am Ende. Nimm dir ca. 15 Minuten.</p></header>
+  <section class="card tsec"><h3>1 · Translate the words</h3>
+    ${T.tr.map((t,k)=>`<label class="trow"><span>${esc(t.rev?t.w.en:t.w.de)}</span><input class="tin" id="t${k}" placeholder="${t.rev?"auf Deutsch":"auf Englisch"}" ${fld}></label>`).join("")}
+  </section>
+  <section class="card tsec"><h3>2 · Explain it in English</h3>
+    <div class="small muted">Ohne das Wort selbst. Hilfe:<br>${STARTERS.slice(0,6).map(([en,de])=>`<b>${esc(en)}</b> = ${esc(de)}`).join("<br>")}</div>
+    ${T.ex.map((w,k)=>`<label class="tex"><b>${esc(w.en)}</b><textarea class="para" style="min-height:80px" id="e${k}" autocapitalize="sentences" spellcheck="false"></textarea></label>`).join("")}
+  </section>
+  <section class="card tsec"><h3>3 · Sätze in der richtigen Zeit</h3>
+    <div class="small muted">Bau die Sätze in der Zeit, die davor steht. Bei den Lücken: Past Perfect oder Past Simple?</div>
+    ${T.gr.map((g,k)=>`<label class="tex"><span>${g.k==="b"?`<b>${TNAME[tenOf(g)]}:</b> `+esc(g.c):esc(g.s)}</span><input class="tin" id="g${k}" placeholder="${g.k==="b"?"ganzer Satz":"Lücke"}" ${fld}></label>`).join("")}
+  </section>
+  <button class="btn-main" id="hand">Abgeben</button>`;
+  $("back").onclick=home; $("hand").onclick=testGrade;
+}
+const MK={ok:'<span class="mk ok">✓</span>',half:'<span class="mk half">~</span>',bad:'<span class="mk bad">✗</span>'};
+function testGrade(){
+  let pts=0;
+  // part 1: wrong words go back to "new", so they come up again in the vocab rounds
+  const p1=T.tr.map((t,k)=>{const v=$("t"+k).value, r=v.trim()?(t.rev?checkDe(t.w,v):check(t.w,v)):{r:"bad"}, s=ws(t.w.en);
+    const p=r.r==="ok"?1:r.r==="near"?.5:0; pts+=p;
+    if(p<1){s.bad++;s.box=0} else s.box=MASTER;
+    return `<div class="trow res"><span>${esc(t.rev?t.w.en:t.w.de)}</span><span>${p===1?MK.ok:p?MK.half:MK.bad} ${esc(v||"–")}${p<1?`<div class="small muted">richtig: <b>${esc(t.rev?t.w.de:t.w.en)}</b></div>`:""}</span></div>`}).join("");
+  save();
+  const p2=T.ex.map((w,k)=>{const v=$("e"+k).value.trim(), stem=noTo(w.en).toLowerCase().split(/[ -]/).sort((a,b)=>b.length-a.length)[0].replace(/e$/,"");
+    const used=v.toLowerCase().includes(stem), short=v.split(/\s+/).filter(Boolean).length<6;
+    T.rate[k]=v?null:0;
+    return `<div class="tex"><b>${esc(w.en)}</b><div class="model" style="font-style:normal">${esc(v||"– nichts geschrieben –")}</div>
+      ${used?'<div class="small" style="color:var(--bad)">Das Wort selbst kommt vor. Das gibt im Test Abzug.</div>':""}${v&&short?'<div class="small" style="color:var(--bad)">Sehr kurz. Ein ganzer Satz mit mindestens 6 Wörtern ist sicherer.</div>':""}
+      <div class="small muted">Beispiel: ${esc(cap(w.def))}.</div>
+      ${v?`<div class="small">Wie gut passt deine Erklärung? Sei ehrlich:</div><div class="row rate" data-k="${k}"><button type="button" data-p="2" ${used?"disabled":""}>✓ passt</button><button type="button" data-p="1">~ halb</button><button type="button" data-p="0">✗ falsch</button></div>`:""}</div>`}).join("");
+  let p3pts=0;
+  const p3=T.gr.map((g,k)=>{const v=$("g"+k).value, r=v.trim()?ppCheck(g,v):{r:"bad",tip:""}; const p=r.r==="ok"?1:r.r==="near"?.5:0; p3pts+=p; if(p===1) S.pp[g.a]=1;
+    return `<div class="tex"><span class="small muted">${g.k==="b"?esc(g.c):esc(g.s)}</span><span>${p===1?MK.ok:p?MK.half:MK.bad} ${esc(v||"–")}</span>${p<1?`<div class="small">richtig: <b>${esc(g.a)}</b>${r.tip?` · ${r.tip}`:""}</div>`:""}</div>`}).join("");
+  pts+=p3pts; T.auto=pts;
+  app.innerHTML=`
+  <header><div class="eyebrow">Probe-Test · Auswertung</div><h1 class="display" style="font-size:28px">Kontrolle</h1></header>
+  <section class="card tsec"><h3>1 · Translate the words</h3>${p1}</section>
+  <section class="card tsec"><h3>2 · Explain it in English</h3>${p2}</section>
+  <section class="card tsec"><h3>3 · Sätze in der richtigen Zeit</h3>${p3}</section>
+  <div id="score"></div>
+  <button class="btn-main" id="sum">Punkte zählen</button>`;
+  document.querySelectorAll(".rate button").forEach(b=>b.onclick=()=>{const box=b.parentNode;T.rate[+box.dataset.k]=+b.dataset.p;
+    box.querySelectorAll("button").forEach(x=>x.classList.toggle("sel",x===b))});
+  $("sum").onclick=()=>{
+    if(T.rate.some(r=>r===null)){$("score").innerHTML='<div class="fb bad small">Bewerte zuerst alle Erklärungen in Teil 2.</div>';return}
+    const total=T.tr.length+T.ex.length*2+T.gr.length, got=T.auto+T.rate.reduce((s,r)=>s+r,0), pct=got/total;
+    const lvl=pct>=.85?0:pct>=.7?1:pct>=.5?2:3;
+    T.ex.forEach((w,k)=>{if(T.rate[k]===2) S.ex[w.en]=1});
+    S.hist.push({d:today(),t:"t",n:total,ok:got,u:S.unit}); save();
+    $("sum").remove();
+    $("score").innerHTML=`<section class="card result"><div class="eyebrow">Ergebnis</div><div class="score tnum">${got}/${total}</div><div class="muted">Punkte</div>
+      <div class="ampel">${["#4CB050","#F6D33C","#F2992E","#D9412F"].map((c,k)=>`<i style="background:${c}" class="${k===lvl?"on":""}">${k===lvl?"✗":""}</i>`).join("")}</div>
+      <h2 class="display" style="font-size:22px">${["Sehr stark! So kannst du in den Test gehen.","Gut! Noch ein paar Wörter üben, dann sitzt es.","Schon einiges da. Mach morgen das Tagestraining und dann nochmal den Probe-Test.","Das war erst die Probe. Die falschen Wörter kommen jetzt öfter dran. Morgen wird's besser!"][lvl]}</h2>
+      <div class="row" style="width:100%"><button class="btn-main" style="flex:1" id="a">Neuer Probe-Test</button><button class="btn-ghost" id="z">Übersicht</button></div></section>`;
+    $("a").onclick=()=>{testStart();scrollTo(0,0)}; $("z").onclick=()=>{home();scrollTo(0,0)};
+    $("score").scrollIntoView({behavior:"smooth"}); if(lvl<=1) confetti();
+  };
+  scrollTo(0,0);
+}
+
+/* ---------- daily training ---------- */
+function dailyStart(){
+  FLOW={i:0,log:[],steps:[()=>startRound(10),()=>paraRound(shuffle([...WORDS]).slice(0,3),0,0),()=>gramRound("m",10)]};
+  FLOW.steps[0]();
+}
+function flowNext(r){
+  FLOW.log.push(r); FLOW.i++;
+  if(FLOW.i<FLOW.steps.length){ scrollTo(0,0); return FLOW.steps[FLOW.i]() }
+  const log=FLOW.log; FLOW=null;
+  app.innerHTML=`<section class="card result"><div class="eyebrow">Tagestraining geschafft</div><h2 class="display" style="font-size:28px">Stark, Konrad!</h2>
+    <div class="dlog">${log.map(l=>`<div><span>${l.name}</span><b class="tnum">${l.name==="Erklären"?l.ok+" geschrieben":l.ok+" / "+l.n}</b></div>`).join("")}</div>
+    <div class="small muted">Morgen wieder, dann bist du fit für den Test.</div>
+    <div class="row" style="width:100%"><button class="btn-main" style="flex:1" id="z">Übersicht</button></div></section>`;
+  $("z").onclick=home; confetti();
+}
+
+/* ---------- speaking ---------- */
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+function say(text,lang,onend){try{const u=new SpeechSynthesisUtterance(text);u.lang=lang;u.rate=.9;if(onend)u.onend=onend;speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){onend&&onend()}}
+// the German word is shown; Konrad says the English word; the answer is only revealed after two misses or on request
+function speakRound(){
+  const q=shuffle([...WORDS]).slice(0,5); let i=0, ok=0;
+  const step=()=>{
+    if(i>=q.length){S.hist.push({d:today(),t:"s",n:q.length,ok});save();
+      app.innerHTML=`<section class="card result"><div class="eyebrow">Sprech-Training fertig</div><div class="score tnum">${ok}/${q.length}</div><div class="muted">richtig gesagt</div><div class="row" style="width:100%"><button class="btn-main" style="flex:1" id="a">Nochmal</button><button class="btn-ghost" id="b">Übersicht</button></div></section>`;
+      $("a").onclick=speakRound;$("b").onclick=home; if(ok>=3) confetti(); return}
+    const w=q[i]; let solved=false, tries=0;
+    app.innerHTML=`<div class="qhead"><button class="btn-ghost" id="x">✕</button><div class="qbar"><i style="width:${i/q.length*100}%"></i></div><span class="muted small tnum">${i}/${q.length}</span></div>
+    <section class="card prompt"><span class="stamp" id="stamp">GELÖST</span><div class="eyebrow">Sag es laut auf Englisch</div>
+      <div class="de-word">${esc(w.de)}</div></section>
+    <button class="btn-main" id="mic" style="font-size:20px;padding:22px">🎙 Tippen und antworten</button>
+    <div id="fb"></div>
+    <form id="dict" class="card" style="display:grid;gap:8px" autocomplete="off">
+      <label for="dictIn" id="dictLbl" class="small muted">Kommt nichts? Tipp hier ins Feld, dann auf das <b>🎙 unten rechts auf der Tastatur</b> und sprich.</label>
+      <input class="answer" id="dictIn" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="go" placeholder="hier sprechen">
+      <button class="btn-ghost">Prüfen</button>
+    </form>
+    <button class="btn-ghost" id="skip">Weiß ich nicht</button>`;
+    $("x").onclick=()=>{speechSynthesis.cancel();home()};
+    const fb=$("fb"), mic=$("mic");
+    const next=()=>{speechSynthesis.cancel();i++;step()};
+    const finish=()=>{$("skip").hidden=true;$("dict").hidden=true;mic.hidden=false;mic.disabled=false;mic.textContent="Weiter →"};
+    mic.onclick=()=>{if(solved)next()};
+    const reveal=intro=>{solved=true;
+      fb.innerHTML=`<div class="fb bad"><div class="small">${intro}</div><div class="right">${esc(w.en)}</div></div>`;
+      say(w.en,"en-GB"); finish()};
+    $("skip").onclick=()=>reveal("Kein Problem. So heißt es:");
+    // one place that judges what was heard (from the mic button or keyboard dictation)
+    const judge=alts=>{
+      if(solved) return;
+      alts=alts.map(a=>a.replace(/[.,!?]/g,"").replace(/\bi d\b/i,"ID").trim()).filter(Boolean);
+      if(!alts.length) return;
+      const hit=alts.find(a=>check(w,a).r==="ok")||alts.find(a=>check(w,a).r==="near");
+      tries++;
+      if(hit){solved=true;ok++;$("stamp").classList.add("show");
+        fb.innerHTML=`<div class="fb ok"><b>${pick(["Gut gesagt!","Richtig!","Volltreffer!"])}</b> <span class="right">${esc(w.en)}</span></div>`;
+        say("Right! "+w.en,"en-GB"); finish();
+      } else if(tries<2){
+        fb.innerHTML=`<div class="fb bad"><div class="small">Ich habe „${esc(alts[0])}“ verstanden. Das ist es noch nicht.</div><div class="small muted" style="margin-top:4px">Probier es nochmal.</div></div>`;
+      } else reveal(`Ich habe „${esc(alts[0])}“ verstanden. Richtig wäre:`);
+    };
+    $("dict").onsubmit=e=>{e.preventDefault();const v=$("dictIn").value;$("dictIn").value="";judge([v])};
+    // home-screen apps on iPhone often hang in web speech recognition: use keyboard dictation there
+    const standalone=navigator.standalone===true||matchMedia("(display-mode: standalone)").matches;
+    const useField=()=>{mic.hidden=true;$("dictLbl").innerHTML="Tipp ins Feld, dann auf das <b>🎙 unten rechts auf der Tastatur</b> und sag das Wort auf Englisch.";$("dictIn").focus()};
+    if(!SR||standalone){useField();return}
+    mic.onclick=()=>{
+      if(solved) return next();
+      speechSynthesis.cancel();
+      let heard=[], got=false;
+      const rec=new SR(); rec.lang="en-GB"; rec.interimResults=true; rec.continuous=false; rec.maxAlternatives=5;
+      mic.disabled=true; mic.textContent="Ich höre zu … jetzt sprechen"; fb.innerHTML="";
+      let ended=false;
+      const timer=setTimeout(()=>{try{rec.stop()}catch(e){}},6000);
+      // watchdog: if the phone never reports back, give up and switch to keyboard dictation
+      const dog=setTimeout(()=>{if(ended||solved)return;try{rec.abort()}catch(e){}
+        fb.innerHTML='<div class="fb bad small">Das Mikrofon antwortet auf diesem Handy nicht. Nimm das Feld: reintippen, dann 🎙 auf der Tastatur.</div>';useField()},9000);
+      rec.onresult=e=>{
+        heard=[];for(const r of e.results)for(const a of r)heard.push(a.transcript);
+        if(heard.some(a=>check(w,a.replace(/[.,!?]/g,"")).r==="ok")){got=true;try{rec.abort()}catch(_){};judge(heard)}
+        else if([...e.results].some(r=>r.isFinal)){got=true;judge(heard)}
+      };
+      rec.onerror=e=>{got=true;clearTimeout(timer);
+        fb.innerHTML=`<div class="fb bad small">${e.error==="not-allowed"||e.error==="service-not-allowed"?"Das Mikrofon oder die Diktierfunktion ist nicht erlaubt. Nutze das Feld unten mit dem 🎙 der Tastatur.":e.error==="no-speech"?"Ich habe nichts gehört. Sprich etwas lauter, oder nutze das Feld unten.":"Das hat nicht geklappt. Nutze das Feld unten mit dem 🎙 der Tastatur."}</div>`};
+      rec.onend=()=>{ended=true;clearTimeout(timer);clearTimeout(dog);
+        if(!got){ if(heard.length) judge(heard);
+          else fb.innerHTML='<div class="fb bad small">Ich habe nichts mitbekommen. Nutze das Feld unten: reintippen, dann 🎙 auf der Tastatur.</div>'}
+        if(!solved){mic.disabled=false;mic.textContent="🎙 Nochmal antworten"}};
+      try{rec.start()}catch(err){got=true;rec.onend()}
+    };
+  };
+  step();
+}
+
+/* ---------- confetti ---------- */
+function confetti(){
+  if(matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const c=$("confetti"),x=c.getContext("2d"); c.width=innerWidth*devicePixelRatio; c.height=innerHeight*devicePixelRatio; x.scale(devicePixelRatio,devicePixelRatio);
+  const cs=getComputedStyle(document.documentElement), cols=["--hi","--blue","--ok","--bad"].map(v=>cs.getPropertyValue(v).trim());
+  const P=[...Array(120)].map(()=>({x:innerWidth/2,y:innerHeight*.35,vx:(Math.random()-.5)*12,vy:Math.random()*-12-4,r:Math.random()*6+4,c:pick(cols),a:Math.random()*6}));
+  let f=0;(function tick(){x.clearRect(0,0,innerWidth,innerHeight);P.forEach(p=>{p.vy+=.35;p.x+=p.vx;p.y+=p.vy;p.a+=.2;x.save();x.translate(p.x,p.y);x.rotate(p.a);x.fillStyle=p.c;x.fillRect(-p.r/2,-p.r/4,p.r,p.r/2);x.restore()});
+    if(++f<110) requestAnimationFrame(tick); else x.clearRect(0,0,innerWidth,innerHeight)})();
+}
+
+home();
+// direct links: …/#zeiten opens the grammar page, …/#lueckentext starts the gap text stairs at the right step
+if(location.hash==="#zeiten") gramHome(); else if(location.hash==="#lueckentext") tgStart();
+</script>
+
+</body>
+</html>

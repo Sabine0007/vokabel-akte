@@ -1,0 +1,432 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Konrads Deutsch-Akte</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Special+Elite&display=swap">
+<style>
+/* Layout: wie die Vokabel-Akte – eine schmale Akten-Spalte fürs Handy, Textmarker-Labels, roter Stempel */
+:root{
+  --bg:#F3EFE8; --card:#FFFFFF; --ink:#26201B; --muted:#6B625A; --line:#E0D8CC;
+  --acc:#8E2A2A; --acc-soft:#F6E4E1; --hi:#FFD23F; --hi-ink:#26201B;
+  --ok:#1F8A5B; --ok-soft:#DDF3E8; --bad:#C8402F; --bad-soft:#FBE3DF;
+  --e:#3B6FB6; --h:#1F8A5B; --s:#B5651D;
+  --f-display:"Special Elite","Courier New",ui-monospace,monospace;
+  --f-body:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#1A1714; --card:#262119; --ink:#F0EAE2; --muted:#B0A598; --line:#3A3229;
+  --acc:#FF8A7A; --acc-soft:#4A2622; --ok:#4CC38A; --ok-soft:#163A2B; --bad:#FF7A66; --bad-soft:#4A221C;
+  --e:#8DB4F0; --h:#6FD3A0; --s:#F0B070; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#1A1714; --card:#262119; --ink:#F0EAE2; --muted:#B0A598; --line:#3A3229;
+  --acc:#FF8A7A; --acc-soft:#4A2622; --ok:#4CC38A; --ok-soft:#163A2B; --bad:#FF7A66; --bad-soft:#4A221C;
+  --e:#8DB4F0; --h:#6FD3A0; --s:#F0B070; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.45;padding:16px 16px 40px}
+.wrap{max-width:580px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+h1,h2,h3{margin:0;text-wrap:balance}
+h2{font-family:var(--f-display);font-weight:400;font-size:22px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px}
+.muted{color:var(--muted)}.small{font-size:14px}
+.mark{background:var(--hi);color:var(--hi-ink);padding:.05em .4em;border-radius:6px;display:inline-block;transform:rotate(-1.5deg)}
+.eyebrow{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700}
+button{font:inherit;cursor:pointer;border:2px solid var(--line);border-radius:12px;padding:13px 14px;font-weight:700;color:var(--ink);background:var(--bg);touch-action:manipulation}
+button:focus-visible,input:focus-visible{outline:3px solid var(--hi);outline-offset:2px}
+.btn-main{background:var(--acc);border-color:var(--acc);color:var(--card);font-size:18px;width:100%}
+.link{background:none;border:0;padding:6px 0;color:var(--muted);font-weight:400;text-decoration:underline;font-size:15px}
+.tnum{font-variant-numeric:tabular-nums}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.top h1{font-family:var(--f-display);font-weight:400;font-size:30px;line-height:1.1}
+.sec{font-family:var(--f-display);font-size:18px;margin-top:6px}
+.station{display:flex;align-items:center;gap:12px;text-align:left;width:100%;background:var(--card);padding:13px 14px}
+.station .ico{width:44px;height:44px;border-radius:12px;flex:none;display:grid;place-items:center;font-size:22px;background:var(--bg)}
+.station b{display:block;font-size:17px}
+.station .s{display:block;font-size:14px;color:var(--muted);font-weight:400}
+.station .st{margin-left:auto;font-size:13px;color:var(--muted);white-space:nowrap}
+.stations{display:grid;gap:10px}
+/* Barometer */
+.baro{display:grid;gap:7px}
+.baro .r{display:grid;grid-template-columns:128px 1fr 44px;gap:8px;align-items:center;font-size:14px}
+.bar{height:10px;border-radius:99px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%}
+/* Quiz */
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.qbar{height:8px;border-radius:99px;background:var(--line);overflow:hidden}
+.qbar i{display:block;height:100%;background:var(--acc);transition:width .3s}
+.task{font-size:15px;color:var(--muted);text-align:center}
+.sent{font-size:23px;line-height:1.35;text-align:center;padding:18px 10px;text-wrap:balance}
+.sent b{background:var(--hi);color:var(--hi-ink);padding:0 .2em;border-radius:4px}
+.sent.wrong{text-decoration:wavy underline var(--bad);text-underline-offset:6px}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.opts.one{grid-template-columns:1fr}
+.opts button{min-height:54px;font-size:16px}
+.opts.one button{text-align:left}
+.opts button.ok{background:var(--ok-soft);border-color:var(--ok)}
+.opts button.bad{background:var(--bad-soft);border-color:var(--bad)}
+.opts button:disabled{cursor:default}
+.answer{width:100%;font:inherit;font-size:20px;padding:13px;border-radius:12px;border:2px solid var(--line);background:var(--card);color:var(--ink)}
+.answer.ok{border-color:var(--ok);background:var(--ok-soft)}
+.answer.bad{border-color:var(--bad);background:var(--bad-soft)}
+.fb{border-radius:12px;padding:12px 14px;font-size:16px;display:flex;flex-direction:column;gap:6px}
+.fb.ok{background:var(--ok-soft)}.fb.bad{background:var(--bad-soft)}
+.fb .rule{font-size:15px}
+/* Spickzettel */
+table.t{width:100%;border-collapse:collapse;font-size:15px}
+table.t th{text-align:left;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:4px}
+table.t td{padding:8px 4px;border-top:1px solid var(--line);vertical-align:top}
+table.t td:first-child{font-weight:700;white-space:nowrap}
+.trick{background:var(--hi);color:var(--hi-ink);border-radius:12px;padding:12px 14px;font-size:15px}
+.trick b{display:block;margin-bottom:4px}
+.part{border-left:5px solid var(--e);padding:4px 0 4px 12px;margin:10px 0}
+.part.h{border-color:var(--h)}.part.s{border-color:var(--s)}
+.part .lab{font-size:12px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:var(--e)}
+.part.h .lab{color:var(--h)}.part.s .lab{color:var(--s)}
+.ex{background:var(--bg);border-radius:6px;padding:0 .25em}
+.pill{display:inline-block;padding:3px 10px;border-radius:99px;background:var(--bg);border:1px solid var(--line);font-size:14px;margin:3px 4px 3px 0}
+ul.check{margin:6px 0 0;padding-left:20px}
+ul.check li{margin:3px 0}
+/* Ergebnis */
+.result{text-align:center;display:flex;flex-direction:column;gap:10px;align-items:center}
+.big{font-family:var(--f-display);font-size:52px;line-height:1}
+.ampel{display:flex;gap:8px}.ampel i{width:24px;height:24px;border-radius:50%;background:var(--line)}
+.ampel i.r.on{background:#E04A3A}.ampel i.y.on{background:#F2B92B}.ampel i.g.on{background:var(--ok)}
+.stamp{display:inline-block;border:3px solid var(--acc);color:var(--acc);border-radius:8px;padding:4px 14px;font-family:var(--f-display);font-size:22px;transform:rotate(-4deg)}
+table.rev{width:100%;border-collapse:collapse;font-size:14px;text-align:left}
+table.rev td{padding:6px 4px;border-top:1px solid var(--line);vertical-align:top}
+</style>
+</head><body>
+<a href="./" style="display:block;max-width:580px;margin:0 auto 10px;font:700 15px/1.4 'Atkinson Hyperlegible',system-ui,sans-serif;color:inherit;opacity:.7;text-decoration:none">← Englisch / Deutsch wählen</a>
+
+
+<div class="wrap" id="app"></div>
+
+<script>
+(function(){
+var KEY="konrad-deutsch-akte-v1";
+var S={tz:{},done:{},best:null};
+try{var raw=localStorage.getItem(KEY);if(raw){var o=JSON.parse(raw);for(var k in o)S[k]=o[k];}}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+
+/* ================= Daten: Zeitformen ================= */
+var TN=["Präsens","Präteritum","Perfekt","Plusquamperfekt","Futur I","Futur II"];
+var AUX={
+ haben:{pr:["habe","hast","hat","haben","habt","haben"],pt:["hatte","hattest","hatte","hatten","hattet","hatten"]},
+ sein:{pr:["bin","bist","ist","sind","seid","sind"],pt:["war","warst","war","waren","wart","waren"]},
+ werden:{pr:["werde","wirst","wird","werden","werdet","werden"]}};
+// [Subjekt, Person 0-5, Rest, Infinitiv, Präsens, Präteritum, Partizip, Hilfsverb h/s]
+var V=[
+ ["Er",2,"einen Brief","schreiben","schreibt","schrieb","geschrieben","h"],
+ ["Wir",3,"im Garten","spielen","spielen","spielten","gespielt","h"],
+ ["Sie",2,"das Fenster","öffnen","öffnet","öffnete","geöffnet","h"],
+ ["Ich",0,"meine Hausübung","machen","mache","machte","gemacht","h"],
+ ["Sie",5,"schnell nach Hause","gehen","gehen","gingen","gegangen","s"],
+ ["Er",2,"zur Schule","laufen","läuft","lief","gelaufen","s"],
+ ["Du",1,"für die Schularbeit","lernen","lernst","lerntest","gelernt","h"],
+ ["Ich",0,"mit dem Rad in die Stadt","fahren","fahre","fuhr","gefahren","s"],
+ ["Sie",2,"das Buch","lesen","liest","las","gelesen","h"],
+ ["Wir",3,"eine Pizza","essen","essen","aßen","gegessen","h"],
+ ["Ihr",4,"einen Film","sehen","seht","saht","gesehen","h"],
+ ["Der Hund",2,"über den Zaun","springen","springt","sprang","gesprungen","s"],
+ ["Lena",2,"ihrer Freundin","helfen","hilft","half","geholfen","h"],
+ ["Ich",0,"den Schlüssel","finden","finde","fand","gefunden","h"],
+ ["Die Kinder",5,"laut","lachen","lachen","lachten","gelacht","h"],
+ ["Du",1,"zu spät","kommen","kommst","kamst","gekommen","s"],
+ ["Max",2,"ein Tor","schießen","schießt","schoss","geschossen","h"],
+ ["Wir",3,"im See","schwimmen","schwimmen","schwammen","geschwommen","s"],
+ ["Ich",0,"ein Lied","singen","singe","sang","gesungen","h"],
+ ["Er",2,"die Wahrheit","sagen","sagt","sagte","gesagt","h"],
+ ["Sie",5,"am Bahnhof","warten","warten","warteten","gewartet","h"],
+ ["Tom",2,"den Bus","nehmen","nimmt","nahm","genommen","h"],
+ ["Ihr",4,"nach Wien","reisen","reist","reistet","gereist","s"],
+ ["Die Katze",2,"auf dem Sofa","schlafen","schläft","schlief","geschlafen","h"],
+ ["Du",1,"ein Geschenk","bekommen","bekommst","bekamst","bekommen","h"],
+ ["Wir",3,"zu Hause","bleiben","bleiben","blieben","geblieben","s"],
+ ["Er",2,"seinen Freund","treffen","trifft","traf","getroffen","h"],
+ ["Sie",2,"ein Bild","malen","malt","malte","gemalt","h"],
+ ["Ich",0,"das Spiel","gewinnen","gewinne","gewann","gewonnen","h"]
+];
+function vo(v){return {sub:v[0],p:v[1],rest:v[2],inf:v[3],pr:v[4],pt:v[5],pp:v[6],aux:v[7]==="s"?"sein":"haben"};}
+// Verbteile für eine Zeitform: [finites Verb, Ende]
+function parts(x,t){
+  var A=AUX[x.aux],W=AUX.werden.pr[x.p];
+  switch(t){case 0:return [x.pr,""];case 1:return [x.pt,""];case 2:return [A.pr[x.p],x.pp];
+    case 3:return [A.pt[x.p],x.pp];case 4:return [W,x.inf];case 5:return [W,x.pp+" "+x.aux];}
+}
+function sentence(x,t,html){var p=parts(x,t);var f=html?"<b>"+p[0]+"</b>":p[0],e=p[1]?(html?" <b>"+p[1]+"</b>":" "+p[1]):"";return x.sub+" "+f+" "+x.rest+e+".";}
+function rule(x,t){
+  var p=parts(x,t),a=x.aux;
+  return [
+   "„"+p[0]+"“ ist nur ein Wort und Gegenwart → Präsens.",
+   "„"+p[0]+"“ ist nur ein Wort, aber Vergangenheit → Präteritum.",
+   "„"+p[0]+"“ ("+a+" in der Gegenwart) + „"+x.pp+"“ → Perfekt.",
+   "„"+p[0]+"“ ("+a+" in der Vergangenheit) + „"+x.pp+"“ → Plusquamperfekt.",
+   "„"+p[0]+"“ (Form von werden) + Grundform „"+x.inf+"“ → Futur I.",
+   "„"+p[0]+"“ (Form von werden) + „"+x.pp+"“ + „"+x.aux+"“ → Futur II."][t];
+}
+var TRICK="Schau aufs Hilfsverb: kein Hilfsverb → Präsens oder Präteritum · habe/bin → Perfekt · hatte/war → Plusquamperfekt · werde + 1 Verb → Futur I · werde + 2 Verben → Futur II.";
+
+/* ================= Daten: Charakterisierung ================= */
+var EIG=[
+ ["Sie teilt ihr Pausenbrot mit allen.","großzügig"],
+ ["Er hilft seiner Nachbarin, die schweren Einkäufe zu tragen.","hilfsbereit"],
+ ["Er macht jeden Tag ohne Murren seine Hausübung.","fleißig"],
+ ["Sie traut sich, vor der ganzen Schule zu singen.","mutig"],
+ ["Er gibt sofort zu, dass er die Vase zerbrochen hat.","ehrlich"],
+ ["Sie wartet ruhig, obwohl der Bus schon 20 Minuten zu spät ist.","geduldig"],
+ ["Er wird rot und sagt kaum etwas, wenn ihn jemand anspricht.","schüchtern"],
+ ["Sie will immer genau wissen, was hinter der verschlossenen Tür ist.","neugierig"],
+ ["Er prahlt ständig mit seinem neuen Handy.","angeberisch"],
+ ["Sie kommt immer pünktlich und hält ihre Versprechen.","zuverlässig"],
+ ["Er gibt nie etwas von seinen Süßigkeiten ab.","geizig"],
+ ["Sie lacht viel und hat fast immer gute Laune.","fröhlich"],
+ ["Er klettert ohne Sicherung auf den höchsten Baum.","leichtsinnig"],
+ ["Sie sagt immer „bitte“ und „danke“ und hält anderen die Tür auf.","höflich"],
+ ["Er bleibt lieber auf dem Sofa liegen, statt beim Aufräumen zu helfen.","faul"],
+ ["Sie tröstet ihre Freundin, als diese traurig ist.","einfühlsam"],
+ ["Er macht nur, was er will, auch wenn alle anderen etwas anderes sagen.","stur"],
+ ["Ihr Zimmer ist immer aufgeräumt, jedes Ding hat seinen Platz.","ordentlich"],
+ ["Er schreit sofort los, wenn etwas nicht klappt.","jähzornig"],
+ ["Er schaut dreimal nach links und rechts, bevor er über die Straße geht.","vorsichtig"],
+ ["Sie lügt, damit sie keinen Ärger bekommt.","unehrlich"],
+ ["Er trainiert jeden Tag, weil er unbedingt der Beste sein will.","ehrgeizig"],
+ ["Sie spricht sofort mit dem neuen Mädchen und lädt es zum Spielen ein.","kontaktfreudig"],
+ ["Er lacht andere aus, wenn ihnen ein Fehler passiert.","gemein"],
+ ["Sie redet nie über ihre Erfolge, obwohl sie die Beste der Klasse ist.","bescheiden"]
+];
+var GEG=[["mutig","feige"],["fleißig","faul"],["ehrlich","unehrlich"],["geduldig","ungeduldig"],["höflich","unhöflich"],["schüchtern","selbstbewusst"],["ordentlich","schlampig"],["großzügig","geizig"],["fröhlich","traurig"],["zuverlässig","unzuverlässig"],["vorsichtig","leichtsinnig"],["bescheiden","angeberisch"],["freundlich","unfreundlich"],["hilfsbereit","egoistisch"],["sparsam","verschwenderisch"],["ruhig","aufbrausend"],["neugierig","gleichgültig"],["tolerant","intolerant"]];
+var TEIL=["Einleitung","Hauptteil","Schluss","Gehört nicht hinein"];
+var AUFBAU=[
+ ["In der Geschichte „Das Geheimnis im Schuppen“ geht es um den zwölfjährigen Ben.",0,"Einleitung: Wer ist die Person, woher kommt sie (Buch, Geschichte)?"],
+ ["Lisa ist 13 Jahre alt und wohnt mit ihrer Mutter in einer kleinen Stadt.",0,"Einleitung: Name, Alter, wo die Person lebt."],
+ ["Die Hauptfigur des Buches ist Mia, die Tochter eines Bäckers.",0,"Einleitung: Wer ist die Hauptfigur?"],
+ ["Ben hat kurze braune Haare und trägt meistens eine blaue Kappe.",1,"Hauptteil: Aussehen (äußere Merkmale)."],
+ ["Lisa ist sehr hilfsbereit. Das sieht man daran, dass sie ihrem Bruder jeden Tag bei der Hausübung hilft.",1,"Hauptteil: Eigenschaft + Beispiel aus der Geschichte. Genau so soll es sein!"],
+ ["Mia ist mutig, denn sie geht ganz allein in den dunklen Keller.",1,"Hauptteil: Eigenschaft mit Begründung."],
+ ["Manchmal ist Ben aber auch ungeduldig, zum Beispiel, wenn er auf seine Freunde warten muss.",1,"Hauptteil: auch schwächere Seiten gehören dazu."],
+ ["Sie ist eher klein und hat viele Sommersprossen.",1,"Hauptteil: Aussehen."],
+ ["Ich finde Ben sympathisch, weil er immer zu seinen Freunden hält.",2,"Schluss: deine eigene Meinung mit Begründung."],
+ ["Mir gefällt an Lisa besonders, dass sie nie aufgibt.",2,"Schluss: was dir an der Person gefällt."],
+ ["Ich würde gerne mit Mia befreundet sein, denn man kann sich auf sie verlassen.",2,"Schluss: deine Meinung."],
+ ["Insgesamt wirkt Ben auf mich wie ein echter Freund.",2,"Schluss: Zusammenfassung, wie die Person auf dich wirkt."],
+ ["Am nächsten Tag ging Lisa zur Schule und traf dort ihre Freundin.",3,"Das ist Nacherzählen der Geschichte (und im Präteritum). In der Charakterisierung beschreibst du die Person – im Präsens."],
+ ["Ben ist doof.",3,"Unsachlich und ohne Begründung. Besser: „Ben ist manchmal unfreundlich, zum Beispiel …“"],
+ ["Mia war sehr mutig.",3,"Falsche Zeit! Eine Charakterisierung schreibst du im Präsens: „Mia ist sehr mutig.“"]
+];
+var AUSSEN=[["hat blaue Augen",0],["trägt eine Brille",0],["ist groß und schlank",0],["hat lockige rote Haare",0],["hat eine Narbe am Kinn",0],["trägt immer eine Jeansjacke",0],
+ ["ist hilfsbereit",1],["ist neugierig",1],["ist stur",1],["ist fröhlich",1],["ist zuverlässig",1],["ist schüchtern",1]];
+
+/* ================= Helfer ================= */
+var app=document.getElementById("app");
+function h(tag,a,kids){var e=document.createElement(tag);if(a)for(var k in a){if(k==="class")e.className=a[k];else if(k==="text")e.textContent=a[k];else if(k==="html")e.innerHTML=a[k];else if(k.slice(0,2)==="on")e.addEventListener(k.slice(2),a[k]);else e.setAttribute(k,a[k]);}
+ (kids||[]).forEach(function(c){if(c==null)return;e.appendChild(typeof c==="string"?document.createTextNode(c):c);});return e;}
+function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+function rnd(a){return a[Math.floor(Math.random()*a.length)];}
+function rndV(){return vo(rnd(V));}
+var PRAISE=["Richtig!","Genau!","Stark!","Sauber!","Bravo!","Volltreffer!"];
+function stat(t,ok){var s=S.tz[t]||[0,0];s[1]++;if(ok)s[0]++;S.tz[t]=s;}
+function cleanS(s){return (s||"").replace(/[.,!?„“"']/g," ").replace(/\s+/g," ").trim();}
+function top(){window.scrollTo(0,0);}
+
+/* ================= Fragen-Typen =================
+   Jede Frage: {task, html|text, kind:"opt"|"write", opts, ans, why, tense, wrong}
+*/
+function qBestimmen(){var x=rndV(),t=Math.floor(Math.random()*6);
+  return {task:"Bestimme die Zeitform.",html:sentence(x,t,true),kind:"opt",opts:TN.slice(),ans:TN[t],why:rule(x,t),tense:t};}
+function qUmformen(write){var x=rndV(),from=Math.floor(Math.random()*6),to;do{to=Math.floor(Math.random()*6);}while(to===from);
+  var task="Setze ins <span class=\"mark\">"+TN[to]+"</span>",ans=sentence(x,to);
+  var q={task:task,html:sentence(x,from,false),tense:to,why:rule(x,to),ans:ans};
+  if(write){q.kind="write";}else{var others=shuffle([0,1,2,3,4,5].filter(function(i){return i!==to;})).slice(0,3);
+    q.kind="opt";q.one=true;q.opts=shuffle([ans].concat(others.map(function(i){return sentence(x,i);})));}
+  return q;}
+function weakPt(x){var st=x.inf.replace(/en$/,"").replace(/n$/,"");var end=["te","test","te","ten","tet","ten"][x.p];return st+end;}
+function qFehler(){
+  var x=rndV(),A=AUX[x.aux],kind=Math.floor(Math.random()*6),wrong,right,t,why;
+  var other=x.aux==="sein"?AUX.haben:AUX.sein;
+  if(kind===0){wrong=x.sub+" "+other.pr[x.p]+" "+x.rest+" "+x.pp+".";right=sentence(x,2);t=2;why="Bei „"+x.inf+"“ nimmt man „"+x.aux+"“: "+right;}
+  else if(kind===1){wrong=x.sub+" "+AUX.werden.pr[x.p]+" "+x.rest+" "+x.pp+".";right=sentence(x,4);t=4;why="Futur I = werden + Grundform („"+x.inf+"“), nicht das Partizip."}
+  else if(kind===2){wrong=x.sub+" "+A.pr[x.p]+" "+x.rest+" "+x.pp+" "+(x.aux==="sein"?"gewesen":"gehabt")+".";right=sentence(x,3);t=3;why="Plusquamperfekt = "+(x.aux==="sein"?"war":"hatte")+" + Partizip. „"+(x.aux==="sein"?"ist … gewesen":"hat … gehabt")+"“ gibt es nicht."}
+  else if(kind===3&&weakPt(x)!==x.pt){wrong=x.sub+" "+weakPt(x)+" "+x.rest+".";right=sentence(x,1);t=1;why="„"+x.inf+"“ ist unregelmäßig: Präteritum = „"+x.pt+"“."}
+  else if(kind===4){wrong=x.sub+" "+AUX.werden.pr[x.p]+" "+x.rest+" "+x.pp+" "+(x.aux==="sein"?"haben":"sein")+".";right=sentence(x,5);t=5;why="Futur II von „"+x.inf+"“ = werden + "+x.pp+" + "+x.aux+"."}
+  else{t=Math.floor(Math.random()*6);wrong=null;right=sentence(x,t);why="Der Satz ist richtig gebildet. "+rule(x,t);}
+  var shown=wrong||right;
+  var OKTXT="✓ Der Satz ist schon richtig.";
+  var opts,ans;
+  if(wrong){var alt=sentence(x,(t+1+Math.floor(Math.random()*5))%6);opts=shuffle([right,OKTXT,alt]);ans=right;}
+  else{var a1=x.sub+" "+other.pr[x.p]+" "+x.rest+" "+x.pp+".",a2=x.sub+" "+AUX.werden.pr[x.p]+" "+x.rest+" "+x.pp+".";opts=shuffle([OKTXT,t===2?a2:a1,t===4?a1:a2]);ans=OKTXT;}
+  return {task:"Erkenne die Zeitform und verbessere den Satz, falls er falsch ist.",text:"„"+shown+"“",kind:"two",tense:t,opts1:TN.slice(),ans1:TN[t],opts:opts,ans:ans,why:why,wrongSent:!!wrong};
+}
+function qNamen(){var x=rndV(),t=Math.floor(Math.random()*6);
+  return {task:"Wie heißt diese Zeitform? <span class=\"small\">(richtig schreiben!)</span>",html:sentence(x,t,true),kind:"name",ans:TN[t],tense:t,why:["Prä-sens (mit ä)","Prä-teri-tum (mit ä, endet auf -um)","Per-fekt (mit kt)","Plus-quam-per-fekt (lateinisch: „mehr als vollendet“)","Fu-tur (ohne e!) + I","Fu-tur (ohne e!) + II"][t]};}
+function qHabenSein(){var x=rndV(),pp=x.pp;
+  return {task:"haben oder sein? Setze ein (Perfekt).",text:x.sub+" ___ "+x.rest+" "+pp+".",kind:"opt",opts:[AUX.haben.pr[x.p],AUX.sein.pr[x.p]],ans:AUX[x.aux].pr[x.p],why:x.aux==="sein"?"Bewegung oder Veränderung (gehen, fahren, laufen, kommen, schwimmen …) und „bleiben“ → sein.":"Die meisten Verben bilden das Perfekt mit haben.",tense:2};}
+var EIGN=EIG.map(function(e){return e[1];});
+function qEig(){var e=rnd(EIG);var o=shuffle(EIGN.filter(function(x){return x!==e[1];})).slice(0,3);
+  return {task:"Welche Eigenschaft zeigt dieses Verhalten?",text:e[0],kind:"opt",opts:shuffle([e[1]].concat(o)),ans:e[1],why:"Im Hauptteil so verwenden: „… ist "+e[1]+". Das sieht man daran, dass …“"};}
+function qGeg(){var g=rnd(GEG),rev=Math.random()<.5,w=rev?g[1]:g[0],a=rev?g[0]:g[1];
+  var pool=[];GEG.forEach(function(p){if(p!==g){pool.push(p[0]);pool.push(p[1]);}});
+  return {task:"Was ist das Gegenteil?",text:w,kind:"opt",opts:shuffle([a].concat(shuffle(pool).slice(0,3))),ans:a,why:w+" ↔ "+a};}
+function qAufbau(){var a=rnd(AUFBAU);return {task:"Wohin gehört dieser Satz in der Charakterisierung?",text:"„"+a[0]+"“",kind:"opt",opts:TEIL.slice(),ans:TEIL[a[1]],why:a[2]};}
+function qAussen(){var a=rnd(AUSSEN);return {task:"Äußeres Merkmal oder Charaktereigenschaft?",text:"Die Person "+a[0]+".",kind:"opt",opts:["Aussehen (außen)","Eigenschaft (innen)"],ans:a[1]?"Eigenschaft (innen)":"Aussehen (außen)",why:a[1]?"Charaktereigenschaften beschreiben, wie jemand ist und sich verhält – immer mit Beispiel begründen.":"Das sieht man von außen. Aussehen kommt im Hauptteil zuerst und eher kurz."};}
+
+var MODES={
+ best:{t:"Zeitform bestimmen",ico:"🔎",s:"Wie Aufgabe 1 im Test",n:8,f:qBestimmen},
+ umf:{t:"Umformen · Knöpfe",ico:"🔁",s:"Wie Aufgabe 2 – erst auswählen",n:6,f:function(){return qUmformen(false);}},
+ umfw:{t:"Umformen · Schreiben",ico:"✍️",s:"Wie Aufgabe 2 – selber schreiben",n:5,f:function(){return qUmformen(true);}},
+ fehl:{t:"Fehler finden",ico:"🩹",s:"Wie Aufgabe 3 – erkennen + verbessern",n:6,f:qFehler},
+ hs:{t:"haben oder sein?",ico:"⚖️",s:"„Ich bin gegangen“, nicht „habe“",n:8,f:qHabenSein},
+ name:{t:"Zeitformen richtig schreiben",ico:"🔤",s:"Plusquamperfekt, Präteritum, Futur …",n:6,f:qNamen},
+ eig:{t:"Eigenschaften erkennen",ico:"🧠",s:"Verhalten → Eigenschaft",n:8,f:qEig},
+ geg:{t:"Gegenteile",ico:"↔️",s:"mutig ↔ feige …",n:8,f:qGeg},
+ auf:{t:"Aufbau: Wohin gehört der Satz?",ico:"🧱",s:"Einleitung · Hauptteil · Schluss",n:8,f:qAufbau},
+ aus:{t:"Außen oder innen?",ico:"👀",s:"Aussehen oder Charakter",n:8,f:qAussen}
+};
+
+/* ================= Startseite ================= */
+function home(){
+  app.textContent="";top();
+  app.appendChild(h("div",{"class":"top"},[h("div",{"class":"eyebrow",text:"Deutsch · 1. Schularbeit"}),h("h1",{html:"Konrads <span class=\"mark\">Deutsch</span>-Akte"})]));
+  // Barometer
+  var b=h("div",{"class":"baro"});
+  TN.forEach(function(n,i){var s=S.tz[i]||[0,0],p=s[1]?Math.round(s[0]/s[1]*100):0,col=!s[1]?"var(--line)":p>=80?"var(--ok)":p>=50?"#F2B92B":"var(--bad)";
+    b.appendChild(h("div",{"class":"r"},[h("span",{text:n}),h("div",{"class":"bar"},[h("i",{style:"width:"+(s[1]?Math.max(p,6):0)+"%;background:"+col})]),h("span",{"class":"tnum muted",style:"text-align:right",text:s[1]?p+" %":"–"})]));});
+  app.appendChild(h("div",{"class":"card"},[h("div",{"class":"row",style:"justify-content:space-between;margin-bottom:10px"},[h("b",{text:"Zeitformen-Barometer"}),S.best!=null?h("span",{"class":"small muted",text:"Beste Probe: "+S.best+" %"}):null]),b,
+    h("div",{"class":"small muted",style:"margin-top:8px",text:"Rot = da noch üben. Grün = sitzt."})]));
+  app.appendChild(h("button",{"class":"btn-main",text:"📝 Probe-Schularbeit starten",onclick:probe}));
+  function st(key){var m=MODES[key];var d=S.done[key]||0;return h("button",{"class":"station",onclick:function(){round(key);}},[h("span",{"class":"ico",text:m.ico}),h("span",null,[h("b",{text:m.t}),h("span",{"class":"s",text:m.s})]),h("span",{"class":"st tnum",text:d?d+"× ✓":""})]);}
+  app.appendChild(h("div",{"class":"sec",text:"Teil 1 · Zeitformen"}));
+  var g1=h("div",{"class":"stations"});
+  g1.appendChild(h("button",{"class":"station",onclick:cheatZ},[h("span",{"class":"ico",text:"📋"}),h("span",null,[h("b",{text:"Spickzettel Zeitformen"}),h("span",{"class":"s",text:"Alle 6 Zeiten + der Hilfsverb-Trick"})])]));
+  ["best","umf","umfw","fehl","hs","name"].forEach(function(k){g1.appendChild(st(k));});app.appendChild(g1);
+  app.appendChild(h("div",{"class":"sec",text:"Teil 2 · Charakterisierung"}));
+  var g2=h("div",{"class":"stations"});
+  g2.appendChild(h("button",{"class":"station",onclick:cheatC},[h("span",{"class":"ico",text:"📋"}),h("span",null,[h("b",{text:"So schreibst du eine Charakterisierung"}),h("span",{"class":"s",text:"Aufbau, Regeln, Satzanfänge, Muster"})])]));
+  ["auf","aus","eig","geg"].forEach(function(k){g2.appendChild(st(k));});app.appendChild(g2);
+  app.appendChild(h("div",{"class":"small muted",style:"text-align:center",text:"Fortschritt bleibt auf diesem Handy gespeichert."}));
+}
+function back(title,right){return h("div",{"class":"qhead"},[h("button",{"class":"link",text:"← Zurück",onclick:home}),h("b",{text:title}),right||h("span")]);}
+
+/* ================= Spickzettel ================= */
+function cheatZ(){
+  app.textContent="";top();app.appendChild(back("Spickzettel"));
+  var t=h("table",{"class":"t"},[h("tr",null,[h("th",{text:"Zeitform"}),h("th",{text:"Bauplan"}),h("th",{text:"Beispiel"})])]);
+  var x=vo(V[1]);var x2=vo(V[4]);
+  var plan=["1 Wort, jetzt","1 Wort, früher","haben/sein (jetzt) + Partizip","hatte/war + Partizip","werden + Grundform","werden + Partizip + haben/sein"];
+  TN.forEach(function(n,i){t.appendChild(h("tr",null,[h("td",{text:n}),h("td",{text:plan[i]}),h("td",{html:sentence(x,i,true).replace(/<b>/g,"<b class=\"ex\">")+"<br><span class=\"muted\">"+sentence(x2,i)+"</span>"})]));});
+  app.appendChild(h("div",{"class":"card"},[t]));
+  app.appendChild(h("div",{"class":"trick"},[h("b",{text:"Der Hilfsverb-Trick"}),TRICK]));
+  app.appendChild(h("div",{"class":"card"},[h("h2",{text:"Die Fallen aus deinem Test"}),h("ul",{"class":"check",html:
+   "<li><b>„hat gelesen“ ist Perfekt</b>, nicht Präteritum. Präteritum ist nur 1 Wort: „las“.</li>"+
+   "<li><b>„war gelaufen“ ist Plusquamperfekt</b> (war/hatte = Vergangenheit).</li>"+
+   "<li><b>„gingen“ ist Präteritum</b> – 1 Wort, Vergangenheit.</li>"+
+   "<li><b>Futur I</b>: „wird lernen“ (1 Verb nach werden). <b>Futur II</b>: „wird erledigt haben“ (2 Verben).</li>"+
+   "<li><b>„Ich habe gegangen“</b> ist falsch → „Ich <b>bin</b> gegangen“ (Bewegung → sein).</li>"+
+   "<li><b>„Er ist gefahren gewesen“</b> ist falsch → „Er <b>war</b> gefahren“ (Plusquamperfekt).</li>"+
+   "<li><b>Präteritum von schreiben</b> = schrieb (nicht „schreibte“).</li>"})]));
+  app.appendChild(h("div",{"class":"card"},[h("h2",{text:"Richtig schreiben"}),h("div",{html:"<span class=\"pill\">Präsens</span><span class=\"pill\">Präteritum</span><span class=\"pill\">Perfekt</span><span class=\"pill\">Plusquamperfekt</span><span class=\"pill\">Futur I</span><span class=\"pill\">Futur II</span>"}),
+    h("div",{"class":"small muted",style:"margin-top:6px",text:"Prä- mit ä · Futur ohne e · Plus-quam-per-fekt in 4 Stücken."})]));
+}
+function cheatC(){
+  app.textContent="";top();app.appendChild(back("Charakterisierung"));
+  app.appendChild(h("div",{"class":"card"},[h("h2",{text:"Der Aufbau"}),
+   h("div",{"class":"part"},[h("div",{"class":"lab",text:"Einleitung"}),h("div",{text:"Wer? Name, Alter, woher (Buch, Geschichte, Autor), wo sie lebt, welche Rolle sie spielt."})]),
+   h("div",{"class":"part h"},[h("div",{"class":"lab",text:"Hauptteil"}),h("div",{html:"<b>1. Aussehen</b> (kurz): Größe, Haare, Kleidung …<br><b>2. Verhalten + Charaktereigenschaften</b>: jede Eigenschaft mit einem <b>Beispiel aus der Geschichte</b> begründen.<br><b>3.</b> Auch schwächere Seiten nennen."})]),
+   h("div",{"class":"part s"},[h("div",{"class":"lab",text:"Schluss"}),h("div",{text:"Deine eigene Meinung: Wie wirkt die Person auf dich? Würdest du sie gern kennen? Warum?"})])]));
+  app.appendChild(h("div",{"class":"trick"},[h("b",{text:"Die 4 goldenen Regeln"}),h("div",{html:"1. Immer im <b>Präsens</b> schreiben („Mia ist mutig“).<br>2. <b>Nicht nacherzählen</b> – beschreiben, wie die Person ist.<br>3. Jede Eigenschaft <b>mit Beispiel</b> begründen.<br>4. <b>Sachlich</b> bleiben, abwechslungsreiche Wörter verwenden."})]));
+  app.appendChild(h("div",{"class":"card"},[h("h2",{text:"Satzanfänge-Baukasten"}),h("div",{html:
+   ["In der Geschichte „…“ geht es um …","… ist … Jahre alt und …","Auffällig an … ist …","… ist sehr … Das sieht man daran, dass …","Ein Beispiel dafür ist, als …","Außerdem ist … ziemlich …","Manchmal ist … aber auch …","Ich finde …, weil …","Insgesamt wirkt … auf mich …"].map(function(s){return "<span class=\"pill\">"+s+"</span>";}).join("")})]));
+  app.appendChild(h("div",{"class":"card"},[h("h2",{text:"Muster: Lisa"}),
+   h("div",{"class":"part"},[h("div",{"class":"lab",text:"Einleitung"}),h("div",{text:"In der Geschichte „Die Mutprobe“ geht es um die 13-jährige Lisa. Sie wohnt mit ihrer Mutter und ihrem kleinen Bruder in einer kleinen Stadt und geht in die dritte Klasse Mittelschule."})]),
+   h("div",{"class":"part h"},[h("div",{"class":"lab",text:"Hauptteil"}),h("div",{html:"Lisa ist eher klein und hat lange, lockige Haare. Meistens trägt sie eine grüne Jacke.<br><br>Lisa ist sehr <b>hilfsbereit</b>. Das sieht man daran, dass sie ihrem Bruder jeden Tag bei der Hausübung hilft. Außerdem ist sie <b>mutig</b>: Als ein Mitschüler gemobbt wird, stellt sie sich vor ihn. Manchmal ist Lisa aber auch <b>ungeduldig</b>, zum Beispiel, wenn ihre Freundin zu spät kommt."})]),
+   h("div",{"class":"part s"},[h("div",{"class":"lab",text:"Schluss"}),h("div",{text:"Ich finde Lisa sympathisch, weil sie anderen hilft, auch wenn es schwierig ist. Ich würde gerne mit ihr befreundet sein."})])]));
+  app.appendChild(h("div",{"class":"card"},[h("h2",{text:"Checkliste vor dem Abgeben"}),h("ul",{"class":"check",html:"<li>Einleitung, Hauptteil, Schluss – mit Absätzen?</li><li>Alles im Präsens?</li><li>Mindestens 3 Eigenschaften – jede mit Beispiel?</li><li>Nicht die Geschichte nacherzählt?</li><li>Eigene Meinung im Schluss?</li><li>Nomen groß, Satzende mit Punkt?</li>"})]));
+}
+
+/* ================= Quiz-Motor ================= */
+function play(title,qs,isProbe,mode){
+  var i=0,pts=0,max=0,wrongs=[];
+  function show(){
+    var q=qs[i];app.textContent="";top();
+    app.appendChild(back(title,h("span",{"class":"small muted tnum",text:(i+1)+"/"+qs.length})));
+    app.appendChild(h("div",{"class":"qbar"},[h("i",{style:"width:"+Math.round(i/qs.length*100)+"%"})]));
+    var c=h("div",{"class":"card"});
+    c.appendChild(h("div",{"class":"task",html:q.task}));
+    var sn=h("div",{"class":"sent"});if(q.html)sn.innerHTML=q.html;else sn.textContent=q.text;c.appendChild(sn);
+    app.appendChild(c);
+    var area=h("div",{style:"display:flex;flex-direction:column;gap:10px"});app.appendChild(area);
+    var fb=h("div");app.appendChild(fb);
+    function opts(list,ans,one,cb){var box=h("div",{"class":"opts"+(one?" one":"")});
+      list.forEach(function(o){var b=h("button",{text:o,onclick:function(){[].forEach.call(box.children,function(x){x.disabled=true;if(x.textContent===ans)x.classList.add("ok");});if(o!==ans)b.classList.add("bad");cb(o===ans,o);}});box.appendChild(b);});
+      area.appendChild(box);}
+    if(q.kind==="opt"){max++;opts(q.opts,q.ans,q.one,function(ok,o){finish(ok,o);});}
+    if(q.kind==="two"){max+=2;var ok1;
+      opts(q.opts1,q.ans1,false,function(ok){ok1=ok;if(q.tense!=null)stat(q.tense,ok);if(ok)pts++;
+        area.appendChild(h("div",{"class":"task",style:"margin-top:4px",html:"<b>Und jetzt:</b> Welcher Satz ist richtig?"}));
+        opts(q.opts,q.ans,true,function(ok2,o){finish(ok2,o,true,ok1);});});}
+    if(q.kind==="write"||q.kind==="name"){max++;
+      var inp=h("input",{"class":"answer",type:"text",autocomplete:"off",autocapitalize:"sentences",spellcheck:"false",placeholder:q.kind==="name"?"Zeitform schreiben":"ganzen Satz schreiben"});
+      var go=h("button",{"class":"btn-main",text:"Prüfen",onclick:function(){if(go.disabled)return;var v=inp.value.trim();if(!v){inp.focus();return;}go.disabled=true;inp.disabled=true;
+        var ok,note="";
+        if(q.kind==="name"){var nv=v.replace(/\s+/g," ").replace(/futur 1$/i,"Futur I").replace(/futur 2$/i,"Futur II");ok=nv.toLowerCase()===q.ans.toLowerCase();}
+        else{var a=cleanS(v),b=cleanS(q.ans);ok=a===b;if(!ok&&a.toLowerCase()===b.toLowerCase()){ok=true;note="Achtung Groß-/Kleinschreibung!";}}
+        inp.classList.add(ok?"ok":"bad");finish(ok,v,false,null,note);}});
+      inp.addEventListener("keydown",function(e){if(e.key==="Enter")go.click();});
+      area.appendChild(inp);area.appendChild(go);setTimeout(function(){inp.focus();},60);}
+    function finish(ok,given,isTwo,ok1,note){
+      if(ok)pts++;
+      if(q.tense!=null&&!isTwo)stat(q.tense,ok);
+      save();
+      var all=isTwo?(ok&&ok1):ok;
+      if(!all)wrongs.push(q);
+      fb.textContent="";
+      var box=h("div",{"class":"fb "+(all?"ok":"bad")});
+      box.appendChild(h("b",{text:all?"✓ "+rnd(PRAISE):(isTwo&&ok?"Satz richtig – aber die Zeitform war: "+q.ans1:"Richtig wäre: "+(isTwo?q.ans:q.ans))}));
+      if(isTwo&&!ok1&&!ok)box.appendChild(h("div",{text:"Zeitform: "+q.ans1}));
+      if(note)box.appendChild(h("div",{"class":"small",text:note}));
+      if(q.kind==="write"&&!ok)box.appendChild(h("div",{"class":"small",text:"Du hast geschrieben: „"+given+"“"}));
+      if(q.kind==="name"&&!ok)box.appendChild(h("div",{"class":"small",text:"Du hast geschrieben: „"+given+"“ – richtig: "+q.ans}));
+      if(q.why)box.appendChild(h("div",{"class":"rule",text:"💡 "+q.why}));
+      if(!all&&q.tense!=null&&(q.kind==="two"||(q.kind==="opt"&&q.opts.length===6)))box.appendChild(h("div",{"class":"small muted",text:TRICK}));
+      fb.appendChild(box);
+      if(!all&&!isProbe&&!q.again){var c2=Object.assign({},q,{again:true});qs.push(c2);}
+      var nx=h("button",{"class":"btn-main",style:"margin-top:10px",text:i+1<qs.length?"Weiter →":"Fertig",onclick:function(){i++;i<qs.length?show():end();}});
+      fb.appendChild(nx);setTimeout(function(){fb.scrollIntoView({behavior:"smooth",block:"nearest"});},30);
+    }
+  }
+  function end(){
+    app.textContent="";top();app.appendChild(back(title));
+    var r=h("div",{"class":"card result"});
+    var pc=max?Math.round(pts/max*100):0;
+    if(isProbe){if(S.best==null||pc>S.best)S.best=pc;}
+    else S.done[mode]=(S.done[mode]||0)+1;
+    save();
+    var lv=pc>=80?"g":pc>=55?"y":"r";
+    r.appendChild(h("div",{"class":"big tnum",text:isProbe?pts+" / "+max:pc+" %"}));
+    r.appendChild(h("div",{"class":"ampel"},[h("i",{"class":"r"+(lv==="r"?" on":"")}),h("i",{"class":"y"+(lv==="y"?" on":"")}),h("i",{"class":"g"+(lv==="g"?" on":"")})]));
+    r.appendChild(h("div",{text:lv==="g"?"Stark! Das sitzt.":lv==="y"?"Schon gut – die Fehler unten nochmal anschauen.":"Spickzettel lesen und die Stationen nochmal üben."}));
+    if(pc===100)r.appendChild(h("span",{"class":"stamp",text:"Fall gelöst"}));
+    if(isProbe&&wrongs.length){var t=h("table",{"class":"rev"});wrongs.forEach(function(q){t.appendChild(h("tr",null,[h("td",{text:(q.text||q.html.replace(/<[^>]+>/g,""))}),h("td",{text:q.kind==="two"?q.ans1+" · "+q.ans:q.ans})]));});
+      r.appendChild(h("div",{style:"width:100%;text-align:left"},[h("b",{text:"Nochmal anschauen:"}),t]));}
+    app.appendChild(r);
+    app.appendChild(h("button",{"class":"btn-main",text:isProbe?"Neue Probe-Schularbeit":"Noch eine Runde",onclick:function(){isProbe?probe():round(mode);}}));
+    app.appendChild(h("button",{text:"Zur Übersicht",onclick:home}));
+  }
+  show();
+}
+function round(key){var m=MODES[key],qs=[];for(var i=0;i<m.n;i++)qs.push(m.f());play(m.t,qs,false,key);}
+function probe(){
+  var qs=[];
+  for(var i=0;i<6;i++)qs.push(qBestimmen());
+  for(i=0;i<4;i++)qs.push(qUmformen(true));
+  for(i=0;i<4;i++)qs.push(qFehler());
+  qs.push(qNamen());
+  for(i=0;i<3;i++)qs.push(qAufbau());
+  for(i=0;i<3;i++)qs.push(qEig());
+  play("Probe-Schularbeit",qs,true,"probe");
+}
+home();
+})();
+</script>
+
+</body></html>

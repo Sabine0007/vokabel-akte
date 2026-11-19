@@ -1,0 +1,831 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Zeiten-Detektiv</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Special+Elite&display=swap">
+<style>
+/* Zeiten-Detektiv: gleiche Akten-Optik wie die Vokabel-Akte; jede Zeit hat eine feste Farbe, die überall gleich bleibt */
+:root{
+  --bg:#EDF0F7; --card:#FFFFFF; --ink:#1B2140; --muted:#5B6385; --line:#D5DAE8;
+  --blue:#2F45A8; --blue-soft:#E3E8FA; --hi:#FFD23F; --hi-ink:#1B2140;
+  --ok:#1F8A5B; --ok-soft:#DDF3E8; --bad:#C8402F; --bad-soft:#FBE3DF; --warn:#C98A00;
+  --t-ps:#1F8A5B; --t-pc:#D9480F; --t-fu:#7048E8; --t-pa:#C2255C; --t-pg:#0C8599; --t-pf:#946200; --t-gt:#AE3EC9;
+  --f-display:"Special Elite","Courier New",ui-monospace,monospace;
+  --f-body:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12162B; --card:#1C2242; --ink:#E9ECF7; --muted:#9AA3C7; --line:#2D3561;
+  --blue:#8EA2FF; --blue-soft:#253066; --ok:#4CC38A; --ok-soft:#163A2B; --bad:#FF7A66; --bad-soft:#4A221C; --warn:#F2C14E;
+  --t-ps:#4CC38A; --t-pc:#FF8C5A; --t-fu:#A98BFF; --t-pa:#FF6B9E; --t-pg:#3BC9DB; --t-pf:#E0B341; --t-gt:#E599F7; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12162B; --card:#1C2242; --ink:#E9ECF7; --muted:#9AA3C7; --line:#2D3561;
+  --blue:#8EA2FF; --blue-soft:#253066; --ok:#4CC38A; --ok-soft:#163A2B; --bad:#FF7A66; --bad-soft:#4A221C; --warn:#F2C14E;
+  --t-ps:#4CC38A; --t-pc:#FF8C5A; --t-fu:#A98BFF; --t-pa:#FF6B9E; --t-pg:#3BC9DB; --t-pf:#E0B341; --t-gt:#E599F7; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.45;padding:16px 16px 40px;padding-top:max(16px,env(safe-area-inset-top,0px))}
+.wrap{max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+h1,h2,h3{margin:0;text-wrap:balance}
+h2{font-family:var(--f-display);font-weight:400;font-size:26px;line-height:1.15}
+h3{font-size:19px}
+.eyebrow{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.mark{background:var(--hi);color:var(--hi-ink);padding:.05em .4em;border-radius:6px;display:inline-block;transform:rotate(-1.5deg)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;display:grid;gap:12px;min-width:0}
+.muted{color:var(--muted)}.small{font-size:14px}
+.tnum{font-variant-numeric:tabular-nums}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.row>*{min-width:0}
+button{font:inherit;cursor:pointer;border:0;border-radius:12px;padding:13px 16px;font-weight:700;color:inherit;background:var(--blue-soft);touch-action:manipulation}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(--hi);outline-offset:2px}
+button:disabled{cursor:default}
+.btn-main{background:var(--blue);color:var(--card);font-size:18px;width:100%}
+.btn-ghost{background:transparent;border:1px solid var(--line)}
+.back{background:none;border:1px solid var(--line);padding:9px 14px;font-size:15px;justify-self:start}
+.toplink{color:var(--muted);text-decoration:none;font-weight:700;font-size:15px}
+.top h1{font-family:var(--f-display);font-weight:400;font-size:32px;line-height:1.1;margin-top:4px}
+
+/* Zeiten-Farben */
+.c-ps{--c:var(--t-ps)}.c-pc{--c:var(--t-pc)}.c-fu{--c:var(--t-fu)}.c-pa{--c:var(--t-pa)}.c-pg{--c:var(--t-pg)}.c-pf{--c:var(--t-pf)}.c-gt{--c:var(--t-gt)}
+.tag{display:inline-block;border-radius:8px;padding:2px 9px;font-weight:700;font-size:14px;color:var(--card);background:var(--c)}
+.chip{display:inline-block;font-size:14px;padding:3px 10px;border-radius:99px;border:1.5px solid var(--c,var(--line));color:var(--ink);background:var(--card)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+
+/* Methoden-Kacheln */
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tile{display:grid;gap:4px;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;font-weight:400;align-content:start}
+.tile b{font-size:16px}
+.tile .ico{font-size:24px;line-height:1}
+.tile small{color:var(--muted);font-size:13px;line-height:1.3}
+.tile.wide{grid-column:1/-1}
+@media (max-width:360px){.tiles{grid-template-columns:1fr}}
+
+/* Barometer */
+.baro{display:grid;gap:8px}
+.baro-r{display:grid;grid-template-columns:minmax(0,1fr) 64px 66px;gap:10px;align-items:center;font-size:15px}
+.baro-r .bar{height:10px;border-radius:99px;background:var(--line);overflow:hidden}
+.baro-r .bar i{display:block;height:100%}
+.amp{font-size:13px;font-weight:700;text-align:right}
+.amp.g{color:var(--ok)}.amp.y{color:var(--warn)}.amp.r{color:var(--bad)}.amp.n{color:var(--muted);font-weight:400}
+
+/* Zeitstrahl */
+.tlsvg{width:100%;height:auto;display:block}
+.tlsvg text{fill:var(--muted);font:700 11px var(--f-body)}
+.tlsvg .now{fill:var(--ink)}
+.tlsvg g.t{transition:opacity .2s}
+.tlsvg[data-a] g.t{opacity:.12}
+.tlsvg[data-a="ps"] #g-ps,.tlsvg[data-a="pc"] #g-pc,.tlsvg[data-a="fu"] #g-fu,.tlsvg[data-a="pa"] #g-pa,.tlsvg[data-a="pg"] #g-pg,.tlsvg[data-a="pf"] #g-pf,.tlsvg[data-a="gt"] #g-gt{opacity:1}
+.pulse{animation:pulse 1.6s ease-out infinite;transform-origin:220px 80px}
+@keyframes pulse{0%{transform:scale(.6);opacity:.8}100%{transform:scale(1.8);opacity:0}}
+@media (prefers-reduced-motion:reduce){.pulse{animation:none;opacity:.3}}
+.tsel{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tsel button{background:var(--card);border:2px solid var(--c);color:var(--ink);padding:10px 8px;font-size:15px}
+.tsel button.on,.tsel button.pick{background:var(--c);color:var(--card)}
+.tsel button.wrong{background:var(--bad-soft);border-color:var(--bad);opacity:.7}
+.info{border-left:6px solid var(--c);padding:4px 0 4px 14px;display:grid;gap:8px}
+.q{font-weight:700;font-size:18px}
+.steps{display:grid;gap:8px;counter-reset:s;margin:0;padding:0;list-style:none}
+.steps li{display:grid;grid-template-columns:28px 1fr;gap:8px;align-items:start;font-size:15px}
+.steps li::before{counter-increment:s;content:counter(s);width:24px;height:24px;border-radius:50%;background:var(--hi);color:var(--hi-ink);display:grid;place-content:center;font-weight:700;font-size:13px;margin-top:1px}
+
+/* Bauplan */
+.plan{border-top:8px solid var(--c)}
+.formula{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-weight:700}
+.blk{border-radius:8px;padding:6px 10px;font-size:15px;border:2px solid var(--line)}
+.blk.a{background:var(--c);border-color:var(--c);color:var(--card)}
+.blk.v{background:var(--hi);border-color:var(--hi);color:var(--hi-ink)}
+.plus{color:var(--muted)}
+.merk{background:var(--hi);color:var(--hi-ink);border-radius:10px;padding:10px 12px;font-weight:700;transform:rotate(-.6deg)}
+.conj{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:repeat(3,auto);grid-auto-flow:column;gap:2px 14px;font-size:15px;background:var(--bg);border-radius:10px;padding:8px 12px}
+.conj b{color:var(--c)}
+.cmp{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cmp>div{border-top:5px solid var(--c);background:var(--bg);border-radius:10px;padding:10px;display:grid;gap:6px;align-content:start;min-width:0}
+@media (max-width:420px){.cmp{grid-template-columns:1fr}}
+.ex{font-size:15px;display:grid;gap:4px}
+.ex div::before{content:"→ ";color:var(--c);font-weight:700}
+
+/* Quiz */
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.qbar{flex:1;height:8px;border-radius:99px;background:var(--line);overflow:hidden}
+.qbar i{display:block;height:100%;background:var(--blue);transition:width .3s}
+.prompt{position:relative;padding:26px 18px 22px;text-align:center}
+.big{font-size:34px;font-weight:700;margin:6px 0;text-wrap:balance}
+.sent{font-size:20px;line-height:1.9;text-align:left}
+.gap{display:inline-block;min-width:4.5em;border-bottom:3px solid var(--hi);color:var(--muted);text-align:center;padding:0 4px;line-height:1.3}
+.gap.ok{border-color:var(--ok);color:var(--ok);font-weight:700}
+.cue{color:var(--muted);font-size:16px}
+.sig{background:var(--hi);color:var(--hi-ink);border-radius:5px;padding:0 4px;font-weight:700}
+.answer{width:100%;font:inherit;font-size:20px;padding:12px 14px;border-radius:12px;border:2px solid var(--line);background:var(--card);color:var(--ink)}
+.answer.ok{border-color:var(--ok);background:var(--ok-soft)}
+.answer.bad{border-color:var(--bad);background:var(--bad-soft)}
+.opts{display:grid;gap:8px}
+.opts button{background:var(--card);border:2px solid var(--line);text-align:left;font-size:18px}
+.opts button.ok{border-color:var(--ok);background:var(--ok-soft)}
+.opts button.bad{border-color:var(--bad);background:var(--bad-soft)}
+.fb{border-radius:12px;padding:12px 14px;font-size:16px;line-height:1.6}
+.fb>div+div{margin-top:4px}
+.fb.ok{background:var(--ok-soft)}.fb.bad{background:var(--bad-soft)}
+.fb .right{font-size:20px;font-weight:700}
+.stamp{position:absolute;right:12px;top:10px;font-family:var(--f-display);color:var(--ok);border:3px solid var(--ok);border-radius:8px;padding:2px 10px;font-size:18px;transform:rotate(12deg) scale(1.6);opacity:0;pointer-events:none}
+.stamp.show{animation:stamp .35s ease-out forwards}
+@keyframes stamp{to{transform:rotate(12deg) scale(1);opacity:.9}}
+@media (prefers-reduced-motion:reduce){.stamp.show{animation:none;transform:rotate(12deg);opacity:.9}.qbar i{transition:none}}
+.words{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.words button{background:var(--card);border:2px solid var(--line);padding:8px 10px;font-size:18px;font-weight:400}
+.words button.hit{background:var(--bad-soft);border-color:var(--bad);font-weight:700}
+.words button.miss{opacity:.45}
+.result{text-align:center;justify-items:center}
+.score{font-family:var(--f-display);font-size:56px;line-height:1}
+.lv{display:grid;gap:8px}
+.lv button{display:flex;justify-content:space-between;gap:10px;text-align:left}
+.lv button small{font-weight:400;color:var(--muted)}
+
+/* Verben */
+.search{width:100%;font:inherit;font-size:17px;padding:10px 14px;border-radius:12px;border:2px solid var(--line);background:var(--card);color:var(--ink)}
+.fam{display:grid;gap:8px}
+.fam-h{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.vt{width:100%;border-collapse:collapse;font-size:15px}
+.vt th{text-align:left;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:4px 6px;border-bottom:2px solid var(--line)}
+.vt td{padding:7px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+.vt td.de{color:var(--muted)}
+.vt .say{background:none;padding:2px 6px;font-size:16px}
+.star{color:var(--warn)}
+.pat{font-family:var(--f-display);font-size:20px}
+.vin{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.vin label{display:grid;gap:4px;font-size:13px;color:var(--muted);font-weight:700}
+
+/* Probe-Test */
+.tsec{display:grid;gap:12px}
+.ti{display:grid;gap:6px;padding:10px 0;border-top:1px solid var(--line)}
+.ti select,.ti input{font:inherit;font-size:17px;padding:8px 10px;border-radius:10px;border:2px solid var(--line);background:var(--card);color:var(--ink);width:100%}
+.ti.ok select,.ti.ok input{border-color:var(--ok);background:var(--ok-soft)}
+.ti.bad select,.ti.bad input{border-color:var(--bad);background:var(--bad-soft)}
+.ti .sol{font-size:14px;color:var(--bad);font-weight:700}
+</style>
+</head>
+<body>
+<main class="wrap" id="app" aria-live="polite"></main>
+
+<script>
+(function(){
+"use strict";
+const KEY="konrad-zeiten-v1";
+const $=id=>document.getElementById(id);
+const app=$("app");
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+
+/* ---------- Speicher ---------- */
+let S={st:{},vb:{},hist:[]};
+try{const r=localStorage.getItem(KEY);if(r)S=Object.assign(S,JSON.parse(r))}catch(e){}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+function rec(t,ok){(S.st[t]=S.st[t]||[]).push(ok?1:0);if(S.st[t].length>12)S.st[t].shift();save()}
+
+/* ---------- Die 6 Zeiten (aus Mamas Canva-Übersicht) ---------- */
+const ORDER=["ps","pc","fu","gt","pa","pg","pf"];
+const T={
+ ps:{n:"Present Simple",de:"einfache Gegenwart",q:"Passiert es immer wieder?",what:"Gewohnheiten, Regeln, Dinge, die immer so sind.",
+   f:[["Subjekt",""],["Grundform","v"]],f2:"he / she / it → Verb + s",
+   merk:"He, she, it – das s muss mit!",neg:"don't / doesn't + Grundform",ques:"Do / Does … + Grundform?",
+   sig:["always","every day","usually","often","sometimes","every week","every morning","every Saturday","on Fridays"],
+   ex:["I play football every Saturday.","She always goes to school by bus.","He doesn't like fish.","Do you play the guitar?"],v:["play","go"]},
+ pc:{n:"Present Continuous",de:"Verlaufsform Gegenwart",q:"Passiert es genau JETZT?",what:"Etwas läuft gerade in diesem Moment.",
+   f:[["Subjekt",""],["am / is / are","a"],["Verb + ing","v"]],
+   merk:"Jetzt gerade? Dann -ing ran – und am, is, are vorne dran!",neg:"am not / isn't / aren't + Verb-ing",ques:"Am / Is / Are … Verb-ing?",
+   sig:["now","right now","today","look!","listen!","at the moment"],
+   ex:["Look! The dog is running.","I am doing my homework right now.","They aren't watching TV at the moment."],v:["play","eat"]},
+ fu:{n:"Future (will)",de:"Zukunft",q:"Passiert es SPÄTER – spontan, vermutet oder versprochen?",what:"Zukunft allgemein, spontane Entscheidungen („Ich mach's!“), Vermutungen (I think …) und Versprechen.",
+   f:[["Subjekt",""],["will","a"],["Grundform","v"]],
+   merk:"will bleibt immer will – kein s, kein -ed!",neg:"won't (= will not) + Grundform",ques:"Will … + Grundform?",
+   sig:["tomorrow","next week","next Friday","next year","in 2030","soon","I think","probably","I promise"],
+   ex:["I will play tennis tomorrow.","I think it will rain next week.","The phone is ringing – I will answer it!","I promise I won't be late."],v:["play","sing"]},
+ gt:{n:"Future (going to)",de:"Zukunft – schon geplant",q:"Ist es schon GEPLANT – oder sieht man es schon KOMMEN?",what:"1) Pläne und Absichten: Du hast dich schon vorher entschieden. 2) Vorhersagen mit Beweis: Man sieht jetzt schon, dass es passieren wird.",
+   f:[["Subjekt",""],["am / is / are","a"],["going to","a"],["Grundform","v"]],
+   merk:"Geplant oder schon zu sehen? → going to! Spontan oder vermutet? → will!",neg:"am not / isn't / aren't going to + Grundform",ques:"Am / Is / Are … going to + Grundform?",
+   sig:["Look at those clouds!","Be careful!","Watch out!","I've decided","My plan:","We've got the tickets"],
+   ex:["My plan: I am going to visit my grandma this weekend.","We've got the tickets – we are going to fly to London.","Look at those clouds! It is going to rain.","Watch out! You are going to fall!"],v:["play","eat"]},
+ pa:{n:"Past Simple",de:"einfache Vergangenheit",q:"Ist es VORBEI – mit Zeitpunkt?",what:"Etwas ist fertig passiert, man weiß wann.",
+   f:[["Subjekt",""],["Verb + ed  oder  2. Form","v"]],
+   merk:"Yesterday, last, ago – -ed oder 2. Form, so!",neg:"didn't + Grundform",ques:"Did … + Grundform?",
+   sig:["yesterday","last week","last year","last night","in 2012","ago"],
+   ex:["I played football yesterday.","We went to Vienna last week.","He didn't eat his lunch."],v:["play","go"]},
+ pg:{n:"Past Continuous",de:"Verlaufsform Vergangenheit",q:"LIEF es gerade, als etwas passierte?",what:"Etwas war gerade im Gang – dann kam etwas dazwischen.",
+   f:[["Subjekt",""],["was / were","a"],["Verb + ing","v"]],
+   merk:"Es lief gerade (was/were + -ing) – zack, kam der Blitz (Past Simple)!",neg:"wasn't / weren't + Verb-ing",ques:"Was / Were … Verb-ing?",
+   sig:["while","when","as"],
+   ex:["I was playing when the phone rang.","While we were eating, the light went out.","As she was walking home, she saw a fox."],v:["play","cut"]},
+ pf:{n:"Present Perfect",de:"Perfekt – mit Bezug zu JETZT",q:"Hat es mit JETZT zu tun?",what:"Bis jetzt, schon, noch nie, seit – kein genauer Zeitpunkt in der Vergangenheit.",
+   f:[["Subjekt",""],["have / has","a"],["3. Form","v"]],
+   merk:"have / has + 3. Form: go – went – GONE",neg:"haven't / hasn't + 3. Form",ques:"Have / Has … + 3. Form?",
+   sig:["since","for","yet","ever","already","never","just"],
+   ex:["I have lived here since 2020.","She has already eaten.","Have you ever been to London?","We haven't finished yet."],v:["play","go"]}
+};
+const SIG=[];ORDER.forEach(t=>T[t].sig.forEach(w=>SIG.push([w,t])));
+
+/* ---------- Unregelmäßige Verben ---------- */
+// base|2. Form|3. Form|Deutsch|Familie|★ = auf Mamas Liste
+const VRAW=`be|was / were|been|sein|ABC|*
+go|went|gone|gehen, fahren|ABC|*
+do|did|done|tun, machen|ABC|*
+see|saw|seen|sehen|ABC|*
+eat|ate|eaten|essen|ABC|*
+drink|drank|drunk|trinken|ABC|*
+give|gave|given|geben|ABC|*
+know|knew|known|wissen, kennen|ABC|*
+speak|spoke|spoken|sprechen|ABC|*
+take|took|taken|nehmen|ABC|*
+ride|rode|ridden|reiten, (Rad) fahren|ABC|*
+ring|rang|rung|läuten, anrufen|ABC|*
+write|wrote|written|schreiben|ABC|
+sing|sang|sung|singen|ABC|
+swim|swam|swum|schwimmen|ABC|
+begin|began|begun|beginnen|ABC|
+break|broke|broken|brechen|ABC|
+forget|forgot|forgotten|vergessen|ABC|
+fly|flew|flown|fliegen|ABC|
+drive|drove|driven|fahren (Auto)|ABC|
+fall|fell|fallen|fallen|ABC|
+wear|wore|worn|tragen (Kleidung)|ABC|
+steal|stole|stolen|stehlen|ABC|
+choose|chose|chosen|wählen|ABC|
+bring|brought|brought|bringen|ABB|*
+buy|bought|bought|kaufen|ABB|*
+find|found|found|finden|ABB|*
+get|got|got|bekommen, holen|ABB|*
+have|had|had|haben|ABB|*
+make|made|made|machen, herstellen|ABB|*
+say|said|said|sagen|ABB|*
+think|thought|thought|denken|ABB|
+catch|caught|caught|fangen|ABB|
+teach|taught|taught|unterrichten|ABB|
+tell|told|told|erzählen|ABB|
+sleep|slept|slept|schlafen|ABB|
+feel|felt|felt|fühlen|ABB|
+keep|kept|kept|behalten|ABB|
+leave|left|left|verlassen, weggehen|ABB|
+meet|met|met|treffen|ABB|
+send|sent|sent|schicken|ABB|
+sell|sold|sold|verkaufen|ABB|
+sit|sat|sat|sitzen|ABB|
+stand|stood|stood|stehen|ABB|
+understand|understood|understood|verstehen|ABB|
+win|won|won|gewinnen|ABB|
+lose|lost|lost|verlieren|ABB|
+pay|paid|paid|bezahlen|ABB|
+hear|heard|heard|hören|ABB|
+come|came|come|kommen|ABA|*
+become|became|become|werden|ABA|*
+run|ran|run|laufen, rennen|ABA|
+cut|cut|cut|schneiden|AAA|*
+read|read|read|lesen|AAA|*
+put|put|put|legen, stellen|AAA|
+let|let|let|lassen|AAA|
+hit|hit|hit|schlagen, treffen|AAA|
+cost|cost|cost|kosten|AAA|`;
+const VERBS=VRAW.trim().split("\n").map(l=>{const[b,p,pp,de,fam,st]=l.split("|");return{b,p,pp,de,fam,star:st==="*"}});
+const IRR={};VERBS.forEach(v=>IRR[v.b]=v);
+const FAM={
+ ABC:{n:"Alle drei verschieden",pat:"A – B – C",tip:"Die Schwierigen: auswendig im Rhythmus sprechen. Oft endet die 3. Form auf -n / -en (seen, eaten, written).",ex:"go – went – gone"},
+ ABB:{n:"2. und 3. Form gleich",pat:"A – B – B",tip:"Lern nur EINE neue Form – sie gilt für Past Simple UND Present Perfect. Viele enden auf -ought / -aught.",ex:"buy – bought – bought"},
+ ABA:{n:"1. und 3. Form gleich",pat:"A – B – A",tip:"Nur die Mitte ändert sich – die 3. Form ist wieder wie am Anfang.",ex:"come – came – come"},
+ AAA:{n:"Alle gleich",pat:"A – A – A",tip:"Die Faulen: Sie ändern sich nie. Achtung bei read: geschrieben gleich, aber 2.+3. Form spricht man „red“.",ex:"cut – cut – cut"}
+};
+
+/* ---------- Verb-Formen bauen ---------- */
+const DBL=["run","swim","sit","get","put","cut","stop","travel","win","begin","shop","hit","let","forget","plan"];
+function third(v){if(v==="be")return"is";if(v==="have")return"has";if(/(s|sh|ch|x|o)$/.test(v))return v+"es";if(/[^aeiou]y$/.test(v))return v.slice(0,-1)+"ies";return v+"s"}
+function ing(v){if(v==="be")return"being";if(/ie$/.test(v))return v.slice(0,-2)+"ying";if(DBL.includes(v))return v+v.slice(-1)+"ing";if(/[^e]e$/.test(v))return v.slice(0,-1)+"ing";return v+"ing"}
+function regPast(v){if(/e$/.test(v))return v+"d";if(/[^aeiou]y$/.test(v))return v.slice(0,-1)+"ied";if(DBL.includes(v))return v+v.slice(-1)+"ed";return v+"ed"}
+const past=v=>IRR[v]?IRR[v].p:regPast(v);
+const pp=v=>IRR[v]?IRR[v].pp:regPast(v);
+// per: 1 = I · 2 = you/we/they · 3 = he/she/it
+function conj(per,v,t,mod){
+  const not=mod==="not",adv=["already","never","just","ever"].includes(mod)?mod:"";
+  const be3=per===1?"am":per===3?"is":"are",beN=per===1?"am not":be3+"n't";
+  switch(t){
+   case"ps":if(v==="be")return not?beN:be3;if(not)return(per===3?"doesn't ":"don't ")+v;return per===3?third(v):v;
+   case"pc":return(not?beN:be3)+" "+ing(v);
+   case"fu":return(not?"won't ":"will ")+v;
+   case"gt":return(not?beN:be3)+" going to "+v;
+   case"pa":if(v==="be"){const w=per===2?"were":"was";return not?w+"n't":w}return not?"didn't "+v:past(v);
+   case"pg":{const w=per===2?"were":"was";return(not?w+"n't":w)+" "+ing(v)}
+   case"pf":return(per===3?"has":"have")+(not?"n't":"")+(adv?" "+adv:"")+" "+pp(v);
+  }
+}
+function errs(per,v,t,mod){
+  const not=mod==="not",o=[];
+  if(t==="ps"){if(not)o.push((per===3?"doesn't ":"don't ")+third(v),(per===3?"don't ":"doesn't ")+v);else o.push(per===3?v:third(v))}
+  if(t==="pc")o.push(ing(v),(per===1?"am":per===3?"is":"are")+" "+v);
+  if(t==="fu")o.push((not?"won't ":"will ")+third(v),(not?"won't ":"will ")+ing(v));
+  if(t==="gt"){const b=(per===1?"am":per===3?"is":"are")+(not?" not":"");o.push((not?"not ":"")+"going to "+v,b+" going to "+third(v),b+" going "+v,"will going to "+v)}
+  if(t==="pa"){if(not)o.push("didn't "+past(v));else{o.push(v);if(IRR[v])o.push(regPast(v))}}
+  if(t==="pg")o.push((per===2?"was":"were")+(not?"n't":"")+" "+ing(v),(per===2?"were":"was")+" "+v);
+  if(t==="pf"){const h=(per===3?"has":"have")+(not?"n't":"")+(["already","never","just"].includes(mod)?" "+mod:"");if(v==="be")o.push(h+" "+(per===2?"were":"was"));else if(past(v)!==pp(v))o.push(h+" "+past(v));o.push((per===3?"have":"has")+(not?"n't":"")+(["already","never","just"].includes(mod)?" "+mod:"")+" "+pp(v))}
+  return o;
+}
+const norm=s=>String(s).toLowerCase().replace(/[’`´]/g,"'").replace(/won't/g,"will not").replace(/n't/g," not").replace(/[.!?,;:]/g," ").replace(/\s+/g," ").trim();
+
+/* ---------- Satzbank: [Zeit, vorne, Verb, hinten, Person, Zusatz] ---------- */
+const SB=[
+ ["ps","Every Saturday I","play","football.",1],["ps","My sister always","read","before bed.",3],["ps","He usually","go","to school by bus.",3],
+ ["ps","We often","watch","films on Fridays.",2],["ps","Tom","do","his homework every day.",3],["ps","She sometimes","eat","pizza at school.",3],
+ ["ps","My dad","drink","coffee every morning.",3],["ps","Lisa","play","tennis every week.",3,"not"],
+ ["pc","Look! The dog","run","in the garden.",3],["pc","I","do","my homework right now.",1],["pc","Listen! The children","sing","a song.",2],
+ ["pc","At the moment we","eat","dinner.",2],["pc","She","write","a message now.",3],["pc","Today Tom","wear","his new jacket.",3],
+ ["pc","Right now they","watch","TV.",2,"not"],["pc","The baby","sleep","at the moment.",3],
+ ["fu","Tomorrow I","visit","my grandma.",1],["fu","Next week we","go","to Salzburg.",2],["fu","It","rain","tomorrow.",3],
+ ["fu","In 2030 my brother","be","20 years old.",3],["fu","Next Friday she","play","in a concert.",3],["fu","They","come","to the party next Saturday.",2,"not"],
+ ["fu","Soon you","see","the difference.",2],["fu","Next year Konrad","learn","French.",3],
+ ["fu","I think she","win","the race.",3],["fu","The phone is ringing – I","answer","it!",1],["fu","I promise I","tell","anybody.",1,"not"],
+ ["gt","Look at those clouds! It","rain",".",3],["gt","I've decided: I","buy","a new bike.",1],["gt","We've got the tickets. We","fly","to London in July.",2],
+ ["gt","Be careful! You","fall","!",2],["gt","My plan: I","visit","my grandma this weekend.",1],["gt","Tom has saved his money. He","buy","a new phone.",3],
+ ["gt","Watch out! That glass","break","!",3],["gt","They've decided. They","watch","TV tonight – they want to read.",2,"not"],
+ ["pa","Yesterday I","play","football.",1],["pa","Last week we","go","to Vienna.",2],["pa","In 2012 my parents","buy","a house.",2],
+ ["pa","Two days ago Tom","find","a wallet.",3],["pa","Last night she","see","a ghost.",3],["pa","Yesterday the police","catch","the thief.",3],
+ ["pa","Last year we","travel","to Italy.",2,"not"],["pa","My friend","write","me a letter last week.",3],
+ ["pg","I","play","computer games when the phone rang.",1],["pg","While we","eat",", the light went out.",2],["pg","The thief","run","away as the police arrived.",3],
+ ["pg","When I came home, my sister","watch","TV.",3],["pg","While Tom","ride","his bike, it started to rain.",3],["pg","They","sleep","when the alarm rang.",2],
+ ["pg","As she","walk","home, she saw a fox.",3],["pg","You","read","a book when I called you.",2],
+ ["pf","I","live","here since 2020.",1],["pf","We","know","each other for five years.",2],["pf","She","eat","her lunch.",3,"already"],
+ ["pf","I","finish","my homework yet.",1,"not"],["pf","My brother","see","a shark.",3,"never"],["pf","Tom","be","ill since Monday.",3],
+ ["pf","They","arrive",".",2,"just"],["pf","My parents","be","married for 15 years.",2]
+].map(([t,a,v,b,per,mod])=>({t,a,v,b,per,mod:mod||""}));
+const ans=s=>conj(s.per,s.v,s.t,s.mod);
+// will-Sätze nur mit Zeitangabe (tomorrow, next …) dürfen auch mit going to gelöst werden
+const flex=s=>s.t==="fu"&&!/think|promise|ringing/.test(s.a);
+const okAns=(s,x)=>norm(x)===norm(ans(s))||(flex(s)&&norm(x)===norm(conj(s.per,s.v,"gt",s.mod)));
+const okT=(s,t)=>t===s.t||(flex(s)&&t==="gt");
+const cueTxt=s=>"("+(s.mod?s.mod+" / ":"")+s.v+")";
+const SIGRE=new RegExp("\\b("+SIG.map(x=>x[0]).sort((a,b)=>b.length-a.length).map(w=>w.replace(/[!?:…]/g,"").trim().replace(/[.*+?^${}()|[\]\\]/g,"\\$&")).join("|")+")\\b","gi");
+const hl=txt=>esc(txt).replace(SIGRE,'<span class="sig">$1</span>');
+function sentHTML(s,gap){const tight=/^[,.!?]/.test(s.b);return `${hl(s.a)} ${gap}${tight?"":" "}${hl(s.b)}`}
+
+/* ---------- Fehler-Detektiv ---------- */
+const ERR=[
+ ["pa","Yesterday I have played football.","have played","played","yesterday → vorbei, mit Zeitpunkt → Past Simple."],
+ ["ps","He go to school every day.","go","goes","He, she, it – das s muss mit!"],
+ ["pc","Look! The cat sleeps on the sofa.","sleeps","is sleeping","Look! → genau jetzt → Present Continuous."],
+ ["pa","I have seen him last week.","have seen","saw","last week → Past Simple (see – saw – seen)."],
+ ["pg","We was playing when it started to rain.","was","were","we / you / they → were · I / he / she / it → was."],
+ ["pf","She has went home.","went","gone","has + 3. Form: go – went – gone."],
+ ["fu","Tomorrow I will plays tennis.","plays","play","will + Grundform – kein s!"],
+ ["ps","I am live in Austria.","am live","live","Ein Fakt / immer so → Present Simple, kein am."],
+ ["ps","They are watching TV every evening.","are watching","watch","every evening → immer wieder → Present Simple."],
+ ["pf","I know him since 2019.","know","have known","since → Present Perfect (have + 3. Form)."],
+ ["pg","While I walked home, I saw a fox.","walked","was walking","while → es lief gerade → Past Continuous."],
+ ["pa","She didn't went to school yesterday.","went","go","didn't + Grundform – die Vergangenheit steckt schon im did."],
+ ["fu","Next week it rains.","rains","will rain","next week → Zukunft → will + Grundform."],
+ ["ps","He doesn't likes pizza.","likes","like","doesn't + Grundform – das s steckt schon im does."],
+ ["pf","I haven't finish my homework yet.","finish","finished","haven't + 3. Form."],
+ ["pc","Listen! Somebody sing.","sing","is singing","Listen! → genau jetzt → is + -ing."],
+ ["pa","Yesterday we buyed new shoes.","buyed","bought","buy ist unregelmäßig: buy – bought – bought."],
+ ["pg","They was sleeping when the alarm rang.","was","were","they → were."]
+].map(([t,s,w,f,why])=>({t,s,w,f,why}));
+
+/* ---------- Bausteine ---------- */
+let timers=[];
+function show(html){timers.forEach(clearTimeout);timers=[];try{speechSynthesis.cancel()}catch(e){}app.innerHTML=html;window.scrollTo(0,0)}
+const backBtn=(lbl="← Zeiten-Detektiv")=>`<button class="back" id="bk">${lbl}</button>`;
+const wireBack=()=>{const b=$("bk");if(b)b.onclick=home};
+const tname=t=>`<span class="tag c-${t}">${T[t].n}</span>`;
+function amp(t){const a=S.st[t]||[];if(a.length<4)return{c:"n",l:"noch offen",r:a.length?a.reduce((x,y)=>x+y,0)/a.length:0};const r=a.reduce((x,y)=>x+y,0)/a.length;return r>=.8?{c:"g",l:"sitzt",r}:r>=.5?{c:"y",l:"fast",r}:{c:"r",l:"üben",r}}
+function weakest(){return ORDER.slice().sort((a,b)=>{const A=amp(a),B=amp(b);const sa=A.c==="n"?-1:A.r,sb=B.c==="n"?-1:B.r;return sa-sb})[0]}
+function say(text){try{const u=new SpeechSynthesisUtterance(text);u.lang="en-GB";u.rate=.85;speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){}}
+function stampIt(){const s=$("stamp");if(s)s.classList.add("show")}
+function tselHTML(id,sel){return `<div class="tsel" id="${id}">${ORDER.map(t=>`<button class="c-${t}${sel===t?" on":""}" data-t="${t}">${T[t].n}</button>`).join("")}</div>`}
+
+/* ---------- Startseite ---------- */
+function home(){
+  if(location.hash)history.replaceState(null,"",location.pathname);
+  const w=weakest();
+  show(`
+  <a class="toplink" href="englisch.html">← Vokabel-Akte</a>
+  <header class="top"><div class="eyebrow">Englisch · Schularbeit</div><h1>Zeiten-<span class="mark">Detektiv</span></h1>
+    <p class="muted" style="margin:6px 0 0">Jede Zeit hinterlässt Spuren: die <b>Signalwörter</b>. Finde sie – dann weißt du, welche Zeit passt.</p></header>
+
+  <section class="card" style="border:2px solid var(--blue)">
+    <div class="row" style="justify-content:space-between"><div class="eyebrow">Zeiten-Barometer</div><span class="small muted">letzte 12 Antworten</span></div>
+    <div class="baro">${ORDER.map(t=>{const a=amp(t);const col=a.c==="g"?"var(--ok)":a.c==="y"?"var(--warn)":a.c==="r"?"var(--bad)":"var(--line)";
+      return `<div class="baro-r c-${t}"><span><b style="color:var(--c)">●</b> ${T[t].n}</span><span class="bar"><i style="width:${a.c==="n"?0:Math.round(a.r*100)}%;background:${col}"></i></span><span class="amp ${a.c}">${a.l}</span></div>`}).join("")}</div>
+    <button class="btn-main" id="weak">Übe jetzt: ${T[w].n}</button>
+    <button class="btn-ghost" id="test">📝 Probe-Test Zeiten</button>
+  </section>
+
+  <div class="eyebrow">Deine Ermittlungs-Methoden</div>
+  <div class="tiles">
+    <button class="tile" id="m1"><span class="ico">📏</span><b>1 · Zeitstrahl</b><small>Wo passiert es? Gestern, jetzt, morgen, bis jetzt.</small></button>
+    <button class="tile" id="m2"><span class="ico">🧱</span><b>2 · Bauplan</b><small>Jede Zeit als Formel + Merkspruch.</small></button>
+    <button class="tile" id="m3"><span class="ico">⚡</span><b>3 · Signalwort-Blitz</b><small>Wort sehen → Zeit tippen. Schnell!</small></button>
+    <button class="tile" id="m4"><span class="ico">🪜</span><b>4 · Satz-Treppe</b><small>Zeit wählen → Form wählen → selbst schreiben.</small></button>
+    <button class="tile" id="m5"><span class="ico">🔍</span><b>5 · Fehler-Detektiv</b><small>Falsche Sätze finden und reparieren.</small></button>
+    <button class="tile" id="m6"><span class="ico">🥁</span><b>6 · Verben-Rhythmus</b><small>go – went – gone. Hören, sprechen, schreiben.</small></button>
+    <button class="tile wide" id="m9" style="border:2px solid var(--t-gt)"><span class="ico">🔮</span><b>will oder going to?</b><small>Neu: Wann nimmst du welche Zukunft? Erklärung + Quiz.</small></button>
+    <button class="tile" id="m7"><span class="ico">📚</span><b>Irregular Verbs</b><small>Überblick nach Familien – so merkst du sie dir leichter.</small></button>
+    <button class="tile" id="m8"><span class="ico">🎯</span><b>Irregular-Quiz</b><small>10 Fragen: antippen, erkennen, schreiben.</small></button>
+  </div>
+  <p class="small muted" style="margin:0">Dein Fortschritt bleibt auf diesem Handy gespeichert.</p>`);
+  $("weak").onclick=()=>stairsPick(w);
+  $("test").onclick=probe;
+  $("m1").onclick=()=>timeline();$("m2").onclick=()=>plans();$("m3").onclick=blitz;
+  $("m4").onclick=()=>stairsPick();$("m5").onclick=errors;$("m6").onclick=rhythm;$("m7").onclick=verbs;$("m8").onclick=iquizPick;$("m9").onclick=willGt;
+}
+
+/* ---------- 1 · Zeitstrahl ---------- */
+function timeline(sel){
+  sel=sel||"pc";
+  const dots=[];for(let x=28;x<=322;x+=24)dots.push(`<circle cx="${x}" cy="128" r="4.5" fill="var(--t-ps)"/>`);
+  show(`${backBtn()}
+  <header><div class="eyebrow">Methode 1</div><h2>Der Zeitstrahl</h2><p class="muted small" style="margin:4px 0 0">Tipp eine Zeit an und schau, <b>wo</b> sie auf dem Strahl wohnt.</p></header>
+  <section class="card">
+    <svg class="tlsvg" id="tl" data-a="${sel}" viewBox="0 0 340 172" role="img" aria-label="Zeitstrahl mit den sechs Zeiten">
+      <line x1="12" y1="80" x2="322" y2="80" stroke="var(--line)" stroke-width="4" stroke-linecap="round"/>
+      <path d="M318 72 L332 80 L318 88 Z" fill="var(--line)"/>
+      <line x1="220" y1="18" x2="220" y2="148" stroke="var(--ink)" stroke-width="2" stroke-dasharray="4 4"/>
+      <text x="80" y="166" text-anchor="middle">VERGANGENHEIT</text><text class="now" x="220" y="166" text-anchor="middle">JETZT</text><text x="294" y="166" text-anchor="middle">ZUKUNFT</text>
+      <g class="t" id="g-ps">${dots.join("")}<text x="28" y="148" style="fill:var(--t-ps)">immer wieder …</text></g>
+      <g class="t" id="g-pa"><circle cx="70" cy="80" r="10" fill="var(--t-pa)"/><text x="70" y="62" text-anchor="middle" style="fill:var(--t-pa)">✓ fertig</text></g>
+      <g class="t" id="g-pg"><rect x="30" y="34" width="120" height="14" rx="7" fill="var(--t-pg)" opacity=".85"/><text x="106" y="28" style="fill:var(--t-pg);font-size:20px">⚡</text><text x="30" y="26" style="fill:var(--t-pg)">lief gerade</text></g>
+      <g class="t" id="g-pf"><line x1="112" y1="104" x2="210" y2="104" stroke="var(--t-pf)" stroke-width="5" stroke-linecap="round"/><path d="M206 96 L218 104 L206 112 Z" fill="var(--t-pf)"/><circle cx="112" cy="104" r="5" fill="var(--t-pf)"/><text x="122" y="122" style="fill:var(--t-pf)">bis jetzt</text></g>
+      <g class="t" id="g-pc"><circle class="pulse" cx="220" cy="80" r="13" fill="var(--t-pc)"/><circle cx="220" cy="80" r="11" fill="var(--t-pc)"/><text x="232" y="62" style="fill:var(--t-pc)">gerade jetzt</text></g>
+      <g class="t" id="g-gt"><circle cx="220" cy="44" r="4" fill="var(--t-gt)"/><line x1="220" y1="44" x2="282" y2="44" stroke="var(--t-gt)" stroke-width="3" stroke-dasharray="5 4"/><path d="M280 37 L292 44 L280 51 Z" fill="var(--t-gt)"/><text x="240" y="32" style="fill:var(--t-gt)">geplant</text></g>
+      <g class="t" id="g-fu"><circle cx="294" cy="80" r="10" fill="var(--t-fu)"/><text x="294" y="104" text-anchor="middle" style="fill:var(--t-fu)">später</text></g>
+    </svg>
+    ${tselHTML("ts",sel)}
+    <div class="info c-${sel}">
+      <div class="q">${T[sel].q}</div>
+      <div>${tname(sel)} <span class="muted small">${T[sel].de}</span></div>
+      <div class="small">${T[sel].what}</div>
+      <div class="ex">${T[sel].ex.map(e=>`<div>${hl(e)}</div>`).join("")}</div>
+      <div class="chips">${T[sel].sig.map(w=>`<span class="chip c-${sel}">${esc(w)}</span>`).join("")}</div>
+    </div>
+  </section>
+  <section class="card">
+    <div class="eyebrow">Die Detektiv-Fragen</div>
+    <p class="small muted" style="margin:0">Wenn kein Signalwort da ist, frag dich der Reihe nach:</p>
+    <ol class="steps">
+      <li><span>Passiert es <b>genau jetzt</b>? → <b style="color:var(--t-pc)">Present Continuous</b></span></li>
+      <li><span>Passiert es <b>immer wieder</b> / ist es immer so? → <b style="color:var(--t-ps)">Present Simple</b></span></li>
+      <li><span>Passiert es <b>später</b> und ist schon <b>geplant</b> – oder sieht man es schon kommen? → <b style="color:var(--t-gt)">Future (going to)</b></span></li>
+      <li><span>Passiert es <b>später</b> – spontan, vermutet, versprochen? → <b style="color:var(--t-fu)">Future (will)</b></span></li>
+      <li><span>Ist es <b>vorbei und ich weiß wann</b>? → <b style="color:var(--t-pa)">Past Simple</b></span></li>
+      <li><span><b>Lief</b> es gerade, als etwas dazwischenkam? → <b style="color:var(--t-pg)">Past Continuous</b></span></li>
+      <li><span>Geht es um <b>bis jetzt / schon / noch nie / seit</b>? → <b style="color:var(--t-pf)">Present Perfect</b></span></li>
+    </ol>
+  </section>`);
+  wireBack();
+  $("ts").querySelectorAll("button").forEach(b=>b.onclick=()=>timeline(b.dataset.t));
+}
+
+/* ---------- will oder going to? ---------- */
+const cmpHTML=()=>`<section class="card" style="border:2px solid var(--t-gt)">
+  <div class="eyebrow">Zukunft · Der große Unterschied</div><h3>will oder going to?</h3>
+  <div class="cmp">
+    <div class="c-gt"><b style="color:var(--c)">going to</b><div class="small">Die Entscheidung ist <b>schon gefallen</b> – oder man <b>sieht es schon kommen</b>.</div>
+      <div class="ex"><div>📅 Plan: <i>I'm going to visit Grandma on Sunday.</i></div><div>🌧️ Beweis: <i>Look at those clouds! It's going to rain.</i></div></div></div>
+    <div class="c-fu"><b style="color:var(--c)">will</b><div class="small">Die Entscheidung fällt <b>jetzt gerade</b> – oder es ist nur eine <b>Vermutung</b> oder ein <b>Versprechen</b>.</div>
+      <div class="ex"><div>💡 spontan: <i>The phone is ringing. I'll get it!</i></div><div>🤔 Vermutung: <i>I think Austria will win.</i></div><div>🤝 Versprechen: <i>I promise I'll help you.</i></div></div></div>
+  </div>
+  <div class="merk">💡 Hast du es dir schon <b>vorher</b> überlegt? → going to. Fällt es dir <b>gerade erst</b> ein? → will.</div>
+  <div class="small muted">tomorrow, next week … passen zu beiden. Dann entscheidet: Plan/Beweis (going to) oder spontan/Vermutung (will).</div>
+</section>`;
+function willGt(){
+  const q=shuffle(SB.filter(s=>s.t==="fu"&&/think|promise|ringing/.test(s.a)).concat(SB.filter(s=>s.t==="gt"))).slice(0,8);let i=0,ok=0;
+  show(`${backBtn()}${cmpHTML()}<button class="btn-main" id="go">Quiz: will oder going to? · 8 Sätze</button>`);
+  wireBack();$("go").onclick=step;
+  function step(){
+    if(i>=q.length){S.hist.push({m:"willgt",ok,n:q.length,d:Date.now()});save();return done("will oder going to?",ok,q.length,willGt)}
+    const s=q[i],a=ans(s);let first=true;
+    show(`<div class="qhead"><button class="back" id="bk">✕</button><div class="qbar"><i style="width:${i/q.length*100}%"></i></div><span class="tnum small muted">${i+1}/${q.length}</span></div>
+    <section class="card prompt"><span class="stamp" id="stamp">RICHTIG</span><div class="eyebrow">will oder going to?</div><div class="sent" id="st">${sentHTML(s,'<span class="gap">&nbsp;</span>')} <span class="cue">${esc(cueTxt(s))}</span></div></section>
+    <div class="tsel" id="ts"><button class="c-fu" data-t="fu">will</button><button class="c-gt" data-t="gt">going to</button></div><div id="fb"></div>`);
+    wireBack();
+    $("ts").querySelectorAll("button").forEach(b=>b.onclick=()=>{
+      if(b.dataset.t===s.t){b.classList.add("pick");stampIt();$("st").innerHTML=sentHTML(s,`<span class="gap ok">${esc(a)}</span>`);$("ts").querySelectorAll("button").forEach(x=>x.disabled=true);
+        $("fb").innerHTML=`<div class="fb ok c-${s.t}">${s.t==="gt"?"Schon geplant oder schon zu sehen → <b>going to</b>":"Spontan, Vermutung oder Versprechen → <b>will</b>"}</div>`;
+        rec(s.t,first);if(first)ok++;timers.push(setTimeout(()=>{i++;step()},first?1500:2400))}
+      else{first=false;b.classList.add("wrong");b.disabled=true;$("fb").innerHTML=`<div class="fb bad">Frag dich: Wurde das <b>vorher</b> beschlossen oder sieht man es schon? Oder fällt es gerade erst ein / ist nur vermutet?</div>`}
+    });
+  }
+}
+
+/* ---------- 2 · Bauplan ---------- */
+const PERS=[["I",1],["you",2],["he/she/it",3],["we",2],["you",2],["they",2]];
+function plans(){
+  show(`${backBtn()}
+  <header><div class="eyebrow">Methode 2</div><h2>Baupläne</h2><p class="muted small" style="margin:4px 0 0">Jede Zeit ist wie Lego: immer die gleichen Bausteine. Gelb = das Verb.</p></header>
+  ${ORDER.map(t=>{const d=T[t];return `<section class="card plan c-${t}">
+    <div><div class="eyebrow">${d.de}</div><h3 style="color:var(--c);font-size:22px">${d.n}</h3><div class="small">${d.q} ${d.what}</div></div>
+    <div class="formula">${d.f.map(([x,c],i)=>`${i?'<span class="plus">+</span>':""}<span class="blk ${c}">${esc(x)}</span>`).join("")}</div>
+    ${d.f2?`<div class="small"><b>Achtung:</b> ${esc(d.f2)}</div>`:""}
+    <div class="merk">💡 ${esc(d.merk)}</div>
+    ${d.v.map(v=>`<div class="conj">${PERS.map(([p,n])=>`<div>${p} <b>${esc(conj(n,v,t,""))}</b></div>`).join("")}</div>`).join("")}
+    <div class="small"><b>Verneinung:</b> ${esc(d.neg)}<br><b>Frage:</b> ${esc(d.ques)}</div>
+    <div class="chips">${d.sig.map(w=>`<span class="chip c-${t}">${esc(w)}</span>`).join("")}</div>
+  </section>${t==="gt"?cmpHTML():""}`}).join("")}`);
+  wireBack();
+}
+
+/* ---------- 3 · Signalwort-Blitz ---------- */
+function blitz(){
+  const q=shuffle(SIG).slice(0,10);let i=0,ok=0;
+  function step(){
+    if(i>=q.length){S.hist.push({m:"blitz",ok,n:q.length,d:Date.now()});save();return done("Signalwort-Blitz",ok,q.length,blitz)}
+    const[w,t]=q[i];let first=true;
+    show(`<div class="qhead"><button class="back" id="bk">✕</button><div class="qbar"><i style="width:${i/q.length*100}%"></i></div><span class="tnum small muted">${i+1}/${q.length}</span></div>
+    <section class="card prompt"><span class="stamp" id="stamp">RICHTIG</span><div class="eyebrow">Welche Zeit verrät dieses Wort?</div><div class="big">${esc(w)}</div></section>
+    ${tselHTML("ts")}<div id="fb"></div>`);
+    wireBack();
+    $("ts").querySelectorAll("button").forEach(b=>b.onclick=()=>{
+      const g=b.dataset.t;
+      if(g===t){if(first)ok++;rec(t,first);b.classList.add("pick");stampIt();
+        $("fb").innerHTML=`<div class="fb ok c-${t}"><div><b>${esc(w)}</b> → ${tname(t)}</div><div class="small">💡 ${esc(T[t].merk)}</div></div>`;
+        $("ts").querySelectorAll("button").forEach(x=>x.disabled=true);
+        timers.push(setTimeout(()=>{i++;step()},first?1100:2000));
+      }else{if(first)rec(t,false);first=false;b.classList.add("wrong");b.disabled=true;
+        $("fb").innerHTML=`<div class="fb bad">Nicht ganz. Frag dich: <b>${esc(T[g].q)}</b> Passt das zu „${esc(w)}“? Versuch's nochmal.</div>`}
+    });
+  }
+  step();
+}
+function done(title,ok,n,again){
+  show(`<section class="card result"><div class="eyebrow">${esc(title)}</div><div class="score tnum">${ok}/${n}</div><div class="muted">beim ersten Versuch richtig</div>
+  <div class="row" style="width:100%"><button class="btn-main" style="flex:1" id="a">Nochmal</button><button class="btn-ghost" id="bk">Übersicht</button></div></section>`);
+  $("a").onclick=again;wireBack();
+}
+
+/* ---------- 4 · Satz-Treppe ---------- */
+const LV=["","Stufe 1 · Welche Zeit?","Stufe 2 · Welche Form?","Stufe 3 · Selbst schreiben"];
+function stairsPick(only){
+  show(`${backBtn()}
+  <header><div class="eyebrow">Methode 4${only?" · nur "+T[only].n:""}</div><h2>Satz-Treppe</h2><p class="muted small" style="margin:4px 0 0">8 Sätze pro Runde. Die Signalwörter sind <span class="sig">gelb</span> – sobald du die Zeit erkannt hast.</p></header>
+  <section class="card lv">
+    ${[1,2,3].map(l=>`<button data-l="${l}" class="${l===3?"btn-main":""}" style="${l===3?"font-size:17px":""}"><span>${LV[l]}</span><small style="${l===3?"color:inherit":""}">${l===1?"Zeit erkennen":l===2?"richtige Form antippen":"wie in der Schularbeit"}</small></button>`).join("")}
+  </section>
+  ${only?"":`<section class="card"><div class="eyebrow">Nur eine Zeit üben</div><div class="chips">${ORDER.map(t=>`<button class="chip c-${t}" data-o="${t}" style="font-weight:700">${T[t].n}</button>`).join("")}</div></section>`}`);
+  wireBack();
+  app.querySelectorAll("[data-l]").forEach(b=>b.onclick=()=>stairs(+b.dataset.l,only));
+  app.querySelectorAll("[data-o]").forEach(b=>b.onclick=()=>stairsPick(b.dataset.o));
+}
+function stairs(lv,only){
+  let pool=only?SB.filter(s=>s.t===only):SB;
+  const q=only?shuffle(pool).slice(0,8):shuffle(ORDER).concat(shuffle(ORDER)).slice(0,8).map(t=>pick(pool.filter(s=>s.t===t)));
+  // keine doppelten Sätze
+  const seen=new Set();for(let k=0;k<q.length;k++){if(seen.has(q[k])){const alt=shuffle(pool).find(s=>!seen.has(s));if(alt)q[k]=alt}seen.add(q[k])}
+  let i=0,ok=0;
+  function step(){
+    if(i>=q.length){S.hist.push({m:"treppe"+lv,ok,n:q.length,d:Date.now()});save();return done(LV[lv],ok,q.length,()=>stairs(lv,only))}
+    const s=q[i],a=ans(s);let first=true;
+    const head=`<div class="qhead"><button class="back" id="bk">✕</button><div class="qbar"><i style="width:${i/q.length*100}%"></i></div><span class="tnum small muted">${i+1}/${q.length}</span></div>`;
+    const plain=`${esc(s.a)} <span class="gap">&nbsp;</span>${/^[,.!?]/.test(s.b)?"":" "}${esc(s.b)} <span class="cue">${esc(cueTxt(s))}</span>`;
+    const solved=()=>`${sentHTML(s,`<span class="gap ok">${esc(a)}</span>`)}`;
+    function next(){rec(s.t,first);if(first)ok++;timers.push(setTimeout(()=>{i++;step()},first?1300:2400))}
+    if(lv===1){
+      show(`${head}<section class="card prompt"><span class="stamp" id="stamp">RICHTIG</span><div class="eyebrow">Welche Zeit passt?</div><div class="sent" id="st">${plain}</div></section>${tselHTML("ts")}<div id="fb"></div>`);
+      wireBack();
+      $("ts").querySelectorAll("button").forEach(b=>b.onclick=()=>{
+        if(okT(s,b.dataset.t)){b.classList.add("pick");stampIt();$("st").innerHTML=solved();$("ts").querySelectorAll("button").forEach(x=>x.disabled=true);
+          $("fb").innerHTML=`<div class="fb ok c-${s.t}">${tname(s.t)} <span class="small">💡 ${esc(T[s.t].merk)}</span>${flex(s)?'<div class="small">Auch <b>going to</b> ist richtig, wenn es schon geplant ist.</div>':""}</div>`;next()}
+        else{first=false;b.classList.add("wrong");b.disabled=true;$("st").innerHTML=`${sentHTML(s,'<span class="gap">&nbsp;</span>')} <span class="cue">${esc(cueTxt(s))}</span>`;
+          $("fb").innerHTML=`<div class="fb bad">Schau auf das <span class="sig">gelbe</span> Signalwort – oder frag dich: Passiert es jetzt, immer, später, vorbei, lief es gerade, bis jetzt?</div>`}
+      });
+    }else if(lv===2){
+      const wrong=shuffle([...new Set(errs(s.per,s.v,s.t,s.mod).concat(ORDER.filter(t=>t!==s.t).map(t=>conj(s.per,s.v,t,s.mod==="not"?"not":""))))].filter(x=>!okAns(s,x)));
+      const opts=shuffle([a].concat(wrong.slice(0,3)));
+      show(`${head}<section class="card prompt"><span class="stamp" id="stamp">RICHTIG</span><div class="eyebrow">Welche Form passt in die Lücke?</div><div class="sent" id="st">${sentHTML(s,'<span class="gap">&nbsp;</span>')} <span class="cue">${esc(cueTxt(s))}</span></div></section>
+      <div class="opts" id="op">${opts.map(o=>`<button data-o="${esc(o)}">${esc(o)}</button>`).join("")}</div><div id="fb"></div>`);
+      wireBack();
+      $("op").querySelectorAll("button").forEach(b=>b.onclick=()=>{
+        if(norm(b.dataset.o)===norm(a)){b.classList.add("ok");stampIt();$("st").innerHTML=solved();$("op").querySelectorAll("button").forEach(x=>x.disabled=true);
+          $("fb").innerHTML=`<div class="fb ok c-${s.t}">${tname(s.t)} · ${esc(T[s.t].f.map(x=>x[0]).join(" + "))}</div>`;next()}
+        else{first=false;b.classList.add("bad");b.disabled=true;$("fb").innerHTML=`<div class="fb bad c-${s.t}">Die Zeit ist ${tname(s.t)}. Bauplan: <b>${esc(T[s.t].f.slice(1).map(x=>x[0]).join(" + "))}</b>${T[s.t].f2?" · "+esc(T[s.t].f2):""}</div>`}
+      });
+    }else{
+      show(`${head}<section class="card prompt"><span class="stamp" id="stamp">RICHTIG</span><div class="eyebrow">Schreib die richtige Form</div><div class="sent" id="st">${sentHTML(s,'<span class="gap">&nbsp;</span>')} <span class="cue">${esc(cueTxt(s))}</span></div></section>
+      <input class="answer" id="in" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="z. B. ${s.t==="pc"?"is playing":s.t==="pf"?"have played":"…"}">
+      <button class="btn-main" id="chk">Prüfen</button><div id="fb"></div>`);
+      wireBack();const inp=$("in");inp.focus();
+      let tries=0;
+      const check=()=>{if(!inp.value.trim())return;
+        if(okAns(s,inp.value)){inp.className="answer ok";inp.disabled=true;$("chk").disabled=true;stampIt();$("st").innerHTML=solved();
+          $("fb").innerHTML=`<div class="fb ok c-${s.t}">${tname(s.t)} – genau so!${flex(s)?'<div class="small">Auch <b>going to</b> ist richtig, wenn es schon geplant ist.</div>':""}</div>`;next()}
+        else{first=false;tries++;inp.className="answer bad";
+          const z=T[s.t];
+          $("fb").innerHTML=tries<2?`<div class="fb bad">Noch nicht. Tipp: Das ist ${tname(s.t)} → <b>${esc(z.f.slice(1).map(x=>x[0]).join(" + "))}</b>${z.f2?" ("+esc(z.f2)+")":""}</div>`
+            :`<div class="fb bad">Richtig wäre: <div class="right">${esc(a)}</div><span class="small">Schreib es einmal ab, dann geht's weiter.</span></div>`;
+          if(tries>=2){inp.value="";inp.placeholder=a}}
+      };
+      $("chk").onclick=check;inp.onkeydown=e=>{if(e.key==="Enter")check()};
+    }
+  }
+  step();
+}
+
+/* ---------- 5 · Fehler-Detektiv ---------- */
+const clean=w=>w.toLowerCase().replace(/[.!?,]/g,"");
+function errors(){
+  const q=shuffle(ERR).slice(0,6);let i=0,ok=0;
+  function step(){
+    if(i>=q.length){S.hist.push({m:"fehler",ok,n:q.length,d:Date.now()});save();return done("Fehler-Detektiv",ok,q.length,errors)}
+    const e=q[i],words=e.s.split(" "),ww=e.w.split(" ");let start=-1;
+    for(let k=0;k<=words.length-ww.length;k++){if(ww.every((x,j)=>clean(words[k+j])===x.toLowerCase())){start=k;break}}
+    const bad=new Set(ww.map((_,j)=>start+j));let first=true,phase=1;
+    show(`<div class="qhead"><button class="back" id="bk">✕</button><div class="qbar"><i style="width:${i/q.length*100}%"></i></div><span class="tnum small muted">${i+1}/${q.length}</span></div>
+    <section class="card prompt"><span class="stamp" id="stamp">GELÖST</span><div class="eyebrow" id="ey">Tipp auf das falsche Wort</div>
+      <div class="words" id="wd">${words.map((w,k)=>`<button data-k="${k}">${esc(w)}</button>`).join("")}</div></section>
+    <div id="p2"></div><div id="fb"></div>`);
+    wireBack();
+    $("wd").querySelectorAll("button").forEach(b=>b.onclick=()=>{
+      if(phase!==1)return;const k=+b.dataset.k;
+      if(bad.has(k)){phase=2;$("wd").querySelectorAll("button").forEach(x=>{x.disabled=true;if(bad.has(+x.dataset.k))x.classList.add("hit")});
+        $("ey").textContent="Erwischt! Jetzt reparieren:";
+        $("p2").innerHTML=`<div class="card"><div class="small">Statt <b style="color:var(--bad)">${esc(e.w)}</b> schreibst du:</div><input class="answer" id="in" autocomplete="off" autocapitalize="off" spellcheck="false"><button class="btn-main" id="chk">Prüfen</button></div>`;
+        const inp=$("in");inp.focus();let tries=0;
+        const check=()=>{if(!inp.value.trim())return;
+          if(norm(inp.value)===norm(e.f)){inp.className="answer ok";inp.disabled=true;$("chk").disabled=true;stampIt();rec(e.t,first);if(first)ok++;
+            $("fb").innerHTML=`<div class="fb ok c-${e.t}"><div>${tname(e.t)}</div><div>${esc(e.why)}</div></div>`;
+            $("fb").insertAdjacentHTML("beforeend",`<button class="btn-main" id="nx" style="margin-top:10px">Weiter</button>`);$("nx").onclick=()=>{i++;step()}}
+          else{first=false;tries++;inp.className="answer bad";$("fb").innerHTML=`<div class="fb bad">${tries<2?"Noch nicht. Tipp: "+esc(e.why):"Richtig: <div class=\"right\">"+esc(e.f)+"</div>"+esc(e.why)}</div>`}};
+        $("chk").onclick=check;inp.onkeydown=ev=>{if(ev.key==="Enter")check()};
+      }else{first=false;b.classList.add("miss");b.disabled=true;$("fb").innerHTML=`<div class="fb bad">Das Wort passt. Such das <b>Verb</b> – und schau aufs Signalwort.</div>`}
+    });
+  }
+  step();
+}
+
+/* ---------- 6 · Verben-Rhythmus ---------- */
+function rhythm(){
+  const known=v=>(S.vb[v.b]||0)>=2;
+  let pool=VERBS.filter(v=>v.star&&!known(v));
+  if(pool.length<8)pool=pool.concat(shuffle(VERBS.filter(v=>!pool.includes(v)&&!known(v))));
+  if(pool.length<8)pool=pool.concat(shuffle(VERBS.filter(v=>!pool.includes(v))));
+  const q=shuffle(pool.slice(0,12)).slice(0,8);let i=0,ok=0;
+  function step(){
+    if(i>=q.length){S.hist.push({m:"verben",ok,n:q.length,d:Date.now()});save();return done("Verben-Rhythmus",ok,q.length,rhythm)}
+    const v=q[i];let first=true;
+    show(`<div class="qhead"><button class="back" id="bk">✕</button><div class="qbar"><i style="width:${i/q.length*100}%"></i></div><span class="tnum small muted">${i+1}/${q.length}</span></div>
+    <section class="card prompt"><span class="stamp" id="stamp">RICHTIG</span><div class="eyebrow">1 – 2 – 3 · im Rhythmus</div><div class="big">${esc(v.b)}</div><div class="muted">${esc(v.de)}</div>
+      <button class="btn-ghost" id="hr" style="margin-top:10px">🔊 Anhören</button></section>
+    <div class="vin"><label>2. Form (Past Simple)<input class="answer" id="a2" autocomplete="off" autocapitalize="off" spellcheck="false"></label>
+      <label>3. Form (Present Perfect)<input class="answer" id="a3" autocomplete="off" autocapitalize="off" spellcheck="false"></label></div>
+    <button class="btn-main" id="chk">Prüfen</button><div id="fb"></div>`);
+    wireBack();
+    $("hr").onclick=()=>say(`${v.b}. ${v.p.replace(" / "," or ")}. ${v.pp}.`);
+    const a2=$("a2"),a3=$("a3");a2.focus();
+    const okP=x=>v.p.split(" / ").some(p=>norm(p)===norm(x))||norm(x)===norm(v.p);
+    const check=()=>{
+      const r2=okP(a2.value),r3=norm(a3.value)===norm(v.pp);
+      a2.className="answer "+(r2?"ok":"bad");a3.className="answer "+(r3?"ok":"bad");
+      if(r2&&r3){stampIt();if(first)ok++;S.vb[v.b]=(S.vb[v.b]||0)+(first?1:0);save();[a2,a3].forEach(x=>x.disabled=true);$("chk").disabled=true;
+        $("fb").innerHTML=`<div class="fb ok"><div class="right">${esc(v.b)} – ${esc(v.p)} – ${esc(v.pp)}</div><div class="small">Familie ${FAM[v.fam].pat}: ${esc(FAM[v.fam].n)}</div></div>`;
+        say(`${v.b}. ${v.p.replace(" / "," or ")}. ${v.pp}.`);timers.push(setTimeout(()=>{i++;step()},first?1800:2600))}
+      else{if(first){S.vb[v.b]=0;save()}first=false;
+        $("fb").innerHTML=`<div class="fb bad">Richtig: <div class="right">${esc(v.b)} – ${esc(v.p)} – ${esc(v.pp)}</div><span class="small">Sprich es 3× laut im Rhythmus, dann tipp es ab.</span></div>`}
+    };
+    $("chk").onclick=check;a3.onkeydown=e=>{if(e.key==="Enter")check()};a2.onkeydown=e=>{if(e.key==="Enter")a3.focus()};
+  }
+  step();
+}
+
+/* ---------- Irregular Verbs · Überblick ---------- */
+function verbs(){
+  location.hash="verben";
+  let onlyStar=false,qy="";
+  show(`${backBtn()}
+  <header><div class="eyebrow">Überblick</div><h2>Irregular Verbs</h2><p class="muted small" style="margin:4px 0 0">Nach <b>Familien</b> sortiert: Verben, die sich gleich verhalten, lernst du zusammen. <span class="star">★</span> = auf deiner Liste aus der Schule. 🔊 zum Anhören.</p></header>
+  <button class="btn-main" id="qz">🎯 Irregular-Quiz starten</button>
+  <input class="search" id="q" placeholder="Suchen: go, kaufen …" autocomplete="off" autocapitalize="off">
+  <label class="row small"><input type="checkbox" id="st"> nur ★ Schul-Liste</label>
+  <div id="lst" style="display:grid;gap:16px"></div>`);
+  wireBack();
+  const draw=()=>{
+    const f=v=>(!onlyStar||v.star)&&(!qy||[v.b,v.p,v.pp,v.de].join(" ").toLowerCase().includes(qy));
+    $("lst").innerHTML=Object.keys(FAM).map(k=>{const vs=VERBS.filter(v=>v.fam===k&&f(v));if(!vs.length)return"";const F=FAM[k];
+      return `<section class="card fam"><div class="fam-h"><h3>${esc(F.n)}</h3><span class="pat">${F.pat}</span></div>
+      <div class="small muted">${esc(F.tip)}</div>
+      <table class="vt"><thead><tr><th>1. Grundform</th><th>2. Past</th><th>3. Perfect</th><th></th></tr></thead><tbody>
+      ${vs.map(v=>`<tr><td><b>${esc(v.b)}</b>${v.star?' <span class="star">★</span>':""}<div class="small muted">${esc(v.de)}</div></td><td>${esc(v.p)}</td><td>${esc(v.pp)}</td><td><button class="say" data-v="${esc(v.b)}" aria-label="${esc(v.b)} anhören">🔊</button></td></tr>`).join("")}
+      </tbody></table></section>`}).join("")||`<p class="muted">Nichts gefunden.</p>`;
+    $("lst").querySelectorAll(".say").forEach(b=>b.onclick=()=>{const v=IRR[b.dataset.v];say(`${v.b}. ${v.p.replace(" / "," or ")}. ${v.pp}.`)});
+  };
+  $("qz").onclick=iquizPick;
+  $("q").oninput=e=>{qy=e.target.value.trim().toLowerCase();draw()};
+  $("st").onchange=e=>{onlyStar=e.target.checked;draw()};
+  draw();
+}
+
+/* ---------- Irregular-Quiz ---------- */
+function iquizPick(){
+  show(`${backBtn()}
+  <header><div class="eyebrow">Abfrage</div><h2>Irregular-Quiz</h2><p class="muted small" style="margin:4px 0 0">10 Fragen, bunt gemischt: Formen antippen, Grundform finden, die richtige Reihe erkennen und alle drei Formen schreiben.</p></header>
+  <section class="card lv">
+    <button class="btn-main" data-m="star" style="font-size:17px"><span>★ Schul-Liste</span><small style="color:inherit">${VERBS.filter(v=>v.star).length} Verben</small></button>
+    <button data-m="all"><span>Alle Verben</span><small>${VERBS.length} Verben</small></button>
+    <button data-m="weak"><span>Nur die Wackligen</span><small>noch nicht sicher</small></button>
+  </section>`);
+  wireBack();
+  app.querySelectorAll("[data-m]").forEach(b=>b.onclick=()=>iquiz(b.dataset.m));
+}
+function iquiz(mode){
+  let pool=mode==="star"?VERBS.filter(v=>v.star):mode==="weak"?VERBS.filter(v=>(S.vb[v.b]||0)<2):VERBS;
+  if(pool.length<4)pool=VERBS;
+  const q=shuffle(pool).slice(0,10).map((v,k)=>({v,type:k%5===4?"write":pick(["p","pp","base","row","write"])}));
+  let i=0,ok=0;const wrongs=[];
+  const other=v=>shuffle(VERBS.filter(x=>x!==v));
+  function step(){
+    if(i>=q.length){S.hist.push({m:"iquiz",ok,n:q.length,d:Date.now()});save();
+      show(`<section class="card result"><div class="eyebrow">Irregular-Quiz</div><div class="score tnum">${ok}/${q.length}</div><div class="muted">beim ersten Versuch richtig</div>
+      ${wrongs.length?`<div class="small muted">Diese nochmal laut im Rhythmus sprechen:</div><div class="chips">${wrongs.map(v=>`<span class="chip"><b>${esc(v.b)}</b> – ${esc(v.p)} – ${esc(v.pp)}</span>`).join("")}</div>`:`<div><b>Alles richtig – stark!</b></div>`}
+      <div class="row" style="width:100%"><button class="btn-main" style="flex:1" id="a">Nochmal</button><button class="btn-ghost" id="bk">Übersicht</button></div></section>`);
+      $("a").onclick=()=>iquiz(mode);wireBack();return}
+    const{v,type}=q[i];let first=true;
+    const head=`<div class="qhead"><button class="back" id="bk">✕</button><div class="qbar"><i style="width:${i/q.length*100}%"></i></div><span class="tnum small muted">${i+1}/${q.length}</span></div>`;
+    const row=`${v.b} – ${v.p} – ${v.pp}`;
+    const finish=good=>{if(good){stampIt();if(first){ok++;S.vb[v.b]=(S.vb[v.b]||0)+1}}else{if(first){S.vb[v.b]=0;wrongs.push(v)}first=false}save();
+      if(good){say(`${v.b}. ${v.p.replace(" / "," or ")}. ${v.pp}.`);$("fb").innerHTML=`<div class="fb ok"><div class="right">${esc(row)}</div><div class="small">${esc(v.de)} · Familie ${FAM[v.fam].pat}</div></div>`;timers.push(setTimeout(()=>{i++;step()},first?1600:2600))}};
+    if(type==="write"){
+      show(`${head}<section class="card prompt"><span class="stamp" id="stamp">RICHTIG</span><div class="eyebrow">Schreib alle drei Formen</div><div class="big">${esc(v.de)}</div></section>
+      <div class="vin" style="grid-template-columns:1fr 1fr 1fr"><label>1. Form<input class="answer" id="w1" autocomplete="off" autocapitalize="off" spellcheck="false"></label><label>2. Form<input class="answer" id="w2" autocomplete="off" autocapitalize="off" spellcheck="false"></label><label>3. Form<input class="answer" id="w3" autocomplete="off" autocapitalize="off" spellcheck="false"></label></div>
+      <button class="btn-main" id="chk">Prüfen</button><div id="fb"></div>`);
+      wireBack();const w1=$("w1"),w2=$("w2"),w3=$("w3");w1.focus();
+      // Deutsch kann mehrere englische Verben meinen (z. B. machen = do/make): jede passende Reihe zählt
+      const cands=VERBS.filter(x=>x.de===v.de);
+      const check=()=>{const hit=cands.find(c=>norm(w1.value)===norm(c.b));const c=hit||v;
+        const r1=!!hit,r2=c.p.split(" / ").some(p=>norm(p)===norm(w2.value))||norm(w2.value)===norm(c.p),r3=norm(w3.value)===norm(c.pp);
+        [[w1,r1],[w2,r2],[w3,r3]].forEach(([el,r])=>el.className="answer "+(r?"ok":"bad"));
+        if(r1&&r2&&r3){[w1,w2,w3].forEach(x=>x.disabled=true);$("chk").disabled=true;finish(true)}
+        else{finish(false);$("fb").innerHTML=`<div class="fb bad">Richtig: <div class="right">${esc(row)}</div><span class="small">Tipp es einmal richtig ab.</span></div>`}};
+      $("chk").onclick=check;w3.onkeydown=e=>{if(e.key==="Enter")check()};w1.onkeydown=e=>{if(e.key==="Enter")w2.focus()};w2.onkeydown=e=>{if(e.key==="Enter")w3.focus()};
+      return;
+    }
+    let ask,right,opts;
+    if(type==="p"){ask=`Die 2. Form (Past Simple) von <b>${esc(v.b)}</b>?`;right=v.p;opts=[regPast(v.b),v.pp,other(v)[0].p,other(v)[1].p]}
+    else if(type==="pp"){ask=`Die 3. Form (Present Perfect) von <b>${esc(v.b)}</b>?`;right=v.pp;opts=[v.p,regPast(v.b),other(v)[0].pp,v.b+"en"]}
+    else if(type==="base"){const f=Math.random()<.5?v.p:v.pp;ask=`Zu welcher Grundform gehört <b>${esc(f)}</b>?`;right=v.b;opts=other(v).slice(0,3).map(x=>x.b)}
+    else{ask=`Welche Reihe stimmt? <span class="muted">(${esc(v.de)})</span>`;right=row;
+      opts=[`${v.b} – ${regPast(v.b)} – ${regPast(v.b)}`,`${v.b} – ${v.pp} – ${v.p}`,`${v.b} – ${v.p} – ${v.p}`,`${v.b} – ${v.pp} – ${v.pp}`,`${v.b} – ${v.p} – ${regPast(v.b)}`]}
+    opts=shuffle([...new Set(opts.filter(o=>norm(o)!==norm(right)&&!/^was \/ were/.test(o)))]).slice(0,3);
+    opts=shuffle([right].concat(opts));
+    show(`${head}<section class="card prompt"><span class="stamp" id="stamp">RICHTIG</span><div class="eyebrow">Irregular Verbs</div><div style="font-size:22px;margin-top:8px">${ask}</div></section>
+    <div class="opts" id="op">${opts.map(o=>`<button data-o="${esc(o)}">${esc(o)}</button>`).join("")}</div><div id="fb"></div>`);
+    wireBack();
+    $("op").querySelectorAll("button").forEach(b=>b.onclick=()=>{
+      if(norm(b.dataset.o)===norm(right)){b.classList.add("ok");$("op").querySelectorAll("button").forEach(x=>x.disabled=true);finish(true)}
+      else{b.classList.add("bad");b.disabled=true;finish(false);$("fb").innerHTML=`<div class="fb bad">Nicht ganz – versuch's nochmal. Tipp: ${esc(FAM[v.fam].n)} (${FAM[v.fam].pat}).</div>`}
+    });
+  }
+  step();
+}
+
+/* ---------- 7 · Probe-Test ---------- */
+function probe(){
+  const sigs=shuffle(ORDER).slice(0,4).map(t=>[pick(T[t].sig),t]);
+  const sents=shuffle(ORDER.map(t=>pick(SB.filter(s=>s.t===t))));
+  const es=shuffle(ERR).slice(0,2);
+  const vs=shuffle(VERBS.filter(v=>v.star)).slice(0,2);
+  const opt=ORDER.map(t=>`<option value="${t}">${T[t].n}</option>`).join("");
+  show(`${backBtn()}
+  <header><div class="eyebrow">Probe-Test · wie in der Schularbeit</div><h2>Zeiten-Test</h2><p class="muted small" style="margin:4px 0 0">Mach alles in Ruhe fertig, dann „Auswerten“. ${4+ORDER.length+2+4} Punkte.</p></header>
+  <section class="card tsec"><h3>1 · Welche Zeit verrät das Signalwort?</h3>
+    ${sigs.map(([w,t],k)=>`<div class="ti" id="s${k}"><b>${esc(w)}</b><select><option value="">– wählen –</option>${opt}</select><div class="sol"></div></div>`).join("")}</section>
+  <section class="card tsec"><h3>2 · Setz das Verb in der richtigen Zeit ein</h3>
+    ${sents.map((s,k)=>`<div class="ti" id="g${k}"><div>${esc(s.a)} ____ ${esc(s.b)} <span class="cue">${esc(cueTxt(s))}</span></div><input autocomplete="off" autocapitalize="off" spellcheck="false"><div class="sol"></div></div>`).join("")}</section>
+  <section class="card tsec"><h3>3 · Verbessere den Fehler</h3>
+    ${es.map((e,k)=>`<div class="ti" id="e${k}"><div>${esc(e.s)}</div><div class="small muted">Was gehört statt <b>${esc(e.w)}</b> hin?</div><input autocomplete="off" autocapitalize="off" spellcheck="false"><div class="sol"></div></div>`).join("")}</section>
+  <section class="card tsec"><h3>4 · Irregular Verbs: 2. und 3. Form</h3>
+    ${vs.map((v,k)=>`<div class="ti" id="v${k}"><b>${esc(v.b)}</b> <span class="small muted">${esc(v.de)}</span><div class="vin"><input placeholder="2. Form" autocomplete="off" autocapitalize="off" spellcheck="false"><input placeholder="3. Form" autocomplete="off" autocapitalize="off" spellcheck="false"></div><div class="sol"></div></div>`).join("")}</section>
+  <button class="btn-main" id="ev">Auswerten</button><div id="res"></div>`);
+  wireBack();
+  $("ev").onclick=()=>{
+    let pts=0;const per={};const mark=(t,ok)=>{(per[t]=per[t]||[0,0]);per[t][1]++;if(ok)per[t][0]++;rec(t,ok)};
+    const set=(id,ok,sol)=>{const el=$(id);el.className="ti "+(ok?"ok":"bad");el.querySelector(".sol").textContent=ok?"":"Richtig: "+sol;if(ok)pts++};
+    sigs.forEach(([w,t],k)=>{const ok=$("s"+k).querySelector("select").value===t;set("s"+k,ok,T[t].n);mark(t,ok)});
+    sents.forEach((s,k)=>{const ok=okAns(s,$("g"+k).querySelector("input").value);set("g"+k,ok,ans(s)+" ("+T[s.t].n+")");mark(s.t,ok)});
+    es.forEach((e,k)=>{const ok=norm($("e"+k).querySelector("input").value)===norm(e.f);set("e"+k,ok,e.f+" – "+e.why);mark(e.t,ok)});
+    vs.forEach((v,k)=>{const ins=$("v"+k).querySelectorAll("input");const o2=v.p.split(" / ").some(p=>norm(p)===norm(ins[0].value)),o3=norm(ins[1].value)===norm(v.pp);
+      const el=$("v"+k);el.className="ti "+(o2&&o3?"ok":"bad");pts+=(o2?1:0)+(o3?1:0);el.querySelector(".sol").textContent=o2&&o3?"":"Richtig: "+v.b+" – "+v.p+" – "+v.pp;
+      ins[0].style.borderColor=o2?"var(--ok)":"var(--bad)";ins[1].style.borderColor=o3?"var(--ok)":"var(--bad)"});
+    const total=4+ORDER.length+2+4,r=pts/total,lab=r>=.85?["var(--ok)","Stark, Konrad! Das sitzt."]:r>=.6?["var(--warn)","Gut! Ein paar Zeiten noch üben."]:["var(--bad)","Weiter üben – du schaffst das!"];
+    S.hist.push({m:"test",ok:pts,n:total,d:Date.now()});save();
+    const weak=Object.keys(per).filter(t=>per[t][0]<per[t][1]);
+    $("res").innerHTML=`<section class="card result" style="margin-top:12px"><div class="eyebrow">Ergebnis</div><div class="score tnum" style="color:${lab[0]}">${pts}/${total}</div><div><b>${lab[1]}</b></div>
+      ${weak.length?`<div class="small muted">Diese Zeiten nochmal anschauen:</div><div class="chips">${weak.map(t=>`<button class="chip c-${t}" data-w="${t}" style="font-weight:700">${T[t].n} üben</button>`).join("")}</div>`:""}
+      <div class="row" style="width:100%"><button class="btn-main" style="flex:1" id="nt">Neuer Test</button><button class="btn-ghost" id="hm">Übersicht</button></div></section>`;
+    $("ev").disabled=true;$("nt").onclick=probe;$("hm").onclick=home;
+    $("res").querySelectorAll("[data-w]").forEach(b=>b.onclick=()=>stairsPick(b.dataset.w));
+    $("res").scrollIntoView({behavior:"smooth",block:"start"});
+  };
+}
+
+/* ---------- Start ---------- */
+const routes={quiz:iquizPick,willgoingto:willGt,verben:verbs,zeitstrahl:()=>timeline(),bauplan:plans,blitz,treppe:()=>stairsPick(),fehler:errors,rhythmus:rhythm,test:probe};
+const h=location.hash.slice(1);
+(routes[h]||home)();
+})();
+</script>
+</body>
+</html>
